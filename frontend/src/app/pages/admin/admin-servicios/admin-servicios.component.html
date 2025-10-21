@@ -1,0 +1,170 @@
+<div class="admin-container">
+  <!-- Navegación del panel admin -->
+  <div class="admin-nav">
+    <a routerLink="/admin/empresas" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-building"></i>
+      Empresas
+    </a>
+    <a routerLink="/admin/suscripciones" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-file-invoice"></i>
+      Suscripciones
+    </a>
+    <a routerLink="/admin/planes" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-tags"></i>
+      Planes
+    </a>
+    <a routerLink="/admin/servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-cogs"></i>
+      Servicios
+    </a>
+    <a routerLink="/admin/plan-servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-link"></i>
+      Asociar Planes
+    </a>
+  </div>
+
+  <div class="header">
+    <h1>Gestión de Servicios</h1>
+    <button class="btn-primary" (click)="toggleFormulario()">
+      <i class="fas" [class.fa-plus]="!mostrarFormulario" [class.fa-times]="mostrarFormulario"></i>
+      {{ mostrarFormulario ? 'Cancelar' : 'Nuevo Servicio' }}
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-container">
+    <div class="form-group">
+      <label for="filtroEstado">Filtrar por estado:</label>
+      <select id="filtroEstado" [(ngModel)]="filtroActivo" (change)="filtrar()">
+        <option value="todos">Todos</option>
+        <option value="activos">Activos</option>
+        <option value="inactivos">Inactivos</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="formulario-container" *ngIf="mostrarFormulario">
+    <h3>{{ modoEdicion ? 'Editar Servicio' : 'Nuevo Servicio' }}</h3>
+    <form (ngSubmit)="guardarServicio()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nombre">Nombre del Servicio *</label>
+          <input 
+            type="text" 
+            id="nombre" 
+            [(ngModel)]="nuevoServicio.nombre" 
+            name="nombre" 
+            required
+            placeholder="Ej: OroSoft Compraventa">
+        </div>
+
+        <div class="form-group">
+          <label for="activo">Estado</label>
+          <select id="activo" [(ngModel)]="nuevoServicio.activo" name="activo">
+            <option [value]="true">Activo</option>
+            <option [value]="false">Inactivo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion">Descripción</label>
+        <textarea 
+          id="descripcion" 
+          [(ngModel)]="nuevoServicio.descripcion" 
+          name="descripcion"
+          rows="3"
+          placeholder="Descripción del servicio..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="url_api">URL API (opcional)</label>
+        <input 
+          type="text" 
+          id="url_api" 
+          [(ngModel)]="nuevoServicio.url_api" 
+          name="url_api"
+          placeholder="https://api.ejemplo.com/servicio">
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-success">
+          <i class="fas fa-save"></i>
+          {{ modoEdicion ? 'Actualizar' : 'Crear' }} Servicio
+        </button>
+        <button type="button" class="btn-secondary" (click)="toggleFormulario()">
+          <i class="fas fa-times"></i>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de servicios -->
+  <div class="tabla-container">
+    <div *ngIf="cargando" class="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      Cargando servicios...
+    </div>
+    
+    <div *ngIf="!cargando && servicios.length === 0" class="empty-state">
+      <i class="fas fa-cogs fa-3x"></i>
+      <p>No hay servicios {{ filtroActivo === 'todos' ? 'registrados' : filtroActivo }}</p>
+      <button class="btn-primary" (click)="toggleFormulario()">
+        <i class="fas fa-plus"></i>
+        Crear primer servicio
+      </button>
+    </div>
+
+    <table *ngIf="!cargando && servicios.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>URL API</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let servicio of servicios" [class.inactive-row]="!servicio.activo">
+          <td>{{ servicio.id }}</td>
+          <td><strong>{{ servicio.nombre }}</strong></td>
+          <td class="descripcion">{{ servicio.descripcion || 'Sin descripción' }}</td>
+          <td class="url-api">
+            <span *ngIf="servicio.url_api" class="url-link" [title]="servicio.url_api">
+              <i class="fas fa-link"></i>
+              {{ servicio.url_api.length > 30 ? (servicio.url_api | slice:0:30) + '...' : servicio.url_api }}
+            </span>
+            <span *ngIf="!servicio.url_api" class="sin-url">-</span>
+          </td>
+          <td>
+            <span 
+              class="badge" 
+              [class.badge-success]="servicio.activo" 
+              [class.badge-danger]="!servicio.activo">
+              {{ servicio.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="acciones">
+            <button class="btn-icon" (click)="editarServicio(servicio)" title="Editar">
+              <i class="fas fa-edit" style="color: #007bff;"></i>
+            </button>
+            <button 
+              class="btn-icon" 
+              (click)="toggleEstado(servicio)" 
+              [title]="servicio.activo ? 'Desactivar' : 'Activar'"
+              [style.color]="servicio.activo ? '#ffc107' : '#28a745'">
+              <i class="fas" [class.fa-pause]="servicio.activo" [class.fa-play]="!servicio.activo"></i>
+            </button>
+            <button class="btn-icon" (click)="eliminarServicio(servicio)" title="Eliminar">
+              <i class="fas fa-trash-alt" style="color: #dc3545;"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

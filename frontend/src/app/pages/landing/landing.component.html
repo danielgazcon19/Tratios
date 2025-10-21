@@ -1,0 +1,71 @@
+<section id="inicio" class="hero-landing page-section page-section--neutral">
+  <div class="hero-background" aria-hidden="true"></div>
+  <div class="section-container hero-layout">
+    <div class="hero-copy">
+      <span class="section-kicker">Plataforma especializada en compraventa</span>
+      <h1 class="hero-title">Impulsa tu negocio con <span class="section-highlight">Tratios</span></h1>
+      <p class="hero-subtitle">
+        Automatiza procesos, controla tu inventario y ofrece una experiencia confiable a tus clientes con una
+        plataforma diseñada especialmente para casas de empeño y compraventa.
+      </p>
+      <div class="hero-actions">
+        <a (click)="scrollToSection('suscripcion')" class="primary-btn">Empezar ahora</a>
+        <a (click)="scrollToSection('funcionalidades')" class="outline-btn">Ver funcionalidades</a>
+      </div>
+    </div>
+    <div class="hero-card card-surface benefits-card">
+      <div class="benefits-header">
+        <span class="benefits-badge">💡 Valor inmediato</span>
+        <h2 class="benefits-title">Lo que tu negocio gana con Tratios</h2>
+        <p class="benefits-subtitle">Transformamos la gestión de tu compraventa</p>
+      </div>
+      
+      <div class="benefits-slider">
+        <button class="slider-arrow slider-arrow-prev" (click)="prevBenefit()" aria-label="Beneficio anterior">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="benefit-slide">
+          <div class="benefit-icon">
+            <i [class]="benefits[currentBenefitIndex].icon"></i>
+          </div>
+          <div class="benefit-content">
+            <h3>{{ benefits[currentBenefitIndex].title }}</h3>
+            <p>{{ benefits[currentBenefitIndex].description }}</p>
+          </div>
+        </div>
+
+        <button class="slider-arrow slider-arrow-next" (click)="nextBenefit()" aria-label="Siguiente beneficio">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="slider-dots">
+        <button *ngFor="let benefit of benefits; let i = index" 
+                class="slider-dot" 
+                [class.active]="i === currentBenefitIndex"
+                (click)="goToBenefit(i)"
+                [attr.aria-label]="'Ir a beneficio ' + (i + 1)">
+        </button>
+      </div>
+
+      <div class="benefits-footer">
+        <div class="hero-metric">
+          <span class="metric-value">98%</span>
+          <span class="metric-label">Clientes satisfechos</span>
+        </div>
+        <div class="hero-metric">
+          <span class="metric-value">+50%</span>
+          <span class="metric-label">Aumento en ventas</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+<app-funcionalidades id="funcionalidades"></app-funcionalidades>
+<app-planes id="suscripcion"></app-planes>
+<app-acerca id="acerca-de"></app-acerca>
+<app-preguntas id="preguntas"></app-preguntas>
+

@@ -1,0 +1,219 @@
+<div class="admin-container">
+  <!-- Navegación del panel admin -->
+  <div class="admin-nav">
+    <a routerLink="/admin/empresas" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-building"></i>
+      Empresas
+    </a>
+    <a routerLink="/admin/suscripciones" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-file-invoice"></i>
+      Suscripciones
+    </a>
+    <a routerLink="/admin/planes" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-tags"></i>
+      Planes
+    </a>
+    <a routerLink="/admin/servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-cogs"></i>
+      Servicios
+    </a>
+    <a routerLink="/admin/plan-servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-link"></i>
+      Asociar Planes
+    </a>
+  </div>
+
+  <div class="header">
+    <h1>Gestión de Suscripciones</h1>
+    <button class="btn-primary" (click)="toggleFormulario()">
+      <i class="fas fa-plus"></i>
+      {{ mostrarFormulario ? 'Cancelar' : 'Nueva Suscripción' }}
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-container">
+    <div class="form-group">
+      <label for="filtroEstado">Filtrar por estado:</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado" (change)="filtrarPorEstado()">
+        <option value="">Todas</option>
+        <option value="activa">Activas</option>
+        <option value="suspendida">Suspendidas</option>
+        <option value="cancelada">Canceladas</option>
+        <option value="inactiva">Inactivas</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Formulario de nueva suscripción -->
+  <div class="formulario-container" *ngIf="mostrarFormulario">
+    <h3>Nueva Suscripción</h3>
+    <form (ngSubmit)="crearSuscripcion()">
+      <div class="form-group">
+        <label for="empresa">Empresa *</label>
+        <select 
+          id="empresa" 
+          [(ngModel)]="nuevaSuscripcion.empresa_id" 
+          name="empresa" 
+          required>
+          <option value="0" disabled>Seleccione una empresa</option>
+          <option *ngFor="let empresa of empresas" [value]="empresa.id">
+            {{ empresa.nombre }} ({{ empresa.nit }})
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="plan">Plan *</label>
+        <select 
+          id="plan" 
+          [(ngModel)]="nuevaSuscripcion.plan_id" 
+          name="plan" 
+          required>
+          <option value="0" disabled>Seleccione un plan</option>
+          <option value="1">Básico</option>
+          <option value="2">Pro</option>
+          <option value="3">Empresarial</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="periodo">Periodo *</label>
+        <select 
+          id="periodo" 
+          [(ngModel)]="nuevaSuscripcion.periodo" 
+          name="periodo" 
+          required>
+          <option value="mensual">Mensual</option>
+          <option value="anual">Anual</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="formaPago">Forma de Pago *</label>
+        <select 
+          id="formaPago" 
+          [(ngModel)]="nuevaSuscripcion.forma_pago" 
+          name="formaPago" 
+          required>
+          <option value="" disabled>Seleccione forma de pago</option>
+          <option value="efectivo">Efectivo</option>
+          <option value="transferencia">Transferencia Bancaria</option>
+          <option value="tarjeta_credito">Tarjeta de Crédito</option>
+          <option value="tarjeta_debito">Tarjeta de Débito</option>
+          <option value="pse">PSE</option>
+          <option value="nequi">Nequi</option>
+          <option value="daviplata">Daviplata</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="notas">Notas (opcional)</label>
+        <textarea 
+          id="notas" 
+          [(ngModel)]="nuevaSuscripcion.notas" 
+          name="notas"
+          rows="3"
+          placeholder="Notas adicionales..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-success">Crear Suscripción</button>
+        <button type="button" class="btn-secondary" (click)="toggleFormulario()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de suscripciones -->
+  <div class="tabla-container">
+    <div *ngIf="cargando" class="loading">Cargando suscripciones...</div>
+    
+    <div *ngIf="!cargando && suscripciones.length === 0" class="empty-state">
+      <i class="fas fa-file-invoice fa-3x"></i>
+      <p>No hay suscripciones {{ filtroEstado ? 'con el estado seleccionado' : 'registradas' }}</p>
+    </div>
+
+    <table *ngIf="!cargando && suscripciones.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Empresa</th>
+          <th>Plan</th>
+          <th>Periodo</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+          <th>Precio</th>
+          <th>Forma Pago</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let suscripcion of suscripciones">
+          <td>{{ suscripcion.id }}</td>
+          <td>{{ suscripcion.empresa?.nombre || 'N/A' }}</td>
+          <td>{{ suscripcion.plan?.nombre || 'N/A' }}</td>
+          <td>
+            <span class="badge badge-info">{{ suscripcion.periodo }}</span>
+          </td>
+          <td>{{ suscripcion.fecha_inicio | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ suscripcion.fecha_fin | date: 'dd/MM/yyyy' }}</td>
+          <td>${{ suscripcion.precio_pagado | number: '1.0-0' }}</td>
+          <td>
+            <span class="badge badge-secondary">{{ formatearFormaPago(suscripcion.forma_pago) }}</span>
+          </td>
+          <td>
+            <span class="badge" 
+                  [class.badge-success]="suscripcion.estado === 'activa'"
+                  [class.badge-warning]="suscripcion.estado === 'suspendida'"
+                  [class.badge-danger]="suscripcion.estado === 'cancelada'"
+                  [class.badge-secondary]="suscripcion.estado === 'inactiva'">
+              {{ suscripcion.estado }}
+            </span>
+          </td>
+          <td class="acciones">
+            <button class="btn-icon" (click)="verDetalle(suscripcion)" title="Ver detalle">
+              <i class="fas fa-eye"></i>
+            </button>
+            
+            <!-- Renovar (solo si está activa o inactiva) -->
+            <button 
+              *ngIf="suscripcion.estado === 'activa' || suscripcion.estado === 'inactiva'" 
+              class="btn-icon btn-primary" 
+              (click)="renovarSuscripcion(suscripcion)" 
+              title="Renovar">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+            
+            <!-- Suspender (solo si está activa) -->
+            <button 
+              *ngIf="suscripcion.estado === 'activa'" 
+              class="btn-icon btn-warning" 
+              (click)="suspenderSuscripcion(suscripcion)" 
+              title="Suspender">
+              <i class="fas fa-pause-circle"></i>
+            </button>
+            
+            <!-- Reactivar (solo si está suspendida) -->
+            <button 
+              *ngIf="suscripcion.estado === 'suspendida'" 
+              class="btn-icon btn-success" 
+              (click)="reactivarSuscripcion(suscripcion)" 
+              title="Reactivar">
+              <i class="fas fa-play-circle"></i>
+            </button>
+            
+            <!-- Cancelar (solo si está activa o suspendida) -->
+            <button 
+              *ngIf="suscripcion.estado === 'activa' || suscripcion.estado === 'suspendida'" 
+              class="btn-icon btn-danger" 
+              (click)="cancelarSuscripcion(suscripcion)" 
+              title="Cancelar">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
