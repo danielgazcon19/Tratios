@@ -909,3 +909,11 @@
 2025-10-20 19:04:24 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
 2025-10-20 19:04:24 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
 2025-10-20 19:04:24 | INFO | LocationService inicializado correctamente
+2025-10-21 08:55:01 | INFO | Iniciando la aplicación
+2025-10-21 08:55:02 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-10-21 08:55:02 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-10-21 08:55:02 | INFO | LocationService inicializado correctamente
+2025-10-21 08:55:03 | INFO | Iniciando la aplicación
+2025-10-21 08:55:03 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-10-21 08:55:03 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-10-21 08:55:03 | INFO | LocationService inicializado correctamente

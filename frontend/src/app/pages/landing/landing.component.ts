@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { PlanesComponent } from '../planes/planes.component';
@@ -13,7 +13,7 @@ import { PreguntasComponent } from '../preguntas/preguntas.component';
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.css']
 })
-export class LandingComponent {
+export class LandingComponent implements OnInit, OnDestroy {
   benefits = [
     {
       icon: 'fas fa-chart-line',
@@ -36,6 +36,16 @@ export class LandingComponent {
       description: 'Disponible desde cualquier dispositivo, donde estés'
     },
     {
+      icon: 'fas fa-lock',
+      title: 'Seguridad avanzada',
+      description: 'Protege tu información con encriptación de nivel bancario'
+    },
+    {
+      icon: 'fas fa-credit-card',
+      title: 'Múltiples métodos de pago',
+      description: 'Acepta pagos con tarjeta, transferencia y más'
+    },
+    {
       icon: 'fas fa-chart-bar',
       title: 'Aumenta tus ventas',
       description: 'Toma decisiones con datos en tiempo real'
@@ -43,6 +53,33 @@ export class LandingComponent {
   ];
 
   currentBenefitIndex = 0;
+  private autoSlideInterval: any;
+  private readonly AUTO_SLIDE_DURATION = 4000; // 4 segundos
+
+  ngOnInit() {
+    this.startAutoSlide();
+  }
+
+  ngOnDestroy() {
+    this.stopAutoSlide();
+  }
+
+  private startAutoSlide() {
+    this.autoSlideInterval = setInterval(() => {
+      this.nextBenefit();
+    }, this.AUTO_SLIDE_DURATION);
+  }
+
+  private stopAutoSlide() {
+    if (this.autoSlideInterval) {
+      clearInterval(this.autoSlideInterval);
+    }
+  }
+
+  private restartAutoSlide() {
+    this.stopAutoSlide();
+    this.startAutoSlide();
+  }
 
   nextBenefit() {
     this.currentBenefitIndex = (this.currentBenefitIndex + 1) % this.benefits.length;
@@ -52,10 +89,20 @@ export class LandingComponent {
     this.currentBenefitIndex = this.currentBenefitIndex === 0 
       ? this.benefits.length - 1 
       : this.currentBenefitIndex - 1;
+    this.restartAutoSlide();
   }
 
   goToBenefit(index: number) {
     this.currentBenefitIndex = index;
+    this.restartAutoSlide();
+  }
+
+  onSliderMouseEnter() {
+    this.stopAutoSlide();
+  }
+
+  onSliderMouseLeave() {
+    this.startAutoSlide();
   }
 
   scrollToSection(sectionId: string) {

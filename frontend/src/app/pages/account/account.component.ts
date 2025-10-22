@@ -135,9 +135,6 @@ type SectionKey = 'personal' | 'seguridad' | 'suscripciones' | 'futuro';
                         formControlName="pais"
                         placeholder="Escribe para buscar un país"
                         autocomplete="off"
-                        (input)="onCountrySearchInputEvent($event)"
-                        (focus)="onCountryInputFocus()"
-                        (focus)="onCountryInputFocus()"
                       />
                       <button
                         type="button"
