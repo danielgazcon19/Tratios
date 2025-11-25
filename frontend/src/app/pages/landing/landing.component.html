@@ -1,7 +1,19 @@
 <section id="inicio" class="hero-landing page-section page-section--neutral">
   <div class="hero-background" aria-hidden="true"></div>
-  <div class="section-container hero-layout">
-    <div class="hero-copy">
+  
+  <!-- Full Width Image Slider Background (like Amazon Prime) -->
+  <div class="fullscreen-slider">
+    <div class="slider-track" [style.transform]="'translateX(-' + (currentImageIndex * 100) + '%)'">
+      <div class="slider-panel" *ngFor="let image of images; let i = index">
+        <img [src]="image.src" [alt]="image.title" class="background-image" />
+        <div class="image-overlay"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Card Overlay (like Amazon Prime) -->
+  <div class="section-container hero-content-wrapper">
+    <div class="hero-content-card card-surface">
       <span class="section-kicker">Plataforma especializada en compraventa</span>
       <h1 class="hero-title">Impulsa tu negocio con <span class="section-highlight">Tratios</span></h1>
       <p class="hero-subtitle">
@@ -12,54 +24,18 @@
         <a (click)="scrollToSection('suscripcion')" class="primary-btn">Empezar ahora</a>
         <a (click)="scrollToSection('funcionalidades')" class="outline-btn">Ver funcionalidades</a>
       </div>
-    </div>
-    <div class="hero-card card-surface benefits-card">
-      <div class="benefits-header">
-        <span class="benefits-badge">💡 Valor inmediato</span>
-        <h2 class="benefits-title">Lo que tu negocio gana con Tratios</h2>
-        <p class="benefits-subtitle">Transformamos la gestión de tu compraventa</p>
-      </div>
       
-      <div class="benefits-slider" 
-           (mouseenter)="onSliderMouseEnter()" 
-           (mouseleave)="onSliderMouseLeave()">
-        <button class="slider-arrow slider-arrow-prev" (click)="prevBenefit()" aria-label="Beneficio anterior">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-
-        <div class="benefit-slide">
-          <div class="benefit-icon">
-            <i [class]="benefits[currentBenefitIndex].icon"></i>
-          </div>
-          <div class="benefit-content">
-            <h3>{{ benefits[currentBenefitIndex].title }}</h3>
-            <p>{{ benefits[currentBenefitIndex].description }}</p>
-          </div>
-        </div>
-
-        <button class="slider-arrow slider-arrow-next" (click)="nextBenefit()" aria-label="Siguiente beneficio">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-
-      <div class="slider-dots">
-        <button *ngFor="let benefit of benefits; let i = index" 
-                class="slider-dot" 
-                [class.active]="i === currentBenefitIndex"
-                (click)="goToBenefit(i)"
-                [attr.aria-label]="'Ir a beneficio ' + (i + 1)">
-        </button>
-      </div>
-
-      <div class="benefits-footer">
-        <div class="hero-metric">
-          <span class="metric-value">98%</span>
-          <span class="metric-label">Clientes satisfechos</span>
-        </div>
-        <div class="hero-metric">
-          <span class="metric-value">+50%</span>
-          <span class="metric-label">Aumento en ventas</span>
-        </div>
+      <!-- Word Cloud - Servicios (Optimizado) -->
+      <div class="word-cloud">
+        <span *ngFor="let word of serviceWords" 
+              class="cloud-word"
+              [class.word-primary]="word.color === 'primary'"
+              [class.word-accent]="word.color === 'accent'"
+              [class.word-secondary]="word.color === 'secondary'"
+              [style.fontSize.rem]="word.size"
+              [style.transform]="'rotate(' + word.angle + 'deg)'">
+          {{ word.text }}
+        </span>
       </div>
     </div>
   </div>

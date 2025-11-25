@@ -5,8 +5,12 @@ import { environment } from '../../environments/environment';
 import { Plan } from './admin-planes.service';
 import { Servicio } from './admin-servicios.service';
 
+export interface ServicioConCantidad extends Servicio {
+  cantidad?: number | null;
+}
+
 export interface PlanConServicios extends Plan {
-  servicios: Servicio[];
+  servicios: ServicioConCantidad[];
   total_servicios: number;
 }
 
@@ -32,6 +36,10 @@ export class AdminPlanServiciosService {
 
   eliminarServicio(planId: number, servicioId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/planes/${planId}/servicios/${servicioId}`);
+  }
+
+  actualizarCantidad(planId: number, servicioId: number, cantidad: number | null): Observable<any> {
+    return this.http.put(`${this.apiUrl}/planes/${planId}/servicios/${servicioId}`, { cantidad });
   }
 
   obtenerResumen(): Observable<PlanConServicios[]> {

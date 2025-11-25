@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, send_from_directory
 from database.db import db
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -77,6 +77,9 @@ def create_app():
     app.config['LOCATION_DB_PATH'] = os.environ.get('LOCATION_DB_PATH', os.path.join(os.path.dirname(__file__), 'data', 'countries.db'))
     app.config['LOCATION_CITIES_ARCHIVE_PATH'] = os.environ.get('LOCATION_CITIES_ARCHIVE_PATH', os.path.join(os.path.dirname(__file__), 'data', 'cities.sqlite3.gz'))
     
+    # Configuración de seguridad para API SaaS
+    app.config['SAAS_API_KEY'] = os.environ.get('SAAS_API_KEY')
+    
     # Asegurar que la base de datos exista antes de inicializar ORM
     ensure_database_exists(app.config['SQLALCHEMY_DATABASE_URI'])
     
@@ -125,10 +128,57 @@ def create_app():
     # Importar modelos para que SQLAlchemy los reconozca
     from models import usuario, empresa, servicio, suscripcion, log_acceso
 
+    # Servir Angular SPA (solo en producción o si existe el build)
+    angular_dist_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'frontend', 'browser')
+    
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve_angular(path):
+        # Solo para rutas que no son de API
+        if path.startswith('api/') or path.startswith('auth/') or \
+           path.startswith('admin/') or path.startswith('account/') or \
+           path.startswith('public/'):
+            # Dejar que Flask maneje las rutas de API (devuelve 404 si no existe)
+            return {"message": "Recurso no encontrado"}, 404
+        
+        # Verificar si existe el build de Angular
+        if os.path.exists(angular_dist_path):
+            # Si es un archivo estático (con extensión), servirlo
+            if path and '.' in path.split('/')[-1]:
+                file_path = os.path.join(angular_dist_path, path)
+                if os.path.exists(file_path):
+                    return send_from_directory(angular_dist_path, path)
+            
+            # Para rutas sin extensión (rutas de Angular), servir index.html
+            return send_from_directory(angular_dist_path, 'index.html')
+        else:
+            # En desarrollo, indicar que se debe usar el servidor de Angular
+            return {
+                "message": "Aplicación en modo desarrollo",
+                "info": "Accede a través del servidor de Angular en http://localhost:4200",
+                "nota": "Las rutas de Angular deben accederse desde localhost:4200, no desde localhost:5222"
+            }, 200
+
     # Manejadores de error globales
     @app.errorhandler(404)
     def handle_404(e):
-        return {"message": "Recurso no encontrado"}, 404
+        # Si la ruta es una API, devolver JSON
+        if request.path.startswith('/api') or \
+           request.path.startswith('/auth') or \
+           request.path.startswith('/admin') or \
+           request.path.startswith('/account') or \
+           request.path.startswith('/public'):
+            return {"message": "Recurso no encontrado"}, 404
+        
+        # Para otras rutas, verificar si existe el build de Angular
+        if os.path.exists(angular_dist_path):
+            return send_from_directory(angular_dist_path, 'index.html')
+        
+        # En desarrollo sin build
+        return {
+            "message": "Aplicación en modo desarrollo",
+            "info": "Accede a través del servidor de Angular en http://localhost:4200"
+        }, 404
 
     @app.errorhandler(400)
     def handle_400(e):

@@ -529,6 +529,178 @@
   font-size: 20px;
 }
 
+/* Estilos para cantidad */
+.servicio-nombre-cantidad {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.servicio-nombre {
+  flex: 1;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-cantidad {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  min-width: 45px;
+  justify-content: center;
+}
+
+.btn-cantidad:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.btn-cantidad:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-cantidad.has-cantidad {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  animation: pulse-cantidad 2s ease-in-out infinite;
+}
+
+@keyframes pulse-cantidad {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3);
+  }
+  50% {
+    box-shadow: 0 2px 16px rgba(245, 87, 108, 0.6);
+  }
+}
+
+.btn-cantidad i {
+  font-size: 11px;
+}
+
+.cantidad-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.cantidad-input {
+  width: 70px;
+  padding: 6px 10px;
+  border: 2px solid #007bff;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.cantidad-input:focus {
+  border-color: #0056b3;
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.cantidad-input::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+/* Eliminar flechas del input number en Chrome, Safari, Edge */
+.cantidad-input::-webkit-outer-spin-button,
+.cantidad-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Eliminar flechas del input number en Firefox */
+.cantidad-input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.btn-save-cantidad,
+.btn-cancel-cantidad {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-save-cantidad {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+}
+
+.btn-save-cantidad:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.5);
+}
+
+.btn-cancel-cantidad {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(108, 117, 125, 0.3);
+}
+
+.btn-cancel-cantidad:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.5);
+}
+
+.servicio-item-small.editing {
+  background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  animation: highlight 0.5s ease-out;
+}
+
+@keyframes highlight {
+  0% {
+    background: #fff;
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);
+    transform: scale(1);
+  }
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .drag-drop-container {
@@ -562,5 +734,14 @@
 
   .instrucciones {
     flex-direction: column;
+  }
+  
+  .cantidad-input {
+    width: 60px;
+    font-size: 12px;
+  }
+  
+  .servicio-nombre-cantidad {
+    flex-wrap: wrap;
   }
 }
