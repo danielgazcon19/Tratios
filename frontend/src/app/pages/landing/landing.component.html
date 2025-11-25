@@ -20,7 +20,9 @@
         <p class="benefits-subtitle">Transformamos la gestión de tu compraventa</p>
       </div>
       
-      <div class="benefits-slider">
+      <div class="benefits-slider" 
+           (mouseenter)="onSliderMouseEnter()" 
+           (mouseleave)="onSliderMouseLeave()">
         <button class="slider-arrow slider-arrow-prev" (click)="prevBenefit()" aria-label="Beneficio anterior">
           <i class="fas fa-chevron-left"></i>
         </button>
