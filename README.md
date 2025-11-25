@@ -41,6 +41,26 @@ backend/
 
 ## 🚀 Instalación y Configuración
 
+### Inicio Rápido (Recomendado)
+
+**Windows PowerShell:**
+```powershell
+.\start.ps1
+```
+
+**Windows CMD:**
+```cmd
+start.bat
+```
+
+Esto iniciará automáticamente:
+- Backend Flask en `http://localhost:5222`
+- Frontend Angular en `http://localhost:4200`
+
+**⚠️ IMPORTANTE**: Siempre accede a la aplicación desde `http://localhost:4200`
+
+### Inicio Manual
+
 ### 1. Requisitos Previos
 
 ```bash
@@ -81,20 +101,39 @@ python scripts/test_sqlite_location.py
 
 ### 4. Iniciar Servicios
 
-**Backend (Puerto 5222)**:
+**Opción A: Inicio Automático (Recomendado)**
+
+Windows PowerShell:
+```powershell
+.\start.ps1
+```
+
+Windows CMD:
+```cmd
+start.bat
+```
+
+**Opción B: Inicio Manual**
+
+Terminal 1 - Backend (Puerto 5222):
 ```powershell
 cd backend
 python app.py
 ```
 
-**Frontend (Puerto 4200)**:
+Terminal 2 - Frontend (Puerto 4200):
 ```powershell
 cd frontend
 npm install  # Solo la primera vez
-npm start
+ng serve --proxy-config proxy.conf.json
 ```
 
-Acceder a: `http://localhost:4200`
+**⚠️ IMPORTANTE**: 
+- Siempre accede a: `http://localhost:4200`
+- NO uses: `http://localhost:5222` (solo para API backend)
+- Si ves "Recurso no encontrado" al recargar, verifica que estés en puerto 4200
+
+**📖 Ver más**: [GUIA_ACCESO_APLICACION.md](./GUIA_ACCESO_APLICACION.md)
 
 ## 🔧 Configuración Avanzada
 

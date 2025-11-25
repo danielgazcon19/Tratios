@@ -60,7 +60,8 @@ def crear_servicio():
     Body: {
         nombre: string,
         descripcion?: string,
-        activo?: boolean (default: true)
+        activo?: boolean (default: true),
+        url_api?: string
     }
     """
     try:
@@ -79,7 +80,8 @@ def crear_servicio():
         nuevo_servicio = Servicio(
             nombre=data['nombre'],
             descripcion=data.get('descripcion', ''),
-            activo=data.get('activo', True)
+            activo=data.get('activo', True),
+            url_api=data.get('url_api')
         )
         
         db.session.add(nuevo_servicio)
@@ -105,7 +107,8 @@ def actualizar_servicio(servicio_id):
     Body: {
         nombre?: string,
         descripcion?: string,
-        activo?: boolean
+        activo?: boolean,
+        url_api?: string
     }
     """
     try:
@@ -128,6 +131,8 @@ def actualizar_servicio(servicio_id):
             servicio.descripcion = data['descripcion']
         if 'activo' in data:
             servicio.activo = bool(data['activo'])
+        if 'url_api' in data:
+            servicio.url_api = data['url_api']
         
         db.session.commit()
         
