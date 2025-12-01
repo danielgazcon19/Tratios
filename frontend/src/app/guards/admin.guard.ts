@@ -1,15 +1,16 @@
 import { inject } from '@angular/core';
-import { Router, CanActivateFn } from '@angular/router';
+import { Router, CanActivateFn, UrlTree } from '@angular/router';
 import { AuthSessionService } from '../services/auth-session.service';
+import { ApiService } from '../services/api.service';
+import { catchError, map, of } from 'rxjs';
 
 export const adminGuard: CanActivateFn = (route, state) => {
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
-  
-  const user = authSession.getCurrentUser();
-  
-  if (!user) {
-    // No hay usuario autenticado, redirigir al login con mensaje
+  const api = inject(ApiService);
+
+  const redirectToLogin = (): UrlTree => {
+    authSession.clearSession();
     if (typeof window !== 'undefined' && (window as any).Swal) {
       (window as any).Swal.fire({
         icon: 'warning',
@@ -20,12 +21,10 @@ export const adminGuard: CanActivateFn = (route, state) => {
         timerProgressBar: true
       });
     }
-    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-    return false;
-  }
-  
-  if (user.rol !== 'admin') {
-    // Usuario no es admin, redirigir al inicio con mensaje
+    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+  };
+
+  const redirectToHome = (): UrlTree => {
     if (typeof window !== 'undefined' && (window as any).Swal) {
       (window as any).Swal.fire({
         icon: 'error',
@@ -36,9 +35,41 @@ export const adminGuard: CanActivateFn = (route, state) => {
         timerProgressBar: true
       });
     }
-    router.navigate(['/']);
-    return false;
+    return router.createUrlTree(['/']);
+  };
+
+  // Obtener sesión directamente del localStorage (no del BehaviorSubject)
+  // Esto es crucial para cuando se refresca la página con F5
+  const session = authSession.getSession();
+
+  // Si hay sesión válida, verificar rol
+  if (session && authSession.isSessionValid()) {
+    const user = session.usuario;
+    if (user && user.rol === 'admin') {
+      // Asegurar que el BehaviorSubject esté sincronizado
+      authSession.ensureSynchronized();
+      return true;
+    }
+    // Usuario autenticado pero no es admin
+    return redirectToHome();
   }
-  
-  return true;
+
+  // Si hay refresh token, intentar renovar
+  const refreshToken = session?.refresh_token;
+  if (refreshToken) {
+    return api.refreshAccessToken(refreshToken).pipe(
+      map((response) => {
+        authSession.storeSession(response);
+        const user = response.usuario;
+        if (user && user.rol === 'admin') {
+          return true;
+        }
+        return redirectToHome();
+      }),
+      catchError(() => of(redirectToLogin()))
+    );
+  }
+
+  // No hay sesión válida ni refresh token
+  return redirectToLogin();
 };
