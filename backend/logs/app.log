@@ -300,3 +300,21 @@
 2025-12-01 09:10:55 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
 2025-12-01 09:51:49 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
 2025-12-01 09:55:00 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-02 11:23:55 | INFO | Iniciando la aplicación
+2025-12-02 11:23:56 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-02 11:23:56 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-02 11:23:56 | INFO | LocationService inicializado correctamente
+2025-12-02 11:23:57 | INFO | Iniciando la aplicación
+2025-12-02 11:23:57 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-02 11:23:57 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-02 11:23:57 | INFO | LocationService inicializado correctamente
+2025-12-02 11:43:38 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-02 11:48:48 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-03 08:49:17 | INFO | Iniciando la aplicación
+2025-12-03 08:49:18 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 08:49:18 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 08:49:18 | INFO | LocationService inicializado correctamente
+2025-12-03 08:49:19 | INFO | Iniciando la aplicación
+2025-12-03 08:49:19 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 08:49:19 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 08:49:19 | INFO | LocationService inicializado correctamente

@@ -17,6 +17,11 @@ export const routes: Routes = [
   { path: 'registro', loadComponent: () => import('./pages/auth/registro.component').then(m => m.RegistroComponent) },
   { path: 'cuenta', loadComponent: () => import('./pages/account/account.component').then(m => m.AccountComponent), canActivate: [authGuard] },
   
+  // Rutas legales
+  { path: 'terminos-condiciones', loadComponent: () => import('./pages/legal/terminos-condiciones/terminos-condiciones.component').then(m => m.TerminosCondicionesComponent) },
+  { path: 'politica-privacidad', loadComponent: () => import('./pages/legal/politica-privacidad/politica-privacidad.component').then(m => m.PoliticaPrivacidadComponent) },
+  { path: 'acuerdo-servicio', loadComponent: () => import('./pages/legal/acuerdo-servicio/acuerdo-servicio.component').then(m => m.AcuerdoServicioComponent) },
+  
   // Rutas de administración (solo para usuarios con rol 'admin')
   {
     path: 'admin',
