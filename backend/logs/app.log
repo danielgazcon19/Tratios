@@ -318,3 +318,115 @@
 2025-12-03 08:49:19 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
 2025-12-03 08:49:19 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
 2025-12-03 08:49:19 | INFO | LocationService inicializado correctamente
+2025-12-03 17:16:43 | INFO | Búsqueda de países 'Colombia': 1 resultados
+2025-12-03 17:16:45 | INFO | SQLite devolvió 1122 ciudades para CO
+2025-12-03 17:35:12 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-03 17:41:40 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-03 17:44:11 | INFO | Iniciando la aplicación
+2025-12-03 17:44:12 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 17:44:12 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 17:44:12 | INFO | LocationService inicializado correctamente
+2025-12-03 20:11:46 | INFO | Iniciando la aplicación
+2025-12-03 20:11:47 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:11:47 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:11:47 | INFO | LocationService inicializado correctamente
+2025-12-03 20:11:50 | INFO | Iniciando la aplicación
+2025-12-03 20:11:50 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:11:50 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:11:50 | INFO | LocationService inicializado correctamente
+2025-12-03 20:11:58 | INFO | Iniciando la aplicación
+2025-12-03 20:11:58 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:11:58 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:11:58 | INFO | LocationService inicializado correctamente
+2025-12-03 20:12:09 | INFO | Iniciando la aplicación
+2025-12-03 20:12:10 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:12:10 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:12:10 | INFO | LocationService inicializado correctamente
+2025-12-03 20:12:13 | INFO | Iniciando la aplicación
+2025-12-03 20:12:13 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:12:13 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:12:13 | INFO | LocationService inicializado correctamente
+2025-12-03 20:12:44 | INFO | Iniciando la aplicación
+2025-12-03 20:12:44 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:12:44 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:12:44 | INFO | LocationService inicializado correctamente
+2025-12-03 20:46:05 | INFO | Iniciando la aplicación
+2025-12-03 20:46:07 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:46:07 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:46:07 | INFO | LocationService inicializado correctamente
+2025-12-03 20:47:12 | INFO | Iniciando la aplicación
+2025-12-03 20:47:12 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:47:12 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:47:12 | INFO | LocationService inicializado correctamente
+2025-12-03 20:47:31 | INFO | Iniciando la aplicación
+2025-12-03 20:47:31 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:47:31 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:47:31 | INFO | LocationService inicializado correctamente
+2025-12-03 20:47:42 | INFO | Iniciando la aplicación
+2025-12-03 20:47:42 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:47:42 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:47:42 | INFO | LocationService inicializado correctamente
+2025-12-03 20:47:59 | INFO | Iniciando la aplicación
+2025-12-03 20:47:59 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:47:59 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:47:59 | INFO | LocationService inicializado correctamente
+2025-12-03 20:49:57 | INFO | Iniciando la aplicación
+2025-12-03 20:49:57 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:49:57 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:49:57 | INFO | LocationService inicializado correctamente
+2025-12-03 20:51:37 | INFO | Iniciando la aplicación
+2025-12-03 20:51:38 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:51:38 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:51:38 | INFO | LocationService inicializado correctamente
+2025-12-03 20:52:52 | INFO | Iniciando la aplicación
+2025-12-03 20:52:52 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:52:52 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:52:52 | INFO | LocationService inicializado correctamente
+2025-12-03 20:53:17 | INFO | Iniciando la aplicación
+2025-12-03 20:53:17 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:53:17 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:53:17 | INFO | LocationService inicializado correctamente
+2025-12-03 21:21:17 | INFO | Iniciando la aplicación
+2025-12-03 21:21:17 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 21:21:17 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 21:21:17 | INFO | LocationService inicializado correctamente
+2025-12-03 21:34:51 | INFO | Iniciando la aplicación
+2025-12-03 21:34:51 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 21:34:51 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 21:34:51 | INFO | LocationService inicializado correctamente
+2025-12-03 22:41:38 | INFO | Iniciando la aplicación
+2025-12-03 22:41:38 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 22:41:38 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 22:41:38 | INFO | LocationService inicializado correctamente
+2025-12-03 22:49:12 | INFO | Iniciando la aplicación
+2025-12-03 22:49:12 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 22:49:12 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 22:49:12 | INFO | LocationService inicializado correctamente
+2025-12-03 22:49:19 | INFO | Iniciando la aplicación
+2025-12-03 22:49:19 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 22:49:19 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 22:49:19 | INFO | LocationService inicializado correctamente
+2025-12-03 22:49:53 | INFO | Iniciando la aplicación
+2025-12-03 22:49:53 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 22:49:53 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 22:49:53 | INFO | LocationService inicializado correctamente
+2025-12-04 11:09:39 | INFO | Iniciando la aplicación
+2025-12-04 11:09:41 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 11:09:41 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 11:09:41 | INFO | LocationService inicializado correctamente
+2025-12-04 11:09:42 | INFO | Iniciando la aplicación
+2025-12-04 11:09:42 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 11:09:42 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 11:09:42 | INFO | LocationService inicializado correctamente
+2025-12-04 16:45:53 | INFO | Iniciando la aplicación
+2025-12-04 16:45:54 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 16:45:54 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 16:45:54 | INFO | LocationService inicializado correctamente
+2025-12-04 16:45:55 | INFO | Iniciando la aplicación
+2025-12-04 16:45:55 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 16:45:55 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 16:45:55 | INFO | LocationService inicializado correctamente
+2025-12-04 18:11:56 | INFO | Iniciando la aplicación
+2025-12-04 18:11:57 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 18:11:57 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 18:11:57 | INFO | LocationService inicializado correctamente

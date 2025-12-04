@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import {
   ApiService,
   UsuarioPerfil,
-  SuscripcionDetalle,
+  SuscripcionPlan,
   TransferEmpresaPayload,
   TransferEmpresaResponse
 } from '../../services/api.service';
@@ -404,63 +404,150 @@ type SectionKey = 'personal' | 'seguridad' | 'suscripciones' | 'futuro';
           <ng-container *ngSwitchCase="'suscripciones'">
             <div *ngIf="suscripcionesLoading" class="inline-loading">
               <span class="spinner"></span>
-              <p>Cargando suscripciones…</p>
+              <p>Cargando información de suscripción…</p>
             </div>
-            <article class="form-card" *ngIf="!suscripcionesLoading">
-              <header>
-                <div>
-                  <h2>Suscripciones activas</h2>
-                  <p>Consulta y actualiza los servicios asociados a tu empresa.</p>
+            <div class="suscripcion-wrapper" *ngIf="!suscripcionesLoading">
+              <!-- Sin suscripción -->
+              <article class="form-card empty-suscripcion" *ngIf="!suscripcionActual">
+                <div class="empty-state-large">
+                  <div class="empty-icon">📋</div>
+                  <h3>Sin suscripción activa</h3>
+                  <p>Tu empresa aún no cuenta con una suscripción. Contacta con nuestro equipo comercial para activar tu plan.</p>
+                  <a href="https://wa.me/573132865421?text=Hola,%20quiero%20información%20sobre%20los%20planes%20de%20Tratios" 
+                     target="_blank" 
+                     class="primary-btn whatsapp-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    Contactar por WhatsApp
+                  </a>
                 </div>
-              </header>
-              <div class="subscriptions">
-                <div class="empty-state" *ngIf="!suscripciones.length">
-                  <p>Tu empresa aún no tiene suscripciones activas. Selecciona un plan desde la página de planes.</p>
+              </article>
+
+              <!-- Con suscripción -->
+              <article class="form-card suscripcion-card" *ngIf="suscripcionActual">
+                <header class="suscripcion-header">
+                  <div class="plan-badge" [class.basico]="suscripcionActual.plan?.nombre?.toLowerCase()?.includes('básico') || suscripcionActual.plan?.nombre?.toLowerCase()?.includes('basico')" 
+                       [class.pro]="suscripcionActual.plan?.nombre?.toLowerCase()?.includes('pro')"
+                       [class.premium]="suscripcionActual.plan?.nombre?.toLowerCase()?.includes('premium')">
+                    {{ suscripcionActual.plan?.nombre || 'Plan' }}
+                  </div>
+                  <div class="suscripcion-estado" 
+                       [class.activa]="suscripcionActual.estado === 'activa'"
+                       [class.suspendida]="suscripcionActual.estado === 'suspendida'"
+                       [class.cancelada]="suscripcionActual.estado === 'cancelada'"
+                       [class.inactiva]="suscripcionActual.estado === 'inactiva'">
+                    {{ suscripcionActual.estado | titlecase }}
+                  </div>
+                </header>
+
+                <div class="suscripcion-details">
+                  <div class="detail-row">
+                    <span class="detail-label">Empresa</span>
+                    <span class="detail-value">{{ suscripcionActual.empresa?.nombre || 'N/A' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Periodo</span>
+                    <span class="detail-value">{{ suscripcionActual.periodo | titlecase }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Precio</span>
+                    <span class="detail-value precio" *ngIf="!suscripcionActual.porcentaje_descuento">
+                      {{ suscripcionActual.precio_pagado | currency:'USD':'symbol':'1.0-0' }}/{{ suscripcionActual.periodo === 'anual' ? 'año' : 'mes' }}
+                    </span>
+                    <span class="detail-value" *ngIf="suscripcionActual.porcentaje_descuento">
+                      <span class="precio-tachado">{{ suscripcionActual.precio_pagado | currency:'USD':'symbol':'1.0-0' }}</span>
+                      <span class="precio-con-descuento">{{ suscripcionActual.precio_con_descuento | currency:'USD':'symbol':'1.0-0' }}/{{ suscripcionActual.periodo === 'anual' ? 'año' : 'mes' }}</span>
+                      <span class="descuento-badge">-{{ suscripcionActual.porcentaje_descuento }}%</span>
+                    </span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Fecha de inicio</span>
+                    <span class="detail-value">{{ suscripcionActual.fecha_inicio | date:'longDate' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Fecha de vencimiento</span>
+                    <span class="detail-value" [class.vencida]="isVencida(suscripcionActual.fecha_fin)">
+                      {{ suscripcionActual.fecha_fin | date:'longDate' }}
+                      <span class="dias-restantes" *ngIf="!isVencida(suscripcionActual.fecha_fin) && diasRestantes(suscripcionActual.fecha_fin) <= 30">
+                        ({{ diasRestantes(suscripcionActual.fecha_fin) }} días restantes)
+                      </span>
+                    </span>
+                  </div>
+                  <div class="detail-row" *ngIf="suscripcionActual.forma_pago">
+                    <span class="detail-label">Forma de pago</span>
+                    <span class="detail-value">{{ suscripcionActual.forma_pago }}</span>
+                  </div>
+                  <div class="detail-row" *ngIf="suscripcionActual.notas">
+                    <span class="detail-label">Notas</span>
+                    <span class="detail-value notas">{{ suscripcionActual.notas }}</span>
+                  </div>
                 </div>
 
-                <div class="subscription-list" *ngIf="suscripciones.length">
-                  <div class="subscription-card" *ngFor="let sus of suscripciones">
-                    <div class="subscription-info">
-                      <h3>{{ sus.servicio?.nombre || ('Servicio #' + sus.servicio_id) }}</h3>
-                      <p class="service-id">ID suscripción: {{ sus.id }}</p>
-                      <p class="status" [class.active]="sus.estado === 'activa'" [class.suspended]="sus.estado === 'suspendida'">
-                        Estado: {{ sus.estado | titlecase }}
-                      </p>
-                      <p class="dates">
-                        Inicio: {{ sus.fecha_inicio || '—' }}
-                        <span *ngIf="sus.fecha_fin">· Fin: {{ sus.fecha_fin }}</span>
-                      </p>
+                <!-- Acciones según estado -->
+                <div class="suscripcion-actions" *ngIf="suscripcionActual.estado !== 'cancelada'">
+                  <button type="button" 
+                          class="outline-btn renovar-btn" 
+                          *ngIf="suscripcionActual.estado === 'activa' && diasRestantes(suscripcionActual.fecha_fin) <= 30"
+                          (click)="solicitarRenovacion()"
+                          [disabled]="suscripcionEnProgreso">
+                    🔄 Solicitar renovación
+                  </button>
+                  <button type="button" 
+                          class="outline-btn" 
+                          *ngIf="suscripcionActual.estado === 'suspendida'"
+                          (click)="solicitarReactivacion()"
+                          [disabled]="suscripcionEnProgreso">
+                    ✅ Solicitar reactivación
+                  </button>
+                  <button type="button" 
+                          class="outline-btn contact-btn" 
+                          *ngIf="suscripcionActual.estado === 'activa'"
+                          (click)="contactarSoporte()">
+                    💬 ¿Necesitas ayuda con tu plan?
+                  </button>
+                </div>
+
+                <!-- Mensaje para suscripción cancelada -->
+                <div class="cancelada-info" *ngIf="suscripcionActual.estado === 'cancelada'">
+                  <p><strong>Esta suscripción ha sido cancelada.</strong></p>
+                  <p *ngIf="suscripcionActual.motivo_cancelacion">Motivo: {{ suscripcionActual.motivo_cancelacion }}</p>
+                  <p>Para reactivar tu servicio, contacta con nuestro equipo comercial.</p>
+                  <a href="https://wa.me/573132865421?text=Hola,%20quiero%20reactivar%20mi%20suscripción%20de%20Tratios" 
+                     target="_blank" 
+                     class="primary-btn whatsapp-btn small">
+                    Contactar soporte
+                  </a>
+                </div>
+              </article>
+
+              <!-- Historial de suscripciones -->
+              <article class="form-card historial-card" *ngIf="historialSuscripciones.length > 1">
+                <header>
+                  <div>
+                    <h2>Historial de suscripciones</h2>
+                    <p>Registro de tus suscripciones anteriores.</p>
+                  </div>
+                </header>
+                <div class="historial-list">
+                  <div class="historial-item" *ngFor="let sus of historialSuscripciones">
+                    <div class="historial-info">
+                      <span class="historial-plan">{{ sus.plan?.nombre || 'Plan' }}</span>
+                      <span class="historial-periodo">{{ sus.periodo | titlecase }}</span>
+                      <span class="historial-estado" 
+                            [class.activa]="sus.estado === 'activa'"
+                            [class.suspendida]="sus.estado === 'suspendida'"
+                            [class.cancelada]="sus.estado === 'cancelada'">
+                        {{ sus.estado | titlecase }}
+                      </span>
                     </div>
-                    <div class="subscription-actions">
-                      <button
-                        type="button"
-                        class="outline-btn"
-                        (click)="actualizarEstadoSuscripcion(sus, 'activa')"
-                        [disabled]="sus.estado === 'activa' || suscripcionEnProgreso === sus.id"
-                      >
-                        Reactivar
-                      </button>
-                      <button
-                        type="button"
-                        class="outline-btn"
-                        (click)="actualizarEstadoSuscripcion(sus, 'suspendida')"
-                        [disabled]="sus.estado === 'suspendida' || suscripcionEnProgreso === sus.id"
-                      >
-                        Suspender
-                      </button>
-                      <button
-                        type="button"
-                        class="danger-btn"
-                        (click)="actualizarEstadoSuscripcion(sus, 'inactiva')"
-                        [disabled]="sus.estado === 'inactiva' || suscripcionEnProgreso === sus.id"
-                      >
-                        Cancelar
-                      </button>
+                    <div class="historial-fechas">
+                      {{ sus.fecha_inicio | date:'shortDate' }} - {{ sus.fecha_fin | date:'shortDate' }}
                     </div>
                   </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            </div>
           </ng-container>
 
           <ng-container *ngSwitchCase="'futuro'">
@@ -700,24 +787,39 @@ type SectionKey = 'personal' | 'seguridad' | 'suscripciones' | 'futuro';
 
     .form-card {
       background: #fff;
-  border-radius: 18px;
-  padding: 2rem;
+      border-radius: 14px;
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 1.75rem;
+      gap: 1.25rem;
       border: 1px solid rgba(203, 213, 225, 0.5);
+    }
+
+    .form-card.suscripcion-card {
+      padding: 1rem;
+      gap: 0.6rem;
+    }
+
+    .form-card.historial-card {
+      padding: 1rem;
+      gap: 0.6rem;
+    }
+
+    .form-card.historial-card header p {
+      font-size: 0.8rem;
+      margin-top: 0.15rem;
     }
 
     .form-card header h2 {
       margin: 0;
-      font-size: 1.45rem;
+      font-size: 1.3rem;
       color: #1f2937;
     }
 
     .form-card header p {
-      margin: 0.35rem 0 0;
+      margin: 0.25rem 0 0;
       color: #4b5563;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
 
     .admin-card {
@@ -1041,6 +1143,343 @@ type SectionKey = 'personal' | 'seguridad' | 'suscripciones' | 'futuro';
       align-items: center;
     }
 
+    /* Estilos de Suscripción mejorados - Compacto */
+    .suscripcion-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .empty-suscripcion {
+      text-align: center;
+    }
+
+    .empty-state-large {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 0.75rem;
+    }
+
+    .empty-icon {
+      font-size: 2rem;
+      opacity: 0.8;
+    }
+
+    .empty-state-large h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #1f2937;
+    }
+
+    .empty-state-large p {
+      margin: 0;
+      color: #6b7280;
+      max-width: 400px;
+      font-size: 0.9rem;
+    }
+
+    .whatsapp-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #25d366;
+      color: white;
+      margin-top: 0.35rem;
+    }
+
+    .whatsapp-btn:hover {
+      background: #20bd5a;
+    }
+
+    .whatsapp-btn.small {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    .suscripcion-card {
+      border-color: rgba(216, 155, 32, 0.3);
+    }
+
+    .suscripcion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(203, 213, 225, 0.5);
+    }
+
+    .plan-badge {
+      background: linear-gradient(135deg, #6b7280, #4b5563);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .plan-badge.basico {
+      background: linear-gradient(135deg, #6b7280, #4b5563);
+    }
+
+    .plan-badge.pro {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    .plan-badge.premium {
+      background: linear-gradient(135deg, #d89b20, #b8860b);
+    }
+
+    .suscripcion-estado {
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .suscripcion-estado.activa {
+      background: rgba(22, 163, 74, 0.12);
+      color: #15803d;
+    }
+
+    .suscripcion-estado.suspendida {
+      background: rgba(245, 158, 11, 0.12);
+      color: #b45309;
+    }
+
+    .suscripcion-estado.cancelada,
+    .suscripcion-estado.inactiva {
+      background: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+    }
+
+    .suscripcion-details {
+      display: grid;
+      gap: 0.4rem;
+      padding: 0.5rem 0;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0.25rem 0;
+      border-bottom: 1px dashed rgba(203, 213, 225, 0.5);
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: #6b7280;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .detail-value {
+      color: #1f2937;
+      font-weight: 600;
+      text-align: right;
+      font-size: 0.85rem;
+    }
+
+    .detail-value.precio {
+      color: #15803d;
+      font-size: 0.95rem;
+    }
+
+    .precio-tachado {
+      text-decoration: line-through;
+      color: #9ca3af;
+      font-size: 0.75rem;
+      margin-right: 0.35rem;
+    }
+
+    .precio-con-descuento {
+      color: #15803d;
+      font-weight: 700;
+    }
+
+    .descuento-badge {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.1rem 0.35rem;
+      background: rgba(22, 163, 74, 0.15);
+      color: #15803d;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .detail-value.vencida {
+      color: #dc2626;
+    }
+
+    .detail-value.notas {
+      font-weight: 400;
+      font-style: italic;
+      color: #4b5563;
+    }
+
+    .dias-restantes {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.1rem 0.4rem;
+      background: rgba(245, 158, 11, 0.15);
+      color: #b45309;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .suscripcion-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid rgba(203, 213, 225, 0.5);
+    }
+
+    .renovar-btn {
+      background: rgba(22, 163, 74, 0.08);
+      border-color: #22c55e;
+      color: #15803d;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+    }
+
+    .renovar-btn:hover {
+      background: rgba(22, 163, 74, 0.15);
+    }
+
+    .text-btn {
+      background: transparent;
+      border: none;
+      padding: 0.35rem 0.75rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .text-btn.danger {
+      color: #dc2626;
+    }
+
+    .text-btn.danger:hover {
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    /* Botón de contacto/ayuda */
+    .contact-btn {
+      color: #64748b !important;
+      border-color: #e2e8f0 !important;
+      background: #f8fafc !important;
+    }
+
+    .contact-btn:hover {
+      color: #25d366 !important;
+      border-color: #25d366 !important;
+      background: #f0fdf4 !important;
+    }
+
+    .text-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .cancelada-info {
+      background: rgba(239, 68, 68, 0.06);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 8px;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .cancelada-info p {
+      margin: 0 0 0.35rem;
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+
+    .cancelada-info p:first-child {
+      color: #dc2626;
+    }
+
+    .historial-card header h2 {
+      font-size: 1rem;
+    }
+
+    .historial-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .historial-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0.75rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid rgba(203, 213, 225, 0.5);
+    }
+
+    .historial-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .historial-plan {
+      font-weight: 600;
+      color: #1f2937;
+      font-size: 0.85rem;
+    }
+
+    .historial-periodo {
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
+    .historial-estado {
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .historial-estado.activa {
+      background: rgba(22, 163, 74, 0.12);
+      color: #15803d;
+    }
+
+    .historial-estado.suspendida {
+      background: rgba(245, 158, 11, 0.12);
+      color: #b45309;
+    }
+
+    .historial-estado.cancelada {
+      background: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+    }
+
+    .historial-fechas {
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
     .temp-password {
       background: rgba(59, 130, 246, 0.1);
       border-radius: 12px;
@@ -1197,7 +1636,9 @@ export class AccountComponent implements OnInit, OnDestroy {
   transferForm: FormGroup;
 
   usuario: UsuarioPerfil | null = null;
-  suscripciones: SuscripcionDetalle[] = [];
+  // Suscripciones de la empresa del usuario
+  suscripcionActual: SuscripcionPlan | null = null;
+  historialSuscripciones: SuscripcionPlan[] = [];
 
   initializing = true;
   activeSection: SectionKey | null = null;
@@ -1251,7 +1692,11 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   private profileCallbacks: Array<() => void> = [];
 
-  constructor(private fb: FormBuilder, private api: ApiService, private authSession: AuthSessionService) {
+  constructor(
+    private fb: FormBuilder, 
+    private api: ApiService, 
+    private authSession: AuthSessionService
+  ) {
     this.profileForm = this.fb.group({
       nombre: ['', Validators.required],
       telefono: [''],
@@ -1926,7 +2371,8 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   private ensureSuscripcionesLoaded(force = false): void {
     if (!this.usuario?.empresa_id) {
-      this.suscripciones = [];
+      this.suscripcionActual = null;
+      this.historialSuscripciones = [];
       this.suscripcionesLoaded = true;
       return;
     }
@@ -1944,65 +2390,111 @@ export class AccountComponent implements OnInit, OnDestroy {
     }
 
     this.suscripcionesLoading = true;
-    this.api.obtenerSuscripciones().subscribe({
-      next: ({ suscripciones }) => {
-        this.suscripciones = suscripciones;
+    // Usar el nuevo endpoint que solo retorna las suscripciones de la empresa del usuario
+    this.api.obtenerSuscripcionesPlan().subscribe({
+      next: (suscripciones) => {
+        // Ordenar por fecha de creación descendente
+        const ordenadas = suscripciones.sort((a, b) => 
+          new Date(b.creado_en).getTime() - new Date(a.creado_en).getTime()
+        );
+        
+        // La suscripción actual es la más reciente activa o suspendida, o la más reciente en general
+        this.suscripcionActual = ordenadas.find(s => s.estado === 'activa' || s.estado === 'suspendida') 
+          || ordenadas[0] 
+          || null;
+        
+        // Historial incluye todas las suscripciones
+        this.historialSuscripciones = ordenadas;
+        
         this.suscripcionesLoading = false;
         this.suscripcionesLoaded = true;
       },
       error: () => {
-        this.suscripciones = [];
+        this.suscripcionActual = null;
+        this.historialSuscripciones = [];
         this.suscripcionesLoading = false;
         this.suscripcionesLoaded = false;
       }
     });
   }
 
-  actualizarEstadoSuscripcion(suscripcion: SuscripcionDetalle, estado: 'activa' | 'suspendida' | 'inactiva'): void {
-    if (this.suscripcionEnProgreso) {
-      return;
-    }
+  // Métodos auxiliares para suscripciones
+  isVencida(fechaFin: string | null | undefined): boolean {
+    if (!fechaFin) return false;
+    return new Date(fechaFin) < new Date();
+  }
 
-    const mensajes = {
-      activa: {
-        titulo: 'Reactivar suscripción',
-        texto: 'La suscripción volverá a estar activa de inmediato.'
-      },
-      suspendida: {
-        titulo: 'Suspender suscripción',
-        texto: 'Podrás reactivarla más adelante.'
-      },
-      inactiva: {
-        titulo: 'Cancelar suscripción',
-        texto: 'Se marcará como inactiva y registraremos la fecha de fin.'
-      }
-    } as const;
+  diasRestantes(fechaFin: string | null | undefined): number {
+    if (!fechaFin) return 0;
+    const hoy = new Date();
+    const fin = new Date(fechaFin);
+    const diff = fin.getTime() - hoy.getTime();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
 
+  solicitarRenovacion(): void {
+    if (!this.suscripcionActual) return;
+    
     Swal.fire({
-      title: mensajes[estado].titulo,
-      text: mensajes[estado].texto,
-      icon: 'warning',
+      title: 'Solicitar renovación',
+      html: `
+        <p>Para renovar tu suscripción del plan <strong>${this.suscripcionActual.plan?.nombre || 'actual'}</strong>, 
+        contacta con nuestro equipo comercial a través de WhatsApp.</p>
+        <p>Ellos te guiarán en el proceso de renovación y opciones de pago.</p>
+      `,
+      icon: 'info',
       showCancelButton: true,
-      confirmButtonText: 'Confirmar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: 'Contactar por WhatsApp',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#25d366'
     }).then(result => {
-      if (!result.isConfirmed) {
-        return;
+      if (result.isConfirmed) {
+        const mensaje = encodeURIComponent(`Hola, quiero renovar mi suscripción del plan ${this.suscripcionActual?.plan?.nombre || ''} de Tratios. Mi empresa es ${this.suscripcionActual?.empresa?.nombre || ''}.`);
+        window.open(`https://wa.me/573132865421?text=${mensaje}`, '_blank');
       }
-
-      this.suscripcionEnProgreso = suscripcion.id;
-      this.api.actualizarSuscripcion(suscripcion.id, estado).subscribe({
-        next: ({ suscripcion: actualizada }) => {
-          this.suscripciones = this.suscripciones.map(item => item.id === actualizada.id ? actualizada : item);
-          this.suscripcionEnProgreso = null;
-          Swal.fire('Cambios guardados', 'Actualizamos el estado de la suscripción.', 'success');
-        },
-        error: (error) => {
-          this.suscripcionEnProgreso = null;
-          Swal.fire('Error', error?.error?.message || 'No pudimos actualizar la suscripción.', 'error');
-        }
-      });
     });
+  }
+
+  solicitarReactivacion(): void {
+    if (!this.suscripcionActual) return;
+    
+    Swal.fire({
+      title: 'Solicitar reactivación',
+      html: `
+        <p>Tu suscripción está actualmente <strong>suspendida</strong>.</p>
+        <p>Para reactivarla, contacta con nuestro equipo comercial y ellos te ayudarán a resolver cualquier inconveniente.</p>
+      `,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonText: 'Contactar por WhatsApp',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#25d366'
+    }).then(result => {
+      if (result.isConfirmed) {
+        const mensaje = encodeURIComponent(`Hola, quiero reactivar mi suscripción suspendida de Tratios. Mi empresa es ${this.suscripcionActual?.empresa?.nombre || ''}.`);
+        window.open(`https://wa.me/573132865421?text=${mensaje}`, '_blank');
+      }
+    });
+  }
+
+  contactarSoporte(): void {
+    if (!this.suscripcionActual) return;
+    
+    const planNombre = this.suscripcionActual.plan?.nombre || 'N/A';
+    const empresaNombre = this.suscripcionActual.empresa?.nombre || 'N/A';
+    const userEmail = this.usuario?.email || 'N/A';
+    
+    const mensaje = `Hola, soy cliente de TRATIOS y me gustaría hablar sobre mi suscripción.
+
+📋 *Detalles de mi cuenta:*
+• Empresa: ${empresaNombre}
+• Plan actual: ${planNombre}
+• Email: ${userEmail}
+
+Quisiera información sobre opciones disponibles para mi plan.`;
+    
+    const url = `https://wa.me/573132865421?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
   }
 
 }

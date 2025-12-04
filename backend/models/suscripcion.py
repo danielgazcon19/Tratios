@@ -15,6 +15,7 @@ class Suscripcion(db.Model):
     # Campos adicionales para gestión
     periodo = db.Column(db.String(20), nullable=True)  # mensual, anual
     precio_pagado = db.Column(db.Float, nullable=True)  # Precio al momento de la suscripción
+    porcentaje_descuento = db.Column(db.Float, default=0, nullable=False)  # Porcentaje de descuento (0-100)
     creado_en = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     actualizado_en = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     creado_por = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)  # Admin que creó la suscripción
@@ -26,12 +27,21 @@ class Suscripcion(db.Model):
     plan = db.relationship('Plan', backref=db.backref('suscripciones', lazy=True))
     creador = db.relationship('Usuario', foreign_keys=[creado_por], backref='suscripciones_creadas')
 
-    # Índice único compuesto para prevenir suscripciones duplicadas activas
+    # Índices para optimizar consultas
+    # Nota: La restricción de una sola suscripción activa por empresa se maneja a nivel de aplicación
     __table_args__ = (
-        db.UniqueConstraint('empresa_id', 'plan_id', 'estado', name='uk_empresa_plan_activo'),
         db.Index('idx_suscripcion_empresa_estado', 'empresa_id', 'estado'),
         db.Index('idx_suscripcion_fecha_fin', 'fecha_fin'),
     )
+
+    def calcular_precio_con_descuento(self):
+        """Calcula el precio final aplicando el porcentaje de descuento"""
+        if not self.precio_pagado:
+            return 0
+        descuento = self.porcentaje_descuento or 0
+        if descuento <= 0:
+            return self.precio_pagado
+        return round(self.precio_pagado * (1 - descuento / 100), 2)
 
     def to_dict(self):
         return {
@@ -46,6 +56,8 @@ class Suscripcion(db.Model):
             'forma_pago': self.forma_pago,
             'periodo': self.periodo,
             'precio_pagado': self.precio_pagado,
+            'porcentaje_descuento': self.porcentaje_descuento or 0,
+            'precio_con_descuento': self.calcular_precio_con_descuento(),
             'creado_en': self.creado_en.isoformat() if self.creado_en else None,
             'actualizado_en': self.actualizado_en.isoformat() if self.actualizado_en else None,
             'creado_por': self.creado_por,

@@ -125,6 +125,38 @@ export interface TransferEmpresaResponse {
   temp_password?: string;
 }
 
+// Interfaz para suscripción con plan (nueva estructura)
+export interface SuscripcionPlan {
+  id: number;
+  empresa_id: number;
+  plan_id: number;
+  plan?: {
+    id: number;
+    nombre: string;
+    precio_mensual: number;
+    precio_anual: number;
+  };
+  empresa?: {
+    id: number;
+    nombre: string;
+    nit: string;
+    estado: boolean;
+  };
+  fecha_inicio: string;
+  fecha_fin: string;
+  estado: 'activa' | 'inactiva' | 'suspendida' | 'cancelada';
+  periodo: 'mensual' | 'anual';
+  precio_pagado: number;
+  porcentaje_descuento?: number;
+  precio_con_descuento?: number;
+  forma_pago?: string;
+  creado_en: string;
+  actualizado_en?: string;
+  creado_por: number;
+  motivo_cancelacion?: string;
+  notas?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
@@ -253,5 +285,19 @@ export class ApiService {
     return this.http.get<{ cities: Array<{ name: string; state?: string }>; country_code: string }>(
       this.buildUrl(`/public/location/countries/${countryCode}/cities`)
     );
+  }
+
+  /**
+   * Obtiene las suscripciones (con plan) de la empresa del usuario autenticado
+   */
+  obtenerSuscripcionesPlan(): Observable<SuscripcionPlan[]> {
+    return this.http.get<SuscripcionPlan[]>(this.buildUrl('/account/suscripciones'));
+  }
+
+  /**
+   * Cancela una suscripción del usuario
+   */
+  cancelarSuscripcion(suscripcionId: number, motivo: string, notas?: string): Observable<any> {
+    return this.http.post(this.buildUrl(`/admin/suscripciones/${suscripcionId}/cancelar`), { motivo, notas });
   }
 }
