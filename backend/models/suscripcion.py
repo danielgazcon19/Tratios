@@ -16,6 +16,7 @@ class Suscripcion(db.Model):
     periodo = db.Column(db.String(20), nullable=True)  # mensual, anual
     precio_pagado = db.Column(db.Float, nullable=True)  # Precio al momento de la suscripción
     porcentaje_descuento = db.Column(db.Float, default=0, nullable=False)  # Porcentaje de descuento (0-100)
+    renovacion_automatica = db.Column(db.Boolean, default=False, nullable=False)  # Si se renueva automáticamente
     creado_en = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     actualizado_en = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     creado_por = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)  # Admin que creó la suscripción
@@ -58,6 +59,7 @@ class Suscripcion(db.Model):
             'precio_pagado': self.precio_pagado,
             'porcentaje_descuento': self.porcentaje_descuento or 0,
             'precio_con_descuento': self.calcular_precio_con_descuento(),
+            'renovacion_automatica': self.renovacion_automatica,
             'creado_en': self.creado_en.isoformat() if self.creado_en else None,
             'actualizado_en': self.actualizado_en.isoformat() if self.actualizado_en else None,
             'creado_por': self.creado_por,

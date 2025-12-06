@@ -51,6 +51,10 @@ export const routes: Routes = [
       { 
         path: 'plan-servicios', 
         loadComponent: () => import('./pages/admin/admin-plan-servicios/admin-plan-servicios.component').then(m => m.AdminPlanServiciosComponent) 
+      },
+      { 
+        path: 'soporte', 
+        loadComponent: () => import('./pages/admin/admin-soporte/admin-soporte.component').then(m => m.AdminSoporteComponent) 
       }
     ]
   },

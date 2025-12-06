@@ -21,6 +21,10 @@
       <i class="fas fa-link"></i>
       Asociar Planes
     </a>
+    <a routerLink="/admin/soporte" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-headset"></i>
+      Soporte
+    </a>
   </div>
 
   <div class="header">
@@ -148,19 +152,20 @@
               {{ servicio.activo ? 'Activo' : 'Inactivo' }}
             </span>
           </td>
-          <td class="acciones">
-            <button class="btn-icon" (click)="editarServicio(servicio)" title="Editar">
-              <i class="fas fa-edit" style="color: #007bff;"></i>
+          <td class="acciones-cell">
+            <button class="btn-icon btn-edit" (click)="editarServicio(servicio)" title="Editar">
+              <i class="fas fa-pen-to-square"></i>
             </button>
             <button 
               class="btn-icon" 
+              [class.btn-warning]="servicio.activo"
+              [class.btn-success]="!servicio.activo"
               (click)="toggleEstado(servicio)" 
-              [title]="servicio.activo ? 'Desactivar' : 'Activar'"
-              [style.color]="servicio.activo ? '#ffc107' : '#28a745'">
+              [title]="servicio.activo ? 'Desactivar' : 'Activar'">
               <i class="fas" [class.fa-pause]="servicio.activo" [class.fa-play]="!servicio.activo"></i>
             </button>
-            <button class="btn-icon" (click)="eliminarServicio(servicio)" title="Eliminar">
-              <i class="fas fa-trash-alt" style="color: #dc3545;"></i>
+            <button class="btn-icon btn-danger" (click)="eliminarServicio(servicio)" title="Eliminar">
+              <i class="fas fa-trash-can"></i>
             </button>
           </td>
         </tr>

@@ -12,6 +12,7 @@ from models.suscripcion import Suscripcion
 from database.db import db
 from datetime import datetime, timedelta
 from functools import wraps
+from utils.log import AppLogger, LogCategory
 
 admin_suscripciones_bp = Blueprint('admin_suscripciones', __name__)
 
@@ -36,7 +37,7 @@ def listar_suscripciones():
     """
     GET /admin/suscripciones
     Lista todas las suscripciones con filtros opcionales
-    Query params: ?estado=activa&empresa_id=1
+    Query params: ?estado=activa&empresa_id=1&nit=123456789
     """
     try:
         # Usar joinedload para cargar las relaciones
@@ -47,14 +48,41 @@ def listar_suscripciones():
         
         # Filtros opcionales
         estado = request.args.get('estado')
-        empresa_id = request.args.get('empresa_id')
+        empresa_id = request.args.get('empresa_id', type=int)
+        nit = request.args.get('nit')
         
+        # Log de solicitud
+        AppLogger.info(
+            LogCategory.SUSCRIPCIONES, 
+            "Listar suscripciones",
+            estado=estado,
+            empresa_id=empresa_id,
+            nit=nit
+        )
+        
+        # Aplicar filtros
         if estado:
-            query = query.filter_by(estado=estado)
+            query = query.filter(Suscripcion.estado == estado)
+            
         if empresa_id:
-            query = query.filter_by(empresa_id=empresa_id)
+            query = query.filter(Suscripcion.empresa_id == empresa_id)
+            
+        if nit:
+            # Buscar empresa por NIT y filtrar por su ID
+            empresa = Empresa.query.filter_by(nit=nit).first()
+            if empresa:
+                query = query.filter(Suscripcion.empresa_id == empresa.id)
+            else:
+                AppLogger.warning(LogCategory.SUSCRIPCIONES, "Empresa no encontrada por NIT", nit=nit)
+                return jsonify([]), 200
         
         suscripciones = query.order_by(Suscripcion.creado_en.desc()).all()
+        
+        AppLogger.info(
+            LogCategory.SUSCRIPCIONES, 
+            "Consulta finalizada",
+            total_resultados=len(suscripciones)
+        )
         
         resultado = []
         for suscripcion in suscripciones:
@@ -63,6 +91,7 @@ def listar_suscripciones():
         return jsonify(resultado), 200
     
     except Exception as e:
+        AppLogger.error(LogCategory.SUSCRIPCIONES, f"Error al listar suscripciones", exc=e)
         return jsonify({'message': f'Error al listar suscripciones: {str(e)}'}), 500
 
 
@@ -155,6 +184,7 @@ def crear_suscripcion():
             periodo=data['periodo'],
             precio_pagado=precio_pagado,
             porcentaje_descuento=porcentaje_descuento,
+            renovacion_automatica=data.get('renovacion_automatica', False),
             forma_pago=data.get('forma_pago'),
             creado_por=current_user.id,
             notas=data.get('notas')
@@ -162,6 +192,18 @@ def crear_suscripcion():
         
         db.session.add(nueva_suscripcion)
         db.session.commit()
+        
+        AppLogger.info(
+            LogCategory.SUSCRIPCIONES, 
+            "Suscripción creada",
+            suscripcion_id=nueva_suscripcion.id,
+            empresa_id=data['empresa_id'],
+            plan_id=data['plan_id'],
+            periodo=data['periodo'],
+            precio=precio_pagado,
+            descuento=porcentaje_descuento,
+            creado_por=current_user.id
+        )
         
         # El to_dict() ahora incluye empresa y plan automáticamente
         return jsonify({
@@ -171,6 +213,7 @@ def crear_suscripcion():
     
     except Exception as e:
         db.session.rollback()
+        AppLogger.error(LogCategory.SUSCRIPCIONES, "Error al crear suscripción", exc=e)
         return jsonify({'message': f'Error al crear suscripción: {str(e)}'}), 500
 
 
@@ -269,6 +312,7 @@ def renovar_suscripcion(suscripcion_id):
             periodo=periodo,
             precio_pagado=precio_pagado,
             porcentaje_descuento=porcentaje_descuento,
+            renovacion_automatica=data.get('renovacion_automatica', suscripcion_anterior.renovacion_automatica),
             forma_pago=suscripcion_anterior.forma_pago,
             creado_por=current_user_id,
             notas=notas_base
@@ -277,6 +321,17 @@ def renovar_suscripcion(suscripcion_id):
         db.session.add(nueva_suscripcion)
         db.session.commit()
         
+        AppLogger.info(
+            LogCategory.SUSCRIPCIONES, 
+            "Suscripción renovada",
+            nueva_suscripcion_id=nueva_suscripcion.id,
+            suscripcion_anterior_id=suscripcion_id,
+            empresa_id=suscripcion_anterior.empresa_id,
+            periodo=periodo,
+            anos=anos,
+            descuento=porcentaje_descuento
+        )
+        
         return jsonify({
             'message': 'Suscripción renovada exitosamente',
             'suscripcion': nueva_suscripcion.to_dict()
@@ -284,6 +339,7 @@ def renovar_suscripcion(suscripcion_id):
     
     except Exception as e:
         db.session.rollback()
+        AppLogger.error(LogCategory.SUSCRIPCIONES, "Error al renovar suscripción", exc=e, suscripcion_id=suscripcion_id)
         return jsonify({'message': f'Error al renovar suscripción: {str(e)}'}), 500
 
 
@@ -324,6 +380,14 @@ def cancelar_suscripcion(suscripcion_id):
         
         db.session.commit()
         
+        AppLogger.info(
+            LogCategory.SUSCRIPCIONES, 
+            "Suscripción cancelada",
+            suscripcion_id=suscripcion_id,
+            empresa_id=suscripcion.empresa_id,
+            motivo=data['motivo']
+        )
+        
         return jsonify({
             'message': 'Suscripción cancelada exitosamente',
             'suscripcion': suscripcion.to_dict()
@@ -331,6 +395,7 @@ def cancelar_suscripcion(suscripcion_id):
     
     except Exception as e:
         db.session.rollback()
+        AppLogger.error(LogCategory.SUSCRIPCIONES, "Error al cancelar suscripción", exc=e, suscripcion_id=suscripcion_id)
         return jsonify({'message': f'Error al cancelar suscripción: {str(e)}'}), 500
 
 

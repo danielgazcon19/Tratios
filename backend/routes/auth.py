@@ -16,6 +16,7 @@ from app import db
 from models.usuario import Usuario
 from models.empresa import Empresa
 from utils.password_validator import validate_password_strength
+from utils.log import AppLogger, LogCategory
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -192,19 +193,23 @@ def login():
 
     user = Usuario.query.filter_by(email=email).first()
     if not user or not user.check_password(password):
+        AppLogger.warning(LogCategory.AUTH, "Intento de login fallido - credenciales inválidas", email=email)
         return jsonify({'message': 'Credenciales inválidas'}), 401
 
     if not user.is_active:
+        AppLogger.warning(LogCategory.AUTH, "Intento de login con cuenta inactiva", user_id=user.id, email=email)
         return jsonify({'message': 'Tu cuenta está pendiente de activación. Completa la configuración de autenticación en dos pasos.'}), 403
 
     if user.otp_enabled:
         if otp_code:
             if not user.verify_otp(str(otp_code)):
                 db.session.rollback()
+                AppLogger.warning(LogCategory.AUTH, "Código OTP inválido en login", user_id=user.id, email=email)
                 return jsonify({'message': 'Código OTP inválido'}), 401
         elif backup_code:
             if not user.consume_backup_code(str(backup_code)):
                 db.session.rollback()
+                AppLogger.warning(LogCategory.AUTH, "Código de respaldo inválido en login", user_id=user.id, email=email)
                 return jsonify({'message': 'Código de respaldo inválido'}), 401
         else:
             challenge_claims = {
@@ -217,12 +222,14 @@ def login():
                 expires_delta=timedelta(minutes=5),
                 fresh=False
             )
+            AppLogger.info(LogCategory.AUTH, "Reto OTP generado para login", user_id=user.id, email=email)
             return jsonify({
                 'requires_otp': True,
                 'challenge_token': challenge_token,
                 'otp_methods': ['totp', 'backup_code']
             }), 202
 
+    AppLogger.info(LogCategory.AUTH, "Login exitoso", user_id=user.id, email=email, rol=user.rol)
     token_payload = _build_token_response(user, fresh=True)
     db.session.commit()
     return jsonify(token_payload), 200
@@ -263,8 +270,10 @@ def login_otp():
 
     if not verified:
         db.session.rollback()
+        AppLogger.warning(LogCategory.AUTH, "Verificación OTP fallida en segundo paso", user_id=user.id, email=identity)
         return jsonify({'message': 'Código de verificación inválido'}), 401
 
+    AppLogger.info(LogCategory.AUTH, "Login OTP exitoso", user_id=user.id, email=identity, rol=user.rol)
     token_payload = _build_token_response(user, fresh=True)
     db.session.commit()
     return jsonify(token_payload), 200

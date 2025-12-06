@@ -24,10 +24,20 @@
     font-weight: bold;
     color: #f9fafb;
     text-decoration: none;
+    cursor: pointer;
   }
   .nav-logo svg {
     width: 2rem;
     height: 2rem;
+  }
+  .nav-logo .logo-img {
+    height: 2.5rem;
+    width: auto;
+    object-fit: contain;
+    transition: opacity 0.3s ease;
+  }
+  .nav-logo:hover .logo-img {
+    opacity: 0.85;
   }
   .nav-menu {
     display: flex;
@@ -176,6 +186,9 @@
     }
     .nav-logo {
       font-size: 1.1rem;
+    }
+    .nav-logo .logo-img {
+      height: 2rem;
     }
     .nav-link {
       padding: 0.5rem 0.7rem;
@@ -483,6 +496,17 @@
     height: 2rem;
   }
 
+  .footer-logo .logo-img {
+    height: 3rem;
+    width: auto;
+    object-fit: contain;
+    transition: opacity 0.3s ease;
+  }
+
+  .footer-logo:hover .logo-img {
+    opacity: 0.85;
+  }
+
   .footer-description {
     color: #9ca3af;
     font-size: 0.95rem;
@@ -588,6 +612,10 @@
       text-align: center;
       align-items: center;
     }
+
+    .footer-logo .logo-img {
+      height: 2.5rem;
+    }
   }
 
   @media (max-width: 480px) {
@@ -602,5 +630,9 @@
 
     .footer-column h4 {
       margin-bottom: 0.75rem;
+    }
+
+    .footer-logo .logo-img {
+      height: 2rem;
     }
   }

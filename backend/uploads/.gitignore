@@ -1,0 +1,3 @@
+# Ignorar todos los archivos en uploads excepto este .gitignore
+*
+!.gitignore
