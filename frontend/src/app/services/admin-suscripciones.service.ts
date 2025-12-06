@@ -26,6 +26,7 @@ export interface Suscripcion {
   precio_pagado: number;
   porcentaje_descuento?: number;
   precio_con_descuento?: number;
+  renovacion_automatica?: boolean;
   forma_pago?: string;
   creado_en: string;
   actualizado_en?: string;
@@ -42,6 +43,7 @@ export interface CrearSuscripcionDto {
   forma_pago?: string;
   notas?: string;
   porcentaje_descuento?: number;
+  renovacion_automatica?: boolean;
 }
 
 export interface RenovarDto {
@@ -50,6 +52,7 @@ export interface RenovarDto {
   notas?: string;
   años?: number;
   porcentaje_descuento?: number;
+  renovacion_automatica?: boolean;
 }
 
 export interface CancelarDto {
@@ -79,14 +82,22 @@ export class AdminSuscripcionesService {
 
   constructor(private http: HttpClient) {}
 
-  listarSuscripciones(filtros?: { estado?: string; empresa_id?: number }): Observable<Suscripcion[]> {
+  listarSuscripciones(filtros?: { estado?: string; empresa_id?: number; nit?: string }): Observable<Suscripcion[]> {
     let params = new HttpParams();
+    
+    console.log('>>> listarSuscripciones llamado con filtros:', filtros);
+    
     if (filtros?.estado) {
       params = params.set('estado', filtros.estado);
     }
     if (filtros?.empresa_id) {
       params = params.set('empresa_id', filtros.empresa_id.toString());
     }
+    if (filtros?.nit) {
+      params = params.set('nit', filtros.nit);
+    }
+    
+    console.log('>>> URL final:', this.apiUrl, '>>> Params:', params.toString());
     
     return this.http.get<Suscripcion[]>(this.apiUrl, { params });
   }

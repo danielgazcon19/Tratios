@@ -21,6 +21,10 @@
       <i class="fas fa-link"></i>
       Asociar Planes
     </a>
+    <a routerLink="/admin/soporte" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-headset"></i>
+      Soporte
+    </a>
   </div>
 
   <div class="header">
@@ -150,12 +154,12 @@
             <i class="fas fa-star" [class.seleccionado]="plan.seleccionado"></i>
             <span *ngIf="plan.seleccionado" class="badge-favorito">Destacado</span>
           </td>
-          <td class="acciones">
-            <button class="btn-icon" (click)="editarPlan(plan)" title="Editar">
-              <i class="fas fa-edit" style="color: #007bff;"></i>
+          <td class="acciones-cell">
+            <button class="btn-icon btn-edit" (click)="editarPlan(plan)" title="Editar">
+              <i class="fas fa-pen-to-square"></i>
             </button>
-            <button class="btn-icon" (click)="eliminarPlan(plan)" title="Eliminar">
-              <i class="fas fa-trash-alt" style="color: #dc3545;"></i>
+            <button class="btn-icon btn-danger" (click)="eliminarPlan(plan)" title="Eliminar">
+              <i class="fas fa-trash-can"></i>
             </button>
           </td>
         </tr>

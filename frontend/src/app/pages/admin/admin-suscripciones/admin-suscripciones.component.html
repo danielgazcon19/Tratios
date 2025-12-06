@@ -21,6 +21,10 @@
       <i class="fas fa-link"></i>
       Asociar Planes
     </a>
+    <a routerLink="/admin/soporte" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-headset"></i>
+      Soporte
+    </a>
   </div>
 
   <div class="header">
@@ -117,6 +121,19 @@
           placeholder="Notas adicionales..."></textarea>
       </div>
 
+      <div class="form-group-checkbox">
+        <input 
+          type="checkbox" 
+          id="renovacionAutomatica" 
+          [(ngModel)]="nuevaSuscripcion.renovacion_automatica" 
+          name="renovacionAutomatica">
+        <label for="renovacionAutomatica">
+          <i class="fas fa-sync-alt"></i>
+          Renovación automática
+          <span class="help-text">(Se renovará automáticamente al vencer)</span>
+        </label>
+      </div>
+
       <div class="form-actions">
         <button type="submit" class="btn-success">Crear Suscripción</button>
         <button type="button" class="btn-secondary" (click)="toggleFormulario()">Cancelar</button>
@@ -188,18 +205,18 @@
               {{ suscripcion.estado }}
             </span>
           </td>
-          <td class="acciones">
-            <button class="btn-icon" (click)="verDetalle(suscripcion)" title="Ver detalle">
+          <td class="acciones-cell">
+            <button class="btn-icon btn-view" (click)="verDetalle(suscripcion)" title="Ver detalle">
               <i class="fas fa-eye"></i>
             </button>
             
             <!-- Renovar (solo si está activa o inactiva) -->
             <button 
               *ngIf="suscripcion.estado === 'activa' || suscripcion.estado === 'inactiva'" 
-              class="btn-icon btn-primary" 
+              class="btn-icon btn-success" 
               (click)="renovarSuscripcion(suscripcion)" 
               title="Renovar">
-              <i class="fas fa-sync-alt"></i>
+              <i class="fas fa-arrow-rotate-right"></i>
             </button>
             
             <!-- Suspender (solo si está activa) -->
@@ -208,7 +225,7 @@
               class="btn-icon btn-warning" 
               (click)="suspenderSuscripcion(suscripcion)" 
               title="Suspender">
-              <i class="fas fa-pause-circle"></i>
+              <i class="fas fa-pause"></i>
             </button>
             
             <!-- Reactivar (solo si está suspendida) -->
@@ -217,7 +234,7 @@
               class="btn-icon btn-success" 
               (click)="reactivarSuscripcion(suscripcion)" 
               title="Reactivar">
-              <i class="fas fa-play-circle"></i>
+              <i class="fas fa-play"></i>
             </button>
             
             <!-- Aplicar descuento (solo si está activa o suspendida) -->
@@ -235,7 +252,7 @@
               class="btn-icon btn-danger" 
               (click)="cancelarSuscripcion(suscripcion)" 
               title="Cancelar">
-              <i class="fas fa-times-circle"></i>
+              <i class="fas fa-xmark"></i>
             </button>
           </td>
         </tr>

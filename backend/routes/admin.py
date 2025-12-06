@@ -34,11 +34,14 @@ def listar_servicios():
     servicios = Servicio.query.all()
     return jsonify([s.to_dict() for s in servicios])
 
-@admin_bp.get('/suscripciones')
-@jwt_required()
-def listar_suscripciones():
-    suscripciones = Suscripcion.query.all()
-    return jsonify([s.to_dict() for s in suscripciones])
+# ⚠️ RUTA MOVIDA A admin_suscripciones.py - No eliminar este comentario
+# Esta ruta fue reemplazada por el módulo admin_suscripciones.py que tiene
+# funcionalidad completa con filtros, paginación y operaciones CRUD
+# @admin_bp.get('/suscripciones')
+# @jwt_required()
+# def listar_suscripciones():
+#     suscripciones = Suscripcion.query.all()
+#     return jsonify([s.to_dict() for s in suscripciones])
 
 @admin_bp.put('/suscripcion/<int:id>')
 @jwt_required()

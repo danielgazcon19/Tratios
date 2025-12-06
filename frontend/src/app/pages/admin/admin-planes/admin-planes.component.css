@@ -111,12 +111,12 @@
   background: #e2e6ea;
 }
 
-.btn-icon.btn-danger {
-  color: #dc3545;
+.btn-icon.btn-primary {
+  color: #007bff;
 }
 
-.btn-icon.btn-danger:hover {
-  background: #f8d7da;
+.btn-icon.btn-primary:hover {
+  background: #cfe2ff;
 }
 
 .btn-icon.btn-success {
@@ -125,6 +125,27 @@
 
 .btn-icon.btn-success:hover {
   background: #d4edda;
+}
+
+.btn-icon.btn-warning {
+  color: #ffc107;
+}
+
+.btn-icon.btn-warning:hover {
+  background: #fff3cd;
+}
+
+.btn-icon.btn-danger {
+  color: #dc3545;
+}
+
+.btn-icon.btn-danger:hover {
+  background: #f8d7da;
+}
+
+/* Acciones */
+.acciones-cell {
+  white-space: nowrap;
 }
 
 /* Formulario */
@@ -277,15 +298,6 @@ tbody td {
 
 .form-group-checkbox label .fa-star {
   color: #ffc107;
-}
-
-.btn-icon.btn-danger {
-  background: #dc3545;
-}
-
-.btn-icon.btn-danger:hover {
-  background: #c82333;
-  transform: scale(1.1);
 }
 
 /* Estados */

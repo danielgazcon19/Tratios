@@ -243,6 +243,10 @@ tbody tr:hover {
   white-space: nowrap;
 }
 
+.acciones-cell {
+  white-space: nowrap;
+}
+
 /* Badges */
 .badge {
   display: inline-block;

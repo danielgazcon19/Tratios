@@ -72,14 +72,13 @@
 }
 
 /* Botones */
-.btn-primary, .btn-success, .btn-secondary, .btn-icon, .btn-warning {
+button {
   padding: 10px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .btn-primary {
@@ -104,15 +103,6 @@
   background: #1e7e34;
 }
 
-.btn-warning {
-  background: #ffc107;
-  color: #212529;
-}
-
-.btn-warning:hover {
-  background: #e0a800;
-}
-
 .btn-secondary {
   background: #6c757d;
   color: white;
@@ -133,12 +123,12 @@
   background: #e2e6ea;
 }
 
-.btn-icon.btn-danger {
-  color: #dc3545;
+.btn-icon.btn-primary {
+  color: #007bff;
 }
 
-.btn-icon.btn-danger:hover {
-  background: #f8d7da;
+.btn-icon.btn-primary:hover {
+  background: #cfe2ff;
 }
 
 .btn-icon.btn-success {
@@ -155,6 +145,19 @@
 
 .btn-icon.btn-warning:hover {
   background: #fff3cd;
+}
+
+.btn-icon.btn-danger {
+  color: #dc3545;
+}
+
+.btn-icon.btn-danger:hover {
+  background: #f8d7da;
+}
+
+/* Acciones */
+.acciones-cell {
+  white-space: nowrap;
 }
 
 /* Formulario */

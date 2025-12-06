@@ -77,8 +77,18 @@ def create_app():
     app.config['LOCATION_DB_PATH'] = os.environ.get('LOCATION_DB_PATH', os.path.join(os.path.dirname(__file__), 'data', 'countries.db'))
     app.config['LOCATION_CITIES_ARCHIVE_PATH'] = os.environ.get('LOCATION_CITIES_ARCHIVE_PATH', os.path.join(os.path.dirname(__file__), 'data', 'cities.sqlite3.gz'))
     
+    # Configuración de carga de archivos
+    app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_FOLDER', os.path.join(os.path.dirname(__file__), 'uploads'))
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB límite total por request
+    
+    # Crear carpeta de uploads si no existe
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'tickets'), exist_ok=True)
+    
     # Configuración de seguridad para API SaaS
     app.config['SAAS_API_KEY'] = os.environ.get('SAAS_API_KEY')
+    app.config['SUPPORT_API_SECRET'] = os.environ.get('SUPPORT_API_SECRET', 'soporte-secret-key-2025')
+    app.config['SUPPORT_API_DEV_KEY'] = os.environ.get('SUPPORT_API_DEV_KEY', 'dev-support-key-2025')
     
     # Asegurar que la base de datos exista antes de inicializar ORM
     ensure_database_exists(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -111,6 +121,12 @@ def create_app():
     from routes.admin_planes import admin_planes_bp
     from routes.admin_servicios import admin_servicios_bp
     from routes.admin_plan_servicios import admin_plan_servicios_bp
+    # Blueprints de soporte
+    from routes.admin_soporte_tipos import admin_soporte_tipos_bp
+    from routes.admin_soporte_suscripciones import admin_soporte_suscripciones_bp
+    from routes.admin_soporte_pagos import admin_soporte_pagos_bp
+    from routes.admin_soporte_tickets import admin_soporte_tickets_bp
+    from routes.api_soporte import api_soporte_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -122,11 +138,18 @@ def create_app():
     app.register_blueprint(admin_planes_bp, url_prefix='/admin')
     app.register_blueprint(admin_servicios_bp, url_prefix='/admin')
     app.register_blueprint(admin_plan_servicios_bp, url_prefix='/admin')
+    # Registrar blueprints de soporte
+    app.register_blueprint(admin_soporte_tipos_bp)
+    app.register_blueprint(admin_soporte_suscripciones_bp)
+    app.register_blueprint(admin_soporte_pagos_bp)
+    app.register_blueprint(admin_soporte_tickets_bp)
+    app.register_blueprint(api_soporte_bp)
 
     init_location_service(app)
     
     # Importar modelos para que SQLAlchemy los reconozca
     from models import usuario, empresa, servicio, suscripcion, log_acceso
+    from models import soporte_tipo, soporte_suscripcion, soporte_pago, soporte_ticket
 
     # Servir Angular SPA (solo en producción o si existe el build)
     angular_dist_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'frontend', 'browser')

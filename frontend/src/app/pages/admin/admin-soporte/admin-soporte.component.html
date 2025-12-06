@@ -1,0 +1,763 @@
+<!-- admin-soporte.component.html -->
+<div class="admin-container">
+  <!-- Navegación del panel admin -->
+  <nav class="admin-nav">
+    <a routerLink="/admin/empresas" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-building"></i> Empresas
+    </a>
+    <a routerLink="/admin/suscripciones" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-file-invoice"></i> Suscripciones
+    </a>
+    <a routerLink="/admin/planes" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-tags"></i> Planes
+    </a>
+    <a routerLink="/admin/servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-cogs"></i> Servicios
+    </a>
+    <a routerLink="/admin/plan-servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-link"></i> Plan-Servicios
+    </a>
+    <a routerLink="/admin/soporte" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-headset"></i> Soporte
+    </a>
+  </nav>
+
+  <!-- Título y tabs internos -->
+  <div class="header">
+    <div>
+      <h1><i class="fas fa-headset"></i> Gestión de Soporte</h1>
+      <p class="subtitle">Administre tickets, suscripciones y tipos de soporte</p>
+    </div>
+  </div>
+
+  <!-- Tabs de soporte -->
+  <div class="soporte-tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'tickets'"
+      (click)="cambiarTab('tickets')">
+      <i class="fas fa-ticket"></i> Tickets
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'suscripciones'"
+      (click)="cambiarTab('suscripciones')">
+      <i class="fas fa-card-list"></i> Suscripciones
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'tipos'"
+      (click)="cambiarTab('tipos')">
+      <i class="fas fa-tags"></i> Tipos de Soporte
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="tabActiva === 'pagos'"
+      (click)="cambiarTab('pagos')">
+      <i class="fas fa-cash-coin"></i> Pagos
+    </button>
+  </div>
+
+  <!-- ============ TAB TICKETS ============ -->
+  <div *ngIf="tabActiva === 'tickets'" class="tab-content">
+    <div class="filtros-bar">
+      <div class="filtros-group">
+        <select [(ngModel)]="filtroEstadoTicket" (change)="filtrarTickets()" class="filtro-select">
+          <option value="">Todos los estados</option>
+          <option value="abierto">Abierto</option>
+          <option value="en_proceso">En Proceso</option>
+          <option value="pendiente_respuesta">Pendiente Respuesta</option>
+          <option value="cerrado">Cerrado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+        <select [(ngModel)]="filtroPrioridadTicket" (change)="filtrarTickets()" class="filtro-select">
+          <option value="">Todas las prioridades</option>
+          <option value="baja">Baja</option>
+          <option value="media">Media</option>
+          <option value="alta">Alta</option>
+          <option value="critica">Crítica</option>
+        </select>
+        <select [(ngModel)]="filtroEmpresaTicket" (change)="filtrarTickets()" class="filtro-select">
+          <option [value]="null">Todas las empresas</option>
+          <option *ngFor="let empresa of empresas" [value]="empresa.id">{{ empresa.nombre }}</option>
+        </select>
+      </div>
+      <button class="btn-primary" (click)="toggleFormularioTicket()">
+        <i class="fas fa-plus-lg"></i> Nuevo Ticket
+      </button>
+    </div>
+
+    <!-- Formulario nuevo ticket -->
+    <div *ngIf="mostrarFormularioTicket" class="formulario-card">
+      <div class="formulario-header">
+        <h3><i class="fas fa-ticket"></i> Nuevo Ticket de Soporte</h3>
+        <button class="btn-close" (click)="toggleFormularioTicket()">×</button>
+      </div>
+      <div class="formulario-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa *</label>
+            <select [(ngModel)]="nuevoTicket.empresa_id" (change)="onEmpresaChangeTicket()" class="form-control">
+              <option [value]="0">Seleccione empresa</option>
+              <option *ngFor="let empresa of empresas" [value]="empresa.id">{{ empresa.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Suscripción de Soporte *</label>
+            <select [(ngModel)]="nuevoTicket.soporte_suscripcion_id" class="form-control">
+              <option [value]="0">Seleccione suscripción</option>
+              <ng-container *ngFor="let sus of soporteSuscripciones">
+                <option *ngIf="sus.empresa_id === nuevoTicket.empresa_id && sus.estado === 'activo'" [value]="sus.id">
+                  {{ sus.tipo_soporte?.nombre }} - {{ formatDate(sus.fecha_inicio) }}
+                </option>
+              </ng-container>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Título *</label>
+            <input type="text" [(ngModel)]="nuevoTicket.titulo" class="form-control" placeholder="Describa brevemente el problema">
+          </div>
+          <div class="form-group">
+            <label>Prioridad</label>
+            <select [(ngModel)]="nuevoTicket.prioridad" class="form-control">
+              <option value="baja">Baja</option>
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+              <option value="critica">Crítica</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="nuevoTicket.descripcion" class="form-control" rows="4" 
+                    placeholder="Describa en detalle el problema o solicitud"></textarea>
+        </div>
+
+        <!-- Información de suscripción activa -->
+        <div *ngIf="suscripcionSoporteActiva && !cargandoSuscripcionSoporte" class="subscription-info">
+          <div class="subscription-header">
+            <i class="fas fa-check-circle"></i>
+            <strong>Soporte Activo: {{ suscripcionSoporteActiva.tipo_soporte?.nombre }}</strong>
+          </div>
+          <div class="subscription-details">
+            <span><i class="fas fa-calendar-check"></i> Estado: <span class="badge badge-success">{{ suscripcionSoporteActiva.estado }}</span></span>
+            <span *ngIf="suscripcionSoporteActiva.tickets_disponibles !== null">
+              <i class="fas fa-ticket-alt"></i> Tickets disponibles: {{ suscripcionSoporteActiva.tickets_disponibles }}
+            </span>
+            <span *ngIf="suscripcionSoporteActiva.horas_disponibles !== null">
+              <i class="fas fa-clock"></i> Horas disponibles: {{ suscripcionSoporteActiva.horas_disponibles }}
+            </span>
+          </div>
+        </div>
+
+        <div *ngIf="cargandoSuscripcionSoporte" class="loading-message">
+          <i class="fas fa-spinner fa-spin"></i> Verificando suscripción...
+        </div>
+
+        <!-- Campo de archivos adjuntos -->
+        <div class="form-group">
+          <label>Archivos adjuntos (opcional)</label>
+          <input 
+            type="file" 
+            multiple 
+            (change)="onArchivosSeleccionados($event)" 
+            class="form-control file-input"
+            accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar,.7z,.log,.json"
+          >
+          <small class="form-text">Máximo 10 archivos, 10 MB por archivo. Tipos permitidos: imágenes, documentos, comprimidos, logs.</small>
+          
+          <!-- Vista previa de archivos seleccionados -->
+          <div *ngIf="archivosSeleccionados.length > 0" class="archivos-preview">
+            <h5>Archivos seleccionados ({{ archivosSeleccionados.length }})</h5>
+            <div class="archivo-item" *ngFor="let archivo of archivosSeleccionados; let i = index">
+              <i [class]="'fas ' + getFileIcon(archivo.name)"></i>
+              <span class="archivo-nombre">{{ archivo.name }}</span>
+              <span class="archivo-size">{{ getFileSizeMB(archivo.size) }} MB</span>
+              <button type="button" class="btn-remove" (click)="eliminarArchivoSeleccionado(i)" title="Eliminar archivo">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="formulario-actions">
+          <button class="btn-secondary" (click)="toggleFormularioTicket()">Cancelar</button>
+          <button class="btn-primary" (click)="guardarTicket()" [disabled]="subiendoArchivos">
+            <i *ngIf="subiendoArchivos" class="fas fa-spinner fa-spin"></i>
+            {{ subiendoArchivos ? 'Guardando...' : 'Crear Ticket' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de detalle del ticket -->
+    <div *ngIf="ticketSeleccionado" class="ticket-detalle-panel">
+      <div class="ticket-detalle-header">
+        <div>
+          <h3>Ticket #{{ ticketSeleccionado.id }}: {{ ticketSeleccionado.titulo }}</h3>
+          <div class="ticket-meta">
+            <span class="badge" [ngClass]="getEstadoTicketClass(ticketSeleccionado.estado)">
+              {{ getEstadoTicketLabel(ticketSeleccionado.estado) }}
+            </span>
+            <span class="badge" [ngClass]="getPrioridadClass(ticketSeleccionado.prioridad)">
+              {{ getPrioridadLabel(ticketSeleccionado.prioridad) }}
+            </span>
+            <span class="meta-item"><i class="fas fa-building"></i> {{ ticketSeleccionado.empresa?.nombre }}</span>
+            <span class="meta-item"><i class="fas fa-calendar"></i> {{ formatDateTime(ticketSeleccionado.fecha_creacion) }}</span>
+          </div>
+        </div>
+        <button class="btn-close" (click)="cerrarDetalleTicket()">×</button>
+      </div>
+
+      <div class="ticket-detalle-body">
+        <div class="ticket-descripcion" *ngIf="ticketSeleccionado.descripcion">
+          <h4>Descripción</h4>
+          <p>{{ ticketSeleccionado.descripcion }}</p>
+        </div>
+
+        <!-- Archivos adjuntos -->
+        <div class="ticket-archivos" *ngIf="ticketSeleccionado.extra_data?.archivos && ticketSeleccionado.extra_data.archivos.length > 0">
+          <h4><i class="fas fa-paperclip"></i> Archivos adjuntos ({{ ticketSeleccionado.extra_data.archivos.length }})</h4>
+          <div class="archivos-lista">
+            <div class="archivo-item-detalle" *ngFor="let archivo of ticketSeleccionado.extra_data.archivos">
+              <div class="archivo-info">
+                <i [class]="'fas ' + getFileIcon(archivo.nombre)"></i>
+                <div class="archivo-detalles">
+                  <span class="archivo-nombre-original">{{ archivo.nombre_original }}</span>
+                  <span class="archivo-meta">{{ archivo.tamano_mb }} MB • {{ formatDateTime(archivo.fecha_subida) }}</span>
+                </div>
+              </div>
+              <div class="archivo-acciones">
+                <button 
+                  class="btn-icon btn-download" 
+                  (click)="descargarArchivo(ticketSeleccionado.id, archivo.nombre, archivo.nombre_original)"
+                  title="Descargar archivo">
+                  <i class="fas fa-download"></i>
+                </button>
+                <button 
+                  class="btn-icon btn-delete" 
+                  (click)="eliminarArchivoTicket(ticketSeleccionado.id, archivo.nombre)"
+                  title="Eliminar archivo">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ticket-acciones">
+          <h4>Acciones</h4>
+          <div class="acciones-btns">
+            <button class="btn-sm btn-info" 
+                    *ngIf="ticketSeleccionado.estado === 'abierto'"
+                    (click)="cambiarEstadoTicket(ticketSeleccionado, 'en_proceso')">
+              <i class="fas fa-play"></i> Iniciar
+            </button>
+            <button class="btn-sm btn-warning" 
+                    *ngIf="ticketSeleccionado.estado === 'en_proceso'"
+                    (click)="cambiarEstadoTicket(ticketSeleccionado, 'pendiente_respuesta')">
+              <i class="fas fa-hourglass"></i> Pendiente Respuesta
+            </button>
+            <button class="btn-sm btn-info" 
+                    *ngIf="ticketSeleccionado.estado === 'pendiente_respuesta'"
+                    (click)="cambiarEstadoTicket(ticketSeleccionado, 'en_proceso')">
+              <i class="fas fa-arrow-repeat"></i> Retomar
+            </button>
+            <button class="btn-sm btn-success" 
+                    *ngIf="ticketSeleccionado.estado !== 'cerrado' && ticketSeleccionado.estado !== 'cancelado'"
+                    (click)="cerrarTicket(ticketSeleccionado)">
+              <i class="fas fa-check-lg"></i> Cerrar
+            </button>
+            <button class="btn-sm btn-secondary" 
+                    *ngIf="ticketSeleccionado.estado === 'cerrado'"
+                    (click)="reabrirTicket(ticketSeleccionado)">
+              <i class="fas fa-arrow-counterclockwise"></i> Reabrir
+            </button>
+          </div>
+        </div>
+
+        <div class="ticket-comentarios">
+          <h4>Comentarios ({{ comentariosTicket.length }})</h4>
+          <div class="comentarios-lista">
+            <div *ngFor="let comentario of comentariosTicket" class="comentario-item" [class.admin]="comentario.es_admin">
+              <div class="comentario-header">
+                <span class="comentario-autor">
+                  <i class="bi" [ngClass]="comentario.es_admin ? 'bi-person-badge' : 'bi-person'"></i>
+                  {{ comentario.es_admin ? (comentario.admin_nombre || 'Admin') : 'Cliente' }}
+                </span>
+                <span class="comentario-fecha">{{ formatDateTime(comentario.fecha_creacion) }}</span>
+              </div>
+              <div class="comentario-contenido">{{ comentario.comentario }}</div>
+            </div>
+            <div *ngIf="comentariosTicket.length === 0" class="sin-comentarios">
+              <i class="fas fa-chat-dots"></i>
+              <p>No hay comentarios aún</p>
+            </div>
+          </div>
+
+          <!-- Agregar comentario -->
+          <div class="agregar-comentario" *ngIf="ticketSeleccionado.estado !== 'cerrado' && ticketSeleccionado.estado !== 'cancelado'">
+            <textarea [(ngModel)]="nuevoComentario" class="form-control" rows="3" 
+                      placeholder="Escriba su respuesta..."></textarea>
+            <button class="btn-primary" (click)="agregarComentarioTicket()" [disabled]="!nuevoComentario.trim()">
+              <i class="fas fa-send"></i> Enviar Respuesta
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de tickets -->
+    <div class="tabla-container" *ngIf="!ticketSeleccionado">
+      <div *ngIf="cargando" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando tickets...</p>
+      </div>
+
+      <table class="tabla-admin" *ngIf="!cargando">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Empresa</th>
+            <th>Estado</th>
+            <th>Prioridad</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ticket of tickets">
+            <td><strong>#{{ ticket.id }}</strong></td>
+            <td class="titulo-cell">{{ ticket.titulo }}</td>
+            <td>{{ ticket.empresa?.nombre || 'N/A' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getEstadoTicketClass(ticket.estado)">
+                {{ getEstadoTicketLabel(ticket.estado) }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getPrioridadClass(ticket.prioridad)">
+                {{ getPrioridadLabel(ticket.prioridad) }}
+              </span>
+            </td>
+            <td>{{ formatDate(ticket.fecha_creacion) }}</td>
+            <td class="acciones-cell">
+              <button class="btn-icon btn-view" (click)="verDetalleTicket(ticket)" title="Ver detalle">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn-icon btn-success" 
+                      *ngIf="ticket.estado !== 'cerrado' && ticket.estado !== 'cancelado'"
+                      (click)="cerrarTicket(ticket)" title="Cerrar">
+                <i class="fas fa-check-lg"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="tickets.length === 0">
+            <td colspan="7" class="sin-datos">
+              <i class="fas fa-ticket"></i>
+              <p>No hay tickets registrados</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ TAB SUSCRIPCIONES ============ -->
+  <div *ngIf="tabActiva === 'suscripciones'" class="tab-content">
+    <div class="filtros-bar">
+      <div class="filtros-group">
+        <select [(ngModel)]="filtroEstadoSuscripcion" (change)="filtrarSuscripciones()" class="filtro-select">
+          <option value="">Todos los estados</option>
+          <option value="activo">Activo</option>
+          <option value="vencido">Vencido</option>
+          <option value="cancelado">Cancelado</option>
+          <option value="pendiente_pago">Pendiente Pago</option>
+        </select>
+        <select [(ngModel)]="filtroEmpresaSuscripcion" (change)="filtrarSuscripciones()" class="filtro-select">
+          <option [value]="null">Todas las empresas</option>
+          <option *ngFor="let empresa of empresas" [value]="empresa.id">{{ empresa.nombre }}</option>
+        </select>
+      </div>
+      <button class="btn-primary" (click)="toggleFormularioSuscripcion()">
+        <i class="fas fa-plus-lg"></i> Nueva Suscripción
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div *ngIf="mostrarFormularioSuscripcion" class="formulario-card">
+      <div class="formulario-header">
+        <h3><i class="fas fa-card-list"></i> {{ editandoSuscripcion ? 'Editar' : 'Nueva' }} Suscripción de Soporte</h3>
+        <button class="btn-close" (click)="toggleFormularioSuscripcion()">×</button>
+      </div>
+      <div class="formulario-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa *</label>
+            <select [(ngModel)]="nuevaSuscripcion.empresa_id" (change)="onEmpresaChangeSuscripcion()" class="form-control">
+              <option [value]="0">Seleccione empresa</option>
+              <option *ngFor="let empresa of empresas" [value]="empresa.id">{{ empresa.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Suscripción Base *</label>
+            <select [(ngModel)]="nuevaSuscripcion.suscripcion_id" class="form-control" 
+                    [disabled]="!nuevaSuscripcion.empresa_id || cargandoSuscripcionesEmpresa">
+              <option [value]="0">
+                {{ cargandoSuscripcionesEmpresa ? 'Cargando...' : (nuevaSuscripcion.empresa_id ? 'Seleccione suscripción' : 'Primero seleccione empresa') }}
+              </option>
+              <option *ngFor="let sus of suscripcionesEmpresaSeleccionada" [value]="sus.id">
+                {{ sus.plan?.nombre }} - {{ sus.periodo }} ({{ sus.estado }})
+              </option>
+            </select>
+            <small *ngIf="nuevaSuscripcion.empresa_id && !cargandoSuscripcionesEmpresa && suscripcionesEmpresaSeleccionada.length === 0" class="text-warning">
+              <i class="fas fa-exclamation-triangle"></i> Esta empresa no tiene suscripciones activas
+            </small>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de Soporte *</label>
+            <select [(ngModel)]="nuevaSuscripcion.soporte_tipo_id" class="form-control">
+              <option [value]="0">Seleccione tipo</option>
+              <ng-container *ngFor="let tipo of tiposSoporte">
+                <option *ngIf="tipo.activo" [value]="tipo.id">
+                  {{ tipo.nombre }} ({{ getModalidadLabel(tipo.modalidad) }}) - {{ formatCurrency(tipo.precio) }}
+                </option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha Inicio *</label>
+            <input type="date" [(ngModel)]="nuevaSuscripcion.fecha_inicio" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Fecha Fin</label>
+            <input type="date" [(ngModel)]="nuevaSuscripcion.fecha_fin" class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notas</label>
+          <textarea [(ngModel)]="nuevaSuscripcion.notas" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-group-checkbox">
+          <input 
+            type="checkbox" 
+            id="renovacionAutomaticaSoporte" 
+            [(ngModel)]="nuevaSuscripcion.renovacion_automatica" 
+            name="renovacionAutomaticaSoporte">
+          <label for="renovacionAutomaticaSoporte">
+            <i class="fas fa-sync-alt"></i>
+            Renovación automática
+            <span class="help-text">(Se renovará automáticamente al vencer)</span>
+          </label>
+        </div>
+        <div class="formulario-actions">
+          <button class="btn-secondary" (click)="toggleFormularioSuscripcion()">Cancelar</button>
+          <button class="btn-primary" (click)="guardarSuscripcionSoporte()">
+            {{ editandoSuscripcion ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="tabla-container">
+      <div *ngIf="cargando" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando suscripciones...</p>
+      </div>
+
+      <table class="tabla-admin" *ngIf="!cargando">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Empresa</th>
+            <th>Tipo Soporte</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Estado</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sus of soporteSuscripciones">
+            <td><strong>#{{ sus.id }}</strong></td>
+            <td>{{ sus.empresa?.nombre || 'N/A' }}</td>
+            <td>{{ sus.tipo_soporte?.nombre || 'N/A' }}</td>
+            <td>{{ formatDate(sus.fecha_inicio) }}</td>
+            <td>{{ formatDate(sus.fecha_fin) }}</td>
+            <td>
+              <span class="badge" [ngClass]="getEstadoSuscripcionClass(sus.estado)">
+                {{ getEstadoSuscripcionLabel(sus.estado) }}
+              </span>
+            </td>
+            <td>{{ formatCurrency(sus.precio_actual) }}</td>
+            <td class="acciones-cell">
+              <button class="btn-icon btn-view" 
+                      (click)="verDetalleSuscripcion(sus)" title="Ver Detalle">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn-icon btn-success" 
+                      *ngIf="sus.estado === 'activo'"
+                      (click)="renovarSoporteSuscripcion(sus)" title="Renovar">
+                <i class="fas fa-arrow-rotate-right"></i>
+              </button>
+              <button class="btn-icon btn-danger" 
+                      *ngIf="sus.estado === 'activo'"
+                      (click)="cancelarSoporteSuscripcion(sus)" title="Cancelar">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="soporteSuscripciones.length === 0">
+            <td colspan="8" class="sin-datos">
+              <i class="fas fa-card-list"></i>
+              <p>No hay suscripciones de soporte registradas</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ TAB TIPOS DE SOPORTE ============ -->
+  <div *ngIf="tabActiva === 'tipos'" class="tab-content">
+    <div class="filtros-bar">
+      <div class="filtros-group"></div>
+      <button class="btn-primary" (click)="toggleFormularioTipo()">
+        <i class="fas fa-plus-lg"></i> Nuevo Tipo
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div *ngIf="mostrarFormularioTipo" class="formulario-card">
+      <div class="formulario-header">
+        <h3><i class="fas fa-tags"></i> {{ editandoTipo ? 'Editar' : 'Nuevo' }} Tipo de Soporte</h3>
+        <button class="btn-close" (click)="toggleFormularioTipo()">×</button>
+      </div>
+      <div class="formulario-body">
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="nuevoTipo.nombre" class="form-control" placeholder="Ej: Soporte Premium">
+          </div>
+          <div class="form-group">
+            <label>Modalidad *</label>
+            <select [(ngModel)]="nuevoTipo.modalidad" class="form-control">
+              <option value="mensual">Mensual</option>
+              <option value="anual">Anual</option>
+              <option value="por_tickets">Por Tickets</option>
+              <option value="por_horas">Por Horas</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Precio</label>
+            <input type="number" [(ngModel)]="nuevoTipo.precio" class="form-control" min="0">
+          </div>
+          <div class="form-group" *ngIf="nuevoTipo.modalidad === 'por_tickets'">
+            <label>Máx. Tickets</label>
+            <input type="number" [(ngModel)]="nuevoTipo.max_tickets" class="form-control" min="1">
+          </div>
+          <div class="form-group" *ngIf="nuevoTipo.modalidad === 'por_horas'">
+            <label>Máx. Horas</label>
+            <input type="number" [(ngModel)]="nuevoTipo.max_horas" class="form-control" min="1">
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select [(ngModel)]="nuevoTipo.activo" class="form-control">
+              <option [ngValue]="true">Activo</option>
+              <option [ngValue]="false">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="nuevoTipo.descripcion" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="formulario-actions">
+          <button class="btn-secondary" (click)="toggleFormularioTipo()">Cancelar</button>
+          <button class="btn-primary" (click)="guardarTipo()">
+            {{ editandoTipo ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="tabla-container">
+      <div *ngIf="cargando" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando tipos...</p>
+      </div>
+
+      <table class="tabla-admin" *ngIf="!cargando">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Modalidad</th>
+            <th>Precio</th>
+            <th>Límites</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tipo of tiposSoporte">
+            <td><strong>#{{ tipo.id }}</strong></td>
+            <td>{{ tipo.nombre }}</td>
+            <td>{{ getModalidadLabel(tipo.modalidad) }}</td>
+            <td>{{ formatCurrency(tipo.precio) }}</td>
+            <td>
+              <span *ngIf="tipo.modalidad === 'por_tickets'">{{ tipo.max_tickets }} tickets</span>
+              <span *ngIf="tipo.modalidad === 'por_horas'">{{ tipo.max_horas }} horas</span>
+              <span *ngIf="tipo.modalidad !== 'por_tickets' && tipo.modalidad !== 'por_horas'">-</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="tipo.activo ? 'badge-success' : 'badge-secondary'">
+                {{ tipo.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="acciones-cell">
+              <button class="btn-icon btn-view" (click)="verDetalleTipo(tipo)" title="Ver detalle">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn-icon btn-edit" (click)="editarTipo(tipo)" title="Editar">
+                <i class="fas fa-pen-to-square"></i>
+              </button>
+              <button class="btn-icon btn-danger" (click)="eliminarTipo(tipo)" title="Eliminar">
+                <i class="fas fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="tiposSoporte.length === 0">
+            <td colspan="7" class="sin-datos">
+              <i class="fas fa-tags"></i>
+              <p>No hay tipos de soporte registrados</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ TAB PAGOS ============ -->
+  <div *ngIf="tabActiva === 'pagos'" class="tab-content">
+    <div class="filtros-bar">
+      <div class="filtros-group"></div>
+      <button class="btn-primary" (click)="toggleFormularioPago()">
+        <i class="fas fa-plus-lg"></i> Registrar Pago
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <div *ngIf="mostrarFormularioPago" class="formulario-card">
+      <div class="formulario-header">
+        <h3><i class="fas fa-cash-coin"></i> Registrar Pago de Soporte</h3>
+        <button class="btn-close" (click)="toggleFormularioPago()">×</button>
+      </div>
+      <div class="formulario-body">
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Suscripción de Soporte *</label>
+            <select [(ngModel)]="nuevoPago.soporte_suscripcion_id" class="form-control">
+              <option [value]="0">Seleccione suscripción</option>
+              <option *ngFor="let sus of soporteSuscripciones" [value]="sus.id">
+                {{ sus.empresa?.nombre }} - {{ sus.tipo_soporte?.nombre }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha Pago *</label>
+            <input type="date" [(ngModel)]="nuevoPago.fecha_pago" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Monto *</label>
+            <input type="number" [(ngModel)]="nuevoPago.monto" class="form-control" min="0">
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select [(ngModel)]="nuevoPago.estado" class="form-control">
+              <option value="exitoso">Exitoso</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="fallido">Fallido</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Método de Pago</label>
+            <input type="text" [(ngModel)]="nuevoPago.metodo_pago" class="form-control" placeholder="Ej: Transferencia">
+          </div>
+          <div class="form-group">
+            <label>Referencia</label>
+            <input type="text" [(ngModel)]="nuevoPago.referencia_pago" class="form-control" placeholder="Ej: TRF-123456">
+          </div>
+        </div>
+        <div class="formulario-actions">
+          <button class="btn-secondary" (click)="toggleFormularioPago()">Cancelar</button>
+          <button class="btn-primary" (click)="guardarPago()">Registrar Pago</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="tabla-container">
+      <div *ngIf="cargando" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando pagos...</p>
+      </div>
+
+      <table class="tabla-admin" *ngIf="!cargando">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Suscripción</th>
+            <th>Fecha</th>
+            <th>Monto</th>
+            <th>Método</th>
+            <th>Referencia</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pago of pagos">
+            <td><strong>#{{ pago.id }}</strong></td>
+            <td>{{ pago.soporte_suscripcion?.empresa || 'N/A' }}</td>
+            <td>{{ formatDate(pago.fecha_pago) }}</td>
+            <td>{{ formatCurrency(pago.monto) }}</td>
+            <td>{{ pago.metodo_pago || '-' }}</td>
+            <td>{{ pago.referencia_pago || '-' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getEstadoPagoClass(pago.estado)">
+                {{ getEstadoPagoLabel(pago.estado) }}
+              </span>
+            </td>
+            <td class="acciones-cell">
+              <button class="btn-icon btn-view" 
+                      (click)="verDetallePago(pago)" title="Ver Detalle">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="pagos.length === 0">
+            <td colspan="8" class="sin-datos">
+              <i class="fas fa-cash-coin"></i>
+              <p>No hay pagos registrados</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

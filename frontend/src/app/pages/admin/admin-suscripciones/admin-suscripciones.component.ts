@@ -254,6 +254,18 @@ export class AdminSuscripcionesComponent implements OnInit {
               <span class="precio" id="precioValor">$${periodoActual === 'anual' ? precioAnual.toLocaleString('es-CO') : precioMensual.toLocaleString('es-CO')}</span>
             </div>
           </div>
+          
+          <div class="renovacion-auto-section">
+            <label class="renovacion-checkbox">
+              <input type="checkbox" id="renovacionAutomaticaRenovar" ${suscripcion.renovacion_automatica ? 'checked' : ''}>
+              <span class="checkbox-custom"></span>
+              <div class="renovacion-label">
+                <i class="fas fa-sync-alt"></i>
+                <span>Mantener renovación automática</span>
+                <small>Se renovará automáticamente al vencer</small>
+              </div>
+            </label>
+          </div>
         </div>
         
         <style>
@@ -425,6 +437,66 @@ export class AdminSuscripcionesComponent implements OnInit {
             padding-left: 12px;
           }
           .precio-total .precio { display: block; font-weight: 700; font-size: 1.1rem; color: #059669; }
+          
+          .renovacion-auto-section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px dashed #e2e8f0;
+          }
+          .renovacion-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 10px;
+            transition: background 0.2s;
+          }
+          .renovacion-checkbox:hover {
+            background: #f9fafb;
+          }
+          .renovacion-checkbox input[type="checkbox"] {
+            display: none;
+          }
+          .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            margin-top: 2px;
+          }
+          .renovacion-checkbox input[type="checkbox"]:checked + .checkbox-custom {
+            background: #3b82f6;
+            border-color: #3b82f6;
+          }
+          .renovacion-checkbox input[type="checkbox"]:checked + .checkbox-custom::after {
+            content: "✓";
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+          }
+          .renovacion-label {
+            flex: 1;
+          }
+          .renovacion-label i {
+            color: #3b82f6;
+            margin-right: 6px;
+          }
+          .renovacion-label span {
+            font-weight: 600;
+            color: #1f2937;
+          }
+          .renovacion-label small {
+            display: block;
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-top: 4px;
+          }
         </style>
       `,
       showCancelButton: true,
@@ -516,11 +588,13 @@ export class AdminSuscripcionesComponent implements OnInit {
         const periodoSeleccionado = (document.querySelector('input[name="periodo"]:checked') as HTMLInputElement)?.value || 'mensual';
         const anosSeleccionados = parseInt((document.querySelector('input[name="anos"]:checked') as HTMLInputElement)?.value || '1');
         const descuento = periodoSeleccionado === 'anual' && anosSeleccionados > 1 ? (anosSeleccionados - 1) : 0;
+        const renovacionAutomatica = (document.getElementById('renovacionAutomaticaRenovar') as HTMLInputElement)?.checked;
         
         return { 
           periodo: periodoSeleccionado,
           años: periodoSeleccionado === 'anual' ? anosSeleccionados : undefined,
-          porcentaje_descuento: descuento > 0 ? descuento : undefined
+          porcentaje_descuento: descuento > 0 ? descuento : undefined,
+          renovacion_automatica: renovacionAutomatica
         };
       }
     }).then((result) => {
@@ -1151,6 +1225,27 @@ export class AdminSuscripcionesComponent implements OnInit {
             </div>
           </div>
           
+          <div class="seccion">
+            <h3 class="seccion-titulo"><span class="icon">🔄</span> Configuración</h3>
+            <div class="info-grid">
+              <div class="info-item renovacion ${suscripcion.renovacion_automatica ? 'activa' : 'inactiva'}">
+                <span class="label">Renovación automática</span>
+                <span class="value">
+                  <span class="renovacion-badge">
+                    <i class="fas fa-${suscripcion.renovacion_automatica ? 'check-circle' : 'times-circle'}"></i>
+                    ${suscripcion.renovacion_automatica ? 'Activada' : 'Desactivada'}
+                  </span>
+                </span>
+              </div>
+            </div>
+            ${suscripcion.renovacion_automatica ? `
+            <div class="renovacion-info">
+              <i class="fas fa-info-circle"></i>
+              <span>Esta suscripción se renovará automáticamente al vencer</span>
+            </div>
+            ` : ''}
+          </div>
+          
           ${suscripcion.motivo_cancelacion ? `
           <div class="seccion cancelacion">
             <h3 class="seccion-titulo"><span class="icon">⚠️</span> Motivo de cancelación</h3>
@@ -1325,6 +1420,39 @@ export class AdminSuscripcionesComponent implements OnInit {
             border-top: 1px solid #e2e8f0;
             color: #9ca3af;
             font-size: 0.8rem;
+          }
+          
+          .renovacion-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: 500;
+            font-size: 0.9rem;
+          }
+          .info-item.renovacion.activa .renovacion-badge {
+            background: #dcfce7;
+            color: #16a34a;
+          }
+          .info-item.renovacion.inactiva .renovacion-badge {
+            background: #fee2e2;
+            color: #dc2626;
+          }
+          .renovacion-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+            border-radius: 6px;
+            color: #1e40af;
+            font-size: 0.9rem;
+          }
+          .renovacion-info i {
+            color: #3b82f6;
           }
         </style>
       `,

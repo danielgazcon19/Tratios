@@ -1,0 +1,111 @@
+# =============================================================================
+# CRONTAB - RENOVACIÓN AUTOMÁTICA DE SUSCRIPCIONES
+# =============================================================================
+#
+# Este archivo muestra cómo configurar el cron para ejecutar automáticamente
+# el script de renovación de suscripciones.
+#
+# Para editar el crontab:
+#   crontab -e
+#
+# Para ver el crontab actual:
+#   crontab -l
+#
+# =============================================================================
+
+# Ejecutar todos los días a las 2:00 AM
+# Renovar suscripciones que vencen hoy
+0 2 * * * cd /ruta/backend && /ruta/env_web/bin/python scripts/renovacion_automatica.py >> logs/renovacion_automatica.log 2>&1
+
+# Ejecutar todos los días a las 2:00 AM con 1 día de anticipación
+# (renueva las que vencen mañana)
+0 2 * * * cd /ruta/backend && /ruta/env_web/bin/python scripts/renovacion_automatica.py --dias-anticipacion 1 >> logs/renovacion_automatica.log 2>&1
+
+# =============================================================================
+# EJEMPLO PARA WINDOWS (Task Scheduler)
+# =============================================================================
+#
+# 1. Abrir "Programador de tareas" (Task Scheduler)
+# 2. Crear tarea básica
+# 3. Nombre: "Renovación Automática Suscripciones"
+# 4. Desencadenador: Diariamente a las 2:00 AM
+# 5. Acción: Iniciar un programa
+#    - Programa: D:\Software\Pagina\backend\env_web\Scripts\python.exe
+#    - Argumentos: scripts\renovacion_automatica.py
+#    - Directorio inicial: D:\Software\Pagina\backend
+# 6. Guardar
+#
+# Para ejecutar con anticipación:
+#    - Argumentos: scripts\renovacion_automatica.py --dias-anticipacion 1
+#
+# =============================================================================
+
+# =============================================================================
+# EJEMPLO POWERSHELL SCRIPT (Windows)
+# =============================================================================
+#
+# Crear archivo: renovacion_automatica_task.ps1
+#
+<#
+# Configurar variables
+$pythonPath = "D:\Software\Pagina\backend\env_web\Scripts\python.exe"
+$scriptPath = "D:\Software\Pagina\backend\scripts\renovacion_automatica.py"
+$workDir = "D:\Software\Pagina\backend"
+$logFile = "D:\Software\Pagina\backend\logs\renovacion_automatica.log"
+
+# Ejecutar script
+Set-Location $workDir
+$output = & $pythonPath $scriptPath 2>&1
+$output | Out-File -Append -FilePath $logFile
+
+# Registrar en Event Log
+if ($LASTEXITCODE -eq 0) {
+    Write-EventLog -LogName Application -Source "Renovacion Suscripciones" -EntryType Information -EventId 1 -Message "Renovación automática ejecutada exitosamente"
+} else {
+    Write-EventLog -LogName Application -Source "Renovacion Suscripciones" -EntryType Error -EventId 2 -Message "Error en renovación automática: $output"
+}
+#>
+#
+# Luego programar en Task Scheduler para ejecutar este script PowerShell
+#
+# =============================================================================
+
+# =============================================================================
+# PRUEBA MANUAL
+# =============================================================================
+#
+# Antes de programar en cron, prueba el script manualmente:
+#
+# Modo simulación (no hace cambios):
+#   python scripts/renovacion_automatica.py --dry-run
+#
+# Ejecución real:
+#   python scripts/renovacion_automatica.py
+#
+# Con anticipación de 3 días:
+#   python scripts/renovacion_automatica.py --dias-anticipacion 3
+#
+# =============================================================================
+
+# =============================================================================
+# NOTAS IMPORTANTES
+# =============================================================================
+#
+# 1. Asegúrate de que el usuario que ejecuta el cron tenga permisos para:
+#    - Leer/escribir en la base de datos
+#    - Escribir en el directorio de logs
+#
+# 2. El script utiliza la variable de entorno DATABASE_URL si está disponible,
+#    o se conecta a localhost por defecto.
+#
+# 3. Todos los cambios se registran en:
+#    - backend/utils/log/logs/suscripciones.log
+#    - backend/utils/log/logs/soporte.log
+#    - STDOUT (que puedes redirigir con >>)
+#
+# 4. Se recomienda ejecutar --dry-run primero para verificar qué se renovará.
+#
+# 5. Para debugging, puedes ejecutar con más frecuencia (ej: cada hora):
+#    0 * * * * cd /ruta/backend && /ruta/env_web/bin/python scripts/renovacion_automatica.py
+#
+# =============================================================================
