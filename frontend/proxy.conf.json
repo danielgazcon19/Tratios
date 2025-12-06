@@ -8,20 +8,5 @@
     "target": "http://127.0.0.1:5222",
     "secure": false,
     "changeOrigin": true
-  },
-  "/account": {
-    "target": "http://127.0.0.1:5222",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/admin": {
-    "target": "http://127.0.0.1:5222",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/public": {
-    "target": "http://127.0.0.1:5222",
-    "secure": false,
-    "changeOrigin": true
   }
 }

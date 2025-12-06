@@ -2,6 +2,7 @@ from datetime import datetime, date
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from sqlalchemy.orm import joinedload
 
 from app import db
 from models.usuario import Usuario
@@ -273,3 +274,34 @@ def update_subscription(subscription_id: int):
     data['servicio'] = suscripcion.servicio.to_dict() if suscripcion.servicio else None
 
     return jsonify({'message': 'Suscripción actualizada', 'suscripcion': data}), 200
+
+
+@account_bp.get('/suscripciones')
+@jwt_required()
+def listar_suscripciones_empresa():
+    """
+    GET /account/suscripciones
+    Lista las suscripciones de plan de la empresa del usuario autenticado.
+    Solo muestra las suscripciones asociadas a la empresa del cliente.
+    
+    Returns:
+        - Lista de suscripciones con información del plan y empresa
+    """
+    user = _get_current_user()
+    if not user:
+        return jsonify({'message': 'Usuario no encontrado'}), 404
+
+    if not user.empresa_id:
+        return jsonify([]), 200
+
+    # Cargar suscripciones con sus relaciones (plan y empresa)
+    suscripciones = Suscripcion.query.options(
+        joinedload(Suscripcion.plan),
+        joinedload(Suscripcion.empresa)
+    ).filter_by(empresa_id=user.empresa_id).order_by(Suscripcion.creado_en.desc()).all()
+
+    resultado = []
+    for suscripcion in suscripciones:
+        resultado.append(suscripcion.to_dict())
+
+    return jsonify(resultado), 200

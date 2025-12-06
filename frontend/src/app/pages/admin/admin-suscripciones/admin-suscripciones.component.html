@@ -143,6 +143,7 @@
           <th>Fecha Inicio</th>
           <th>Fecha Fin</th>
           <th>Precio</th>
+          <th>Dto.</th>
           <th>Forma Pago</th>
           <th>Estado</th>
           <th>Acciones</th>
@@ -158,7 +159,23 @@
           </td>
           <td>{{ suscripcion.fecha_inicio | date: 'dd/MM/yyyy' }}</td>
           <td>{{ suscripcion.fecha_fin | date: 'dd/MM/yyyy' }}</td>
-          <td>${{ suscripcion.precio_pagado | number: '1.0-0' }}</td>
+          <td>
+            <span *ngIf="!suscripcion.porcentaje_descuento || suscripcion.porcentaje_descuento === 0">
+              ${{ suscripcion.precio_pagado | number: '1.0-0' }}
+            </span>
+            <span *ngIf="suscripcion.porcentaje_descuento && suscripcion.porcentaje_descuento > 0" class="precio-con-descuento">
+              <span class="precio-tachado">${{ suscripcion.precio_pagado | number: '1.0-0' }}</span>
+              <span class="precio-final">${{ suscripcion.precio_con_descuento | number: '1.0-0' }}</span>
+            </span>
+          </td>
+          <td>
+            <span *ngIf="suscripcion.porcentaje_descuento && suscripcion.porcentaje_descuento > 0" class="badge badge-success">
+              {{ suscripcion.porcentaje_descuento }}%
+            </span>
+            <span *ngIf="!suscripcion.porcentaje_descuento || suscripcion.porcentaje_descuento === 0" class="badge badge-light">
+              -
+            </span>
+          </td>
           <td>
             <span class="badge badge-secondary">{{ formatearFormaPago(suscripcion.forma_pago) }}</span>
           </td>
@@ -201,6 +218,15 @@
               (click)="reactivarSuscripcion(suscripcion)" 
               title="Reactivar">
               <i class="fas fa-play-circle"></i>
+            </button>
+            
+            <!-- Aplicar descuento (solo si está activa o suspendida) -->
+            <button 
+              *ngIf="suscripcion.estado === 'activa' || suscripcion.estado === 'suspendida'" 
+              class="btn-icon btn-discount" 
+              (click)="aplicarDescuento(suscripcion)" 
+              title="Aplicar descuento">
+              <i class="fas fa-percent"></i>
             </button>
             
             <!-- Cancelar (solo si está activa o suspendida) -->

@@ -278,6 +278,38 @@ tbody tr:hover {
   color: #383d41;
 }
 
+.badge-light {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+/* Botón de descuento */
+.btn-icon.btn-discount {
+  color: #16a34a;
+}
+
+.btn-icon.btn-discount:hover {
+  background: #dcfce7;
+}
+
+/* Precio con descuento */
+.precio-con-descuento {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.precio-tachado {
+  text-decoration: line-through;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.precio-final {
+  color: #16a34a;
+  font-weight: 600;
+}
+
 /* Estados */
 .loading {
   text-align: center;

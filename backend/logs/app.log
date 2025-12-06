@@ -221,3 +221,212 @@
 2025-11-24 20:08:59 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
 2025-11-24 20:12:35 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
 2025-11-24 20:15:29 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 14:49:20 | INFO | Iniciando la aplicación
+2025-11-25 14:49:21 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-25 14:49:21 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-25 14:49:21 | INFO | LocationService inicializado correctamente
+2025-11-25 14:49:22 | INFO | Iniciando la aplicación
+2025-11-25 14:49:22 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-25 14:49:22 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-25 14:49:22 | INFO | LocationService inicializado correctamente
+2025-11-25 15:01:23 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 15:21:50 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 16:49:53 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 16:50:19 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 16:50:49 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 17:11:55 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 17:15:12 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 17:19:11 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 18:02:50 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 18:55:49 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 18:58:35 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-25 18:59:07 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-27 16:49:13 | INFO | Iniciando la aplicación
+2025-11-27 16:49:14 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-27 16:49:14 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-27 16:49:14 | INFO | LocationService inicializado correctamente
+2025-11-27 16:49:15 | INFO | Iniciando la aplicación
+2025-11-27 16:49:15 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-27 16:49:15 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-27 16:49:15 | INFO | LocationService inicializado correctamente
+2025-11-27 17:57:04 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-28 08:40:16 | INFO | Iniciando la aplicación
+2025-11-28 08:40:17 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-28 08:40:17 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-28 08:40:17 | INFO | LocationService inicializado correctamente
+2025-11-28 08:40:18 | INFO | Iniciando la aplicación
+2025-11-28 08:40:18 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-28 08:40:18 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-28 08:40:18 | INFO | LocationService inicializado correctamente
+2025-11-28 09:03:02 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-28 10:43:10 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-28 18:59:09 | INFO | Iniciando la aplicación
+2025-11-28 18:59:10 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-28 18:59:10 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-28 18:59:10 | INFO | LocationService inicializado correctamente
+2025-11-28 18:59:11 | INFO | Iniciando la aplicación
+2025-11-28 18:59:11 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-28 18:59:11 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-28 18:59:11 | INFO | LocationService inicializado correctamente
+2025-11-29 11:41:54 | INFO | Iniciando la aplicación
+2025-11-29 11:41:56 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-29 11:41:56 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-29 11:41:56 | INFO | LocationService inicializado correctamente
+2025-11-29 11:41:57 | INFO | Iniciando la aplicación
+2025-11-29 11:41:57 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-29 11:41:57 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-29 11:41:57 | INFO | LocationService inicializado correctamente
+2025-11-29 12:31:10 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-30 12:43:26 | INFO | Iniciando la aplicación
+2025-11-30 12:43:28 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-30 12:43:28 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-30 12:43:28 | INFO | LocationService inicializado correctamente
+2025-11-30 12:43:29 | INFO | Iniciando la aplicación
+2025-11-30 12:43:29 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-11-30 12:43:29 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-11-30 12:43:29 | INFO | LocationService inicializado correctamente
+2025-11-30 13:05:18 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-30 13:51:10 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-11-30 14:09:51 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-01 09:02:08 | INFO | Iniciando la aplicación
+2025-12-01 09:02:09 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-01 09:02:09 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-01 09:02:09 | INFO | LocationService inicializado correctamente
+2025-12-01 09:02:10 | INFO | Iniciando la aplicación
+2025-12-01 09:02:10 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-01 09:02:10 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-01 09:02:10 | INFO | LocationService inicializado correctamente
+2025-12-01 09:07:57 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-01 09:10:55 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-01 09:51:49 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-01 09:55:00 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-02 11:23:55 | INFO | Iniciando la aplicación
+2025-12-02 11:23:56 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-02 11:23:56 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-02 11:23:56 | INFO | LocationService inicializado correctamente
+2025-12-02 11:23:57 | INFO | Iniciando la aplicación
+2025-12-02 11:23:57 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-02 11:23:57 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-02 11:23:57 | INFO | LocationService inicializado correctamente
+2025-12-02 11:43:38 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-02 11:48:48 | INFO | Consulta exitosa de suscripción para empresa La Casona (NIT: 80020548521-vxT20.Wd)
+2025-12-03 08:49:17 | INFO | Iniciando la aplicación
+2025-12-03 08:49:18 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 08:49:18 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 08:49:18 | INFO | LocationService inicializado correctamente
+2025-12-03 08:49:19 | INFO | Iniciando la aplicación
+2025-12-03 08:49:19 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 08:49:19 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 08:49:19 | INFO | LocationService inicializado correctamente
+2025-12-03 17:16:43 | INFO | Búsqueda de países 'Colombia': 1 resultados
+2025-12-03 17:16:45 | INFO | SQLite devolvió 1122 ciudades para CO
+2025-12-03 17:35:12 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-03 17:41:40 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-03 17:44:11 | INFO | Iniciando la aplicación
+2025-12-03 17:44:12 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 17:44:12 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 17:44:12 | INFO | LocationService inicializado correctamente
+2025-12-03 20:11:46 | INFO | Iniciando la aplicación
+2025-12-03 20:11:47 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:11:47 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:11:47 | INFO | LocationService inicializado correctamente
+2025-12-03 20:11:50 | INFO | Iniciando la aplicación
+2025-12-03 20:11:50 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:11:50 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:11:50 | INFO | LocationService inicializado correctamente
+2025-12-03 20:11:58 | INFO | Iniciando la aplicación
+2025-12-03 20:11:58 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:11:58 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:11:58 | INFO | LocationService inicializado correctamente
+2025-12-03 20:12:09 | INFO | Iniciando la aplicación
+2025-12-03 20:12:10 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:12:10 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:12:10 | INFO | LocationService inicializado correctamente
+2025-12-03 20:12:13 | INFO | Iniciando la aplicación
+2025-12-03 20:12:13 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:12:13 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:12:13 | INFO | LocationService inicializado correctamente
+2025-12-03 20:12:44 | INFO | Iniciando la aplicación
+2025-12-03 20:12:44 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:12:44 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:12:44 | INFO | LocationService inicializado correctamente
+2025-12-03 20:46:05 | INFO | Iniciando la aplicación
+2025-12-03 20:46:07 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:46:07 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:46:07 | INFO | LocationService inicializado correctamente
+2025-12-03 20:47:12 | INFO | Iniciando la aplicación
+2025-12-03 20:47:12 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:47:12 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:47:12 | INFO | LocationService inicializado correctamente
+2025-12-03 20:47:31 | INFO | Iniciando la aplicación
+2025-12-03 20:47:31 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:47:31 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:47:31 | INFO | LocationService inicializado correctamente
+2025-12-03 20:47:42 | INFO | Iniciando la aplicación
+2025-12-03 20:47:42 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:47:42 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:47:42 | INFO | LocationService inicializado correctamente
+2025-12-03 20:47:59 | INFO | Iniciando la aplicación
+2025-12-03 20:47:59 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:47:59 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:47:59 | INFO | LocationService inicializado correctamente
+2025-12-03 20:49:57 | INFO | Iniciando la aplicación
+2025-12-03 20:49:57 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:49:57 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:49:57 | INFO | LocationService inicializado correctamente
+2025-12-03 20:51:37 | INFO | Iniciando la aplicación
+2025-12-03 20:51:38 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:51:38 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:51:38 | INFO | LocationService inicializado correctamente
+2025-12-03 20:52:52 | INFO | Iniciando la aplicación
+2025-12-03 20:52:52 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:52:52 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:52:52 | INFO | LocationService inicializado correctamente
+2025-12-03 20:53:17 | INFO | Iniciando la aplicación
+2025-12-03 20:53:17 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 20:53:17 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 20:53:17 | INFO | LocationService inicializado correctamente
+2025-12-03 21:21:17 | INFO | Iniciando la aplicación
+2025-12-03 21:21:17 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 21:21:17 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 21:21:17 | INFO | LocationService inicializado correctamente
+2025-12-03 21:34:51 | INFO | Iniciando la aplicación
+2025-12-03 21:34:51 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 21:34:51 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 21:34:51 | INFO | LocationService inicializado correctamente
+2025-12-03 22:41:38 | INFO | Iniciando la aplicación
+2025-12-03 22:41:38 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 22:41:38 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 22:41:38 | INFO | LocationService inicializado correctamente
+2025-12-03 22:49:12 | INFO | Iniciando la aplicación
+2025-12-03 22:49:12 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 22:49:12 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 22:49:12 | INFO | LocationService inicializado correctamente
+2025-12-03 22:49:19 | INFO | Iniciando la aplicación
+2025-12-03 22:49:19 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 22:49:19 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 22:49:19 | INFO | LocationService inicializado correctamente
+2025-12-03 22:49:53 | INFO | Iniciando la aplicación
+2025-12-03 22:49:53 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-03 22:49:53 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-03 22:49:53 | INFO | LocationService inicializado correctamente
+2025-12-04 11:09:39 | INFO | Iniciando la aplicación
+2025-12-04 11:09:41 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 11:09:41 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 11:09:41 | INFO | LocationService inicializado correctamente
+2025-12-04 11:09:42 | INFO | Iniciando la aplicación
+2025-12-04 11:09:42 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 11:09:42 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 11:09:42 | INFO | LocationService inicializado correctamente
+2025-12-04 16:45:53 | INFO | Iniciando la aplicación
+2025-12-04 16:45:54 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 16:45:54 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 16:45:54 | INFO | LocationService inicializado correctamente
+2025-12-04 16:45:55 | INFO | Iniciando la aplicación
+2025-12-04 16:45:55 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 16:45:55 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 16:45:55 | INFO | LocationService inicializado correctamente
+2025-12-04 18:11:56 | INFO | Iniciando la aplicación
+2025-12-04 18:11:57 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-04 18:11:57 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-04 18:11:57 | INFO | LocationService inicializado correctamente

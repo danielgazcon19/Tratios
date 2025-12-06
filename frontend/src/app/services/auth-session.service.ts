@@ -15,16 +15,46 @@ const STORAGE_KEY = 'tratios.auth';
 export class AuthSessionService {
   private currentUserSubject = new BehaviorSubject<LoginSuccessResponse['usuario'] | null>(null);
   public currentUser$: Observable<LoginSuccessResponse['usuario'] | null> = this.currentUserSubject.asObservable();
+  private initialized = false;
 
   constructor() {
-    // Cargar sesión al iniciar el servicio
+    this.initializeFromStorage();
+  }
+
+  /**
+   * Inicializa el estado del servicio desde localStorage.
+   * Se llama en el constructor y puede ser llamado manualmente si es necesario.
+   */
+  private initializeFromStorage(): void {
+    if (this.initialized) return;
+    
     const session = this.getSession();
     if (session && this.isSessionValid()) {
       this.currentUserSubject.next(session.usuario);
     }
+    this.initialized = true;
+  }
+
+  /**
+   * Asegura que el BehaviorSubject esté sincronizado con localStorage.
+   * Útil después de un refresh de página (F5).
+   */
+  ensureSynchronized(): void {
+    const session = this.getSession();
+    const currentUser = this.currentUserSubject.value;
+    
+    if (session && this.isSessionValid() && !currentUser) {
+      this.currentUserSubject.next(session.usuario);
+    } else if (!session || !this.isSessionValid()) {
+      if (currentUser) {
+        this.currentUserSubject.next(null);
+      }
+    }
   }
 
   getCurrentUser(): LoginSuccessResponse['usuario'] | null {
+    // Asegurar sincronización antes de retornar
+    this.ensureSynchronized();
     return this.currentUserSubject.value;
   }
 

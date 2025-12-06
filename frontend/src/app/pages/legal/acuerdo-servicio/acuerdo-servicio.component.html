@@ -1,0 +1,242 @@
+<div class="legal-page">
+  <div class="legal-container">
+    <div class="legal-header">
+      <a routerLink="/" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Volver al inicio
+      </a>
+      <h1>Acuerdo de Nivel de Servicio (SLA)</h1>
+      <p class="last-update">Última actualización: {{ lastUpdate }}</p>
+    </div>
+
+    <div class="legal-content">
+      <!-- Disponibilidad del Servicio -->
+      <section class="legal-section">
+        <h2>Disponibilidad del Servicio</h2>
+        <div class="availability-card">
+          <div class="availability-item">
+            <div class="availability-icon">🕐</div>
+            <div class="availability-content">
+              <h4>Disponibilidad</h4>
+              <p>El servicio estará disponible <strong>24/7, los 365 días del año</strong>.</p>
+            </div>
+          </div>
+          <div class="availability-item">
+            <div class="availability-icon">📅</div>
+            <div class="availability-content">
+              <h4>Horario de Atención</h4>
+              <p>Los días y horas hábiles corresponden a <strong>lunes a viernes de 8:00 AM a 8:00 PM</strong>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Servicio Standby -->
+        <div class="standby-service">
+          <div class="standby-header">
+            <div class="standby-icon">🚨</div>
+            <h3>Servicio Standby - Horario No Hábil</h3>
+            <span class="standby-badge">Servicio Adicional</span>
+          </div>
+          <div class="standby-content">
+            <p>
+              Para clientes que requieren atención fuera del horario hábil, TRATIOS ofrece un <strong>Servicio de Standby</strong> 
+              que garantiza disponibilidad de soporte técnico durante horarios extendidos.
+            </p>
+            
+            <div class="standby-details">
+              <div class="standby-detail-item">
+                <span class="detail-icon">🌙</span>
+                <div class="detail-content">
+                  <h5>Horario Cubierto</h5>
+                  <p>Lunes a viernes de 8:00 PM a 8:00 AM<br>Sábados, domingos y festivos: 24 horas</p>
+                </div>
+              </div>
+              <div class="standby-detail-item">
+                <span class="detail-icon">⚡</span>
+                <div class="detail-content">
+                  <h5>Tiempo de Respuesta</h5>
+                  <p>Máximo 2 horas para incidentes críticos (Severidad 1 y 2)</p>
+                </div>
+              </div>
+              <div class="standby-detail-item">
+                <span class="detail-icon">📞</span>
+                <div class="detail-content">
+                  <h5>Canal de Contacto</h5>
+                  <p>Línea telefónica dedicada y WhatsApp empresarial</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="standby-pricing">
+              <div class="pricing-header">
+                <span class="pricing-icon">💰</span>
+                <h5>Costo del Servicio Standby</h5>
+              </div>
+              <div class="pricing-options">
+                <div class="pricing-option">
+                  <span class="option-label">Mensual</span>
+                  <span class="option-price">Desde $150.000 COP/mes</span>
+                </div>
+                <div class="pricing-option">
+                  <span class="option-label">Por evento</span>
+                  <span class="option-price">Desde $80.000 COP/incidente</span>
+                </div>
+              </div>
+              <p class="pricing-note">
+                * Los costos varían según el plan contratado y la complejidad del servicio. 
+                Contacte a nuestro equipo comercial para una cotización personalizada.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tipos de Evento -->
+      <section class="legal-section">
+        <h2>Tipos de Evento y Tiempos de Respuesta</h2>
+        <p>
+          Los tiempos de respuesta varían según la severidad del incidente reportado. A continuación, se detallan 
+          los niveles de severidad y sus respectivos tiempos de atención:
+        </p>
+
+        <div class="severity-grid">
+          <div *ngFor="let severity of severityLevels" 
+               class="severity-card" 
+               [style.border-left-color]="severity.color"
+               [style.background-color]="severity.bgColor">
+            <div class="severity-header">
+              <span class="severity-badge" [style.background-color]="severity.color">
+                Severidad {{ severity.level }}
+              </span>
+            </div>
+            <div class="severity-body">
+              <div class="severity-detail">
+                <h4>Días y horas para la atención:</h4>
+                <p>{{ severity.days }}</p>
+              </div>
+              <div class="severity-detail">
+                <h4>Tiempo máximo de respuesta:</h4>
+                <ul>
+                  <li *ngFor="let response of severity.response">{{ response }}</li>
+                </ul>
+              </div>
+              <div class="severity-detail">
+                <h4>Descripción del evento:</h4>
+                <p>{{ severity.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Condiciones de Atención -->
+      <section class="legal-section">
+        <h2>Condiciones para Tiempos de Atención</h2>
+        <p>
+          Los tiempos de atención se hacen efectivos siempre y cuando se cumplan los siguientes términos y condiciones:
+        </p>
+        <div class="conditions-list">
+          <div class="condition-item">
+            <span class="condition-icon">✓</span>
+            <p>Que el cliente cuente con todos los requerimientos técnicos necesarios para el funcionamiento correcto 
+            del proyecto (equipos tecnológicos con las especificaciones adecuadas, sistema operativo, acceso a internet) 
+            y que aun así presente fallos de funcionamiento.</p>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon">✓</span>
+            <p>Que no existan fallos, demoras en la respuesta o contingencias por parte de servicios externos 
+            de los que dependa la plataforma.</p>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon">✓</span>
+            <p>Disposición del cliente para enviar oportunamente la información o resolver las preguntas que se requieran.</p>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon">✓</span>
+            <p>Que el inconveniente no haya sido ocasionado por un acontecimiento de fuerza mayor como algún desastre 
+            natural, apagones, cambios inesperados de voltaje, rayos, terremoto, guerra, vandalismo, robo o inundación.</p>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon">✓</span>
+            <p>Que los fallos en funcionamiento no hayan sido ocasionados por virus, software malintencionado o 
+            ataques informáticos de cualquier tipo.</p>
+          </div>
+          <div class="condition-item">
+            <span class="condition-icon">✓</span>
+            <p>Que no haya tenido un uso inapropiado o funcionamiento fuera de las especificaciones de la plataforma.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mantenimiento Programado -->
+      <section class="legal-section">
+        <h2>Mantenimiento Programado</h2>
+        <div class="maintenance-grid">
+          <div class="maintenance-card">
+            <div class="maintenance-icon">🔔</div>
+            <h4>Notificación de mantenimiento</h4>
+            <p>Se notificará con al menos <strong>72 horas</strong> de anticipación.</p>
+          </div>
+          <div class="maintenance-card">
+            <div class="maintenance-icon">⏱️</div>
+            <h4>Duración máxima</h4>
+            <p>No más de <strong>4 horas</strong> por evento de mantenimiento.</p>
+          </div>
+          <div class="maintenance-card">
+            <div class="maintenance-icon">📆</div>
+            <h4>Frecuencia máxima</h4>
+            <p><strong>1 vez por mes</strong> como máximo.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Canales de Contacto -->
+      <section class="legal-section">
+        <h2>Canales de Contacto para Soporte</h2>
+        <div class="contact-cards">
+          <a href="mailto:soporte&#64;tratios.com" class="contact-card">
+            <div class="contact-icon">✉️</div>
+            <h4>Correo Electrónico</h4>
+            <p>soporte&#64;tratios.com</p>
+          </a>
+        </div>
+        <p class="contact-note">
+          Para reportar incidentes o solicitar soporte, utilice los canales de contacto oficiales. 
+          Incluya en su solicitud la descripción detallada del problema, capturas de pantalla si aplica, 
+          y los pasos para reproducir el incidente.
+        </p>
+      </section>
+
+      <!-- Documentos Relacionados -->
+      <section class="legal-section">
+        <h2>Documentos Relacionados</h2>
+        <p>Este Acuerdo de Nivel de Servicio forma parte integral de:</p>
+        <div class="related-docs">
+          <a routerLink="/terminos-condiciones" class="doc-link">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            Términos y Condiciones
+          </a>
+          <a routerLink="/politica-privacidad" class="doc-link">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+            Política de Privacidad y Tratamiento de Datos
+          </a>
+        </div>
+      </section>
+    </div>
+
+    <div class="legal-footer">
+      <a routerLink="/" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Volver al inicio
+      </a>
+    </div>
+  </div>
+</div>

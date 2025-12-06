@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, HostListener } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LoginComponent } from './pages/auth/login.component';
 import { LoginSuccessResponse } from './services/api.service';
@@ -8,7 +8,7 @@ import { AuthSessionService } from './services/auth-session.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, LoginComponent],
+  imports: [RouterOutlet, RouterLink, CommonModule, LoginComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   host: {

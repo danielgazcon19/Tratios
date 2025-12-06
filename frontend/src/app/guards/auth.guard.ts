@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { AuthSessionService } from '../services/auth-session.service';
 import { ApiService } from '../services/api.service';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
@@ -19,6 +19,8 @@ export const authGuard: CanActivateFn = () => {
   const session = authSession.getSession();
 
   if (session && authSession.isSessionValid()) {
+    // Asegurar que el BehaviorSubject esté sincronizado después de un refresh de página
+    authSession.ensureSynchronized();
     return true;
   }
 

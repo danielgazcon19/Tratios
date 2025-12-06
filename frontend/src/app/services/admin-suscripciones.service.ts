@@ -24,6 +24,8 @@ export interface Suscripcion {
   estado: 'activa' | 'inactiva' | 'suspendida' | 'cancelada';
   periodo: 'mensual' | 'anual';
   precio_pagado: number;
+  porcentaje_descuento?: number;
+  precio_con_descuento?: number;
   forma_pago?: string;
   creado_en: string;
   actualizado_en?: string;
@@ -39,17 +41,25 @@ export interface CrearSuscripcionDto {
   fecha_inicio?: string;
   forma_pago?: string;
   notas?: string;
+  porcentaje_descuento?: number;
 }
 
 export interface RenovarDto {
   periodo?: 'mensual' | 'anual';
   fecha_inicio?: string;
   notas?: string;
+  años?: number;
+  porcentaje_descuento?: number;
 }
 
 export interface CancelarDto {
   motivo: string;
   notas?: string;
+}
+
+export interface DescuentoDto {
+  porcentaje: number;
+  motivo?: string;
 }
 
 export interface Estadisticas {
@@ -99,6 +109,10 @@ export class AdminSuscripcionesService {
 
   reactivarSuscripcion(id: number, notas?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/${id}/reactivar`, { notas });
+  }
+
+  aplicarDescuento(id: number, data: DescuentoDto): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/descuento`, data);
   }
 
   obtenerEstadisticas(): Observable<Estadisticas> {
