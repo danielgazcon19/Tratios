@@ -2,7 +2,7 @@
 Rutas de administración para tickets de soporte
 """
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, send_file, current_app
 from flask_jwt_extended import get_jwt_identity
 from werkzeug.utils import secure_filename
@@ -20,14 +20,141 @@ from utils.file_handler import (
 
 admin_soporte_tickets_bp = Blueprint('admin_soporte_tickets', __name__, url_prefix='/admin/soporte-tickets')
 
+# Zona horaria de Colombia (UTC-5)
+COLOMBIA_TZ = timezone(timedelta(hours=-5))
+
+def get_local_now():
+    """Obtiene la fecha/hora actual en zona horaria de Colombia"""
+    return datetime.now(COLOMBIA_TZ)
+
+
+@admin_soporte_tickets_bp.route('', methods=['POST'])
+@admin_required
+def crear_ticket():
+    """
+    POST /admin/soporte-tickets
+    Crea un nuevo ticket de soporte
+    Body: {
+        soporte_suscripcion_id: int,
+        empresa_id: int,
+        titulo: string,
+        descripcion?: string,
+        prioridad?: string (baja|media|alta|critica)
+    }
+    """
+    try:
+        data = request.get_json()
+        current_user_email = get_jwt_identity()
+        
+        # Obtener el ID del usuario actual
+        current_user = Usuario.query.filter_by(email=current_user_email).first()
+        if not current_user:
+            AppLogger.error(LogCategory.SOPORTE, "Usuario no encontrado", email=current_user_email)
+            return jsonify({'message': 'Usuario no encontrado'}), 404
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            "Crear ticket - Inicio",
+            usuario_id=current_user.id,
+            empresa_id=data.get('empresa_id'),
+            suscripcion_id=data.get('soporte_suscripcion_id')
+        )
+        
+        # Validaciones
+        if not data.get('soporte_suscripcion_id'):
+            return jsonify({'message': 'soporte_suscripcion_id es obligatorio'}), 400
+        if not data.get('empresa_id'):
+            return jsonify({'message': 'empresa_id es obligatorio'}), 400
+        if not data.get('titulo'):
+            return jsonify({'message': 'titulo es obligatorio'}), 400
+        
+        # Validar prioridad
+        prioridad = data.get('prioridad', 'media')
+        if prioridad not in ['baja', 'media', 'alta', 'critica']:
+            return jsonify({'message': 'Prioridad inválida'}), 400
+        
+        # Verificar que existe la suscripción de soporte
+        suscripcion = SoporteSuscripcion.query.get(data['soporte_suscripcion_id'])
+        if not suscripcion:
+            AppLogger.warning(
+                LogCategory.SOPORTE, 
+                "Suscripción de soporte no encontrada", 
+                suscripcion_id=data['soporte_suscripcion_id']
+            )
+            return jsonify({'message': 'Suscripción de soporte no encontrada'}), 404
+        
+        # Verificar que la suscripción esté activa
+        if suscripcion.estado != 'activo':
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                "Suscripción de soporte no activa",
+                suscripcion_id=suscripcion.id,
+                estado=suscripcion.estado
+            )
+            return jsonify({'message': 'La suscripción de soporte no está activa'}), 400
+        
+        # Verificar que la empresa coincida
+        if suscripcion.empresa_id != int(data['empresa_id']):
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                "Suscripción no pertenece a la empresa",
+                suscripcion_empresa_id=suscripcion.empresa_id,
+                empresa_id=data['empresa_id']
+            )
+            return jsonify({'message': 'La suscripción no pertenece a la empresa seleccionada'}), 400
+        
+        # Crear el ticket
+        nuevo_ticket = SoporteTicket(
+            soporte_suscripcion_id=data['soporte_suscripcion_id'],
+            empresa_id=int(data['empresa_id']),
+            titulo=data['titulo'],
+            descripcion=data.get('descripcion'),
+            prioridad=prioridad,
+            estado='abierto',
+            usuario_creador_id=current_user.id,  # Registrar quién creó el ticket
+            extra_data=None  # Los archivos se asocian a comentarios, no al ticket directamente
+        )
+        
+        db.session.add(nuevo_ticket)
+        db.session.commit()
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            "Ticket creado exitosamente",
+            ticket_id=nuevo_ticket.id,
+            empresa_id=nuevo_ticket.empresa_id,
+            suscripcion_id=nuevo_ticket.soporte_suscripcion_id,
+            titulo=nuevo_ticket.titulo,
+            prioridad=nuevo_ticket.prioridad,
+            creado_por=current_user.id
+        )
+        
+        return jsonify({
+            'message': 'Ticket creado exitosamente',
+            'ticket': nuevo_ticket.to_dict()
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        AppLogger.error(
+            LogCategory.SOPORTE, 
+            "Error al crear ticket", 
+            exc=e,
+            data=data if 'data' in locals() else None
+        )
+        return jsonify({'message': f'Error al crear ticket: {str(e)}'}), 500
+
 
 @admin_soporte_tickets_bp.route('', methods=['GET'])
 @admin_required
 def listar_tickets():
     """
     GET /admin/soporte-tickets
-    Lista todos los tickets con filtros
-    Query params: empresa_id, estado, prioridad, asignado_a
+    Lista todos los tickets con filtros y paginación
+    Query params: 
+        - empresa_id, estado, prioridad, asignado_a, sin_asignar
+        - busqueda (busca en título y descripción)
+        - page (default: 1), per_page (default: 20)
     """
     try:
         query = SoporteTicket.query
@@ -52,27 +179,58 @@ def listar_tickets():
         if sin_asignar and sin_asignar.lower() == 'true':
             query = query.filter(SoporteTicket.asignado_a.is_(None))
         
+        # Búsqueda general en título y descripción
+        busqueda = request.args.get('busqueda')
+        if busqueda:
+            query = query.filter(
+                db.or_(
+                    SoporteTicket.titulo.ilike(f'%{busqueda}%'),
+                    SoporteTicket.descripcion.ilike(f'%{busqueda}%')
+                )
+            )
+        
+        # Paginación
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        # Limitar per_page a un máximo razonable
+        per_page = min(per_page, 100)
+        
+        # Obtener total antes de paginar
+        total = query.count()
+        
         # Ordenar por prioridad y fecha
         prioridad_orden = {
             'critica': 1, 'alta': 2, 'media': 3, 'baja': 4
         }
-        tickets = query.order_by(SoporteTicket.fecha_creacion.desc()).all()
+        
+        # Obtener todos para ordenar por prioridad (la paginación se hará después)
+        all_tickets = query.order_by(SoporteTicket.fecha_creacion.desc()).all()
         
         # Ordenar por prioridad en Python (más flexible)
-        tickets.sort(key=lambda t: (
-            0 if t.estado in ['abierto', 'en_proceso'] else 1,
+        all_tickets.sort(key=lambda t: (
+            0 if t.estado in ['abierto', 'en_proceso', 'pendiente_respuesta'] else 1,
             prioridad_orden.get(t.prioridad, 5)
         ))
         
+        # Paginar manualmente
+        start = (page - 1) * per_page
+        end = start + per_page
+        tickets_paginados = all_tickets[start:end]
+        total_pages = (total + per_page - 1) // per_page
+        
         return jsonify({
-            'tickets': [t.to_dict() for t in tickets],
-            'total': len(tickets),
+            'tickets': [t.to_dict() for t in tickets_paginados],
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'pages': total_pages,
             'estadisticas': {
-                'abiertos': sum(1 for t in tickets if t.estado == 'abierto'),
-                'en_proceso': sum(1 for t in tickets if t.estado == 'en_proceso'),
-                'pendiente_respuesta': sum(1 for t in tickets if t.estado == 'pendiente_respuesta'),
-                'cerrados': sum(1 for t in tickets if t.estado == 'cerrado'),
-                'criticos': sum(1 for t in tickets if t.prioridad == 'critica' and t.estado not in ['cerrado', 'cancelado'])
+                'abiertos': sum(1 for t in all_tickets if t.estado == 'abierto'),
+                'en_proceso': sum(1 for t in all_tickets if t.estado == 'en_proceso'),
+                'pendiente_respuesta': sum(1 for t in all_tickets if t.estado == 'pendiente_respuesta'),
+                'cerrados': sum(1 for t in all_tickets if t.estado == 'cerrado'),
+                'criticos': sum(1 for t in all_tickets if t.prioridad == 'critica' and t.estado not in ['cerrado', 'cancelado'])
             }
         }), 200
     except Exception as e:
@@ -110,7 +268,13 @@ def actualizar_ticket(ticket_id):
             return jsonify({'message': 'Ticket no encontrado'}), 404
         
         data = request.get_json()
-        current_user_id = get_jwt_identity()
+        current_user_email = get_jwt_identity()
+        
+        # Obtener el ID del usuario actual
+        current_user = Usuario.query.filter_by(email=current_user_email).first()
+        if not current_user:
+            return jsonify({'message': 'Usuario no encontrado'}), 404
+        
         cambios = []
         
         if 'estado' in data:
@@ -121,7 +285,7 @@ def actualizar_ticket(ticket_id):
             cambios.append(f'Estado: {estado_anterior} → {data["estado"]}')
             
             if data['estado'] == 'cerrado':
-                ticket.fecha_cierre = datetime.utcnow()
+                ticket.fecha_cierre = get_local_now()
         
         if 'prioridad' in data:
             if data['prioridad'] not in ['baja', 'media', 'alta', 'critica']:
@@ -131,20 +295,24 @@ def actualizar_ticket(ticket_id):
             cambios.append(f'Prioridad: {prioridad_anterior} → {data["prioridad"]}')
         
         if 'asignado_a' in data:
+            admin_nombre = "Sin asignar"
             if data['asignado_a'] is not None:
                 admin = Usuario.query.get(data['asignado_a'])
                 if not admin or admin.rol != 'admin':
                     return jsonify({'message': 'El usuario asignado debe ser un administrador'}), 400
+                admin_nombre = admin.nombre
             ticket.asignado_a = data['asignado_a']
-            cambios.append(f'Asignado a: {admin.nombre if data["asignado_a"] else "Sin asignar"}')
+            cambios.append(f'Asignado a: {admin_nombre}')
         
         # Registrar cambios como comentario del sistema
         if cambios:
             comentario_sistema = SoporteTicketComentario(
                 ticket_id=ticket_id,
                 es_admin=True,
-                admin_id=current_user_id,
-                comentario=f'[Sistema] Cambios realizados:\n' + '\n'.join(cambios)
+                admin_id=current_user.id,
+                usuario_id=current_user.id,
+                comentario=f'[Sistema] Cambios realizados:\n' + '\n'.join(cambios),
+                fecha_creacion=get_local_now()
             )
             db.session.add(comentario_sistema)
         
@@ -186,27 +354,108 @@ def listar_comentarios_ticket(ticket_id):
 def agregar_comentario_admin(ticket_id):
     """
     POST /admin/soporte-tickets/:id/comentarios
-    Agrega un comentario de administrador al ticket
-    Body: { comentario: string, archivos?: array }
+    Agrega un comentario de administrador al ticket con archivos opcionales
+    
+    Acepta dos formatos:
+    1. JSON: { comentario: string, archivos?: array }
+    2. FormData: comentario (text) + files (multiple files)
     """
     try:
         ticket = SoporteTicket.query.get(ticket_id)
         if not ticket:
             return jsonify({'message': 'Ticket no encontrado'}), 404
         
-        data = request.get_json()
-        current_user_id = get_jwt_identity()
+        # Validar que el ticket tenga un analista asignado
+        if not ticket.asignado_a:
+            return jsonify({'message': 'No se puede agregar comentarios a un ticket sin analista asignado'}), 400
         
-        if not data.get('comentario'):
-            return jsonify({'message': 'El comentario es obligatorio'}), 400
+        current_user_email = get_jwt_identity()
         
-        nuevo_comentario = SoporteTicketComentario(
-            ticket_id=ticket_id,
-            es_admin=True,
-            admin_id=current_user_id,
-            comentario=data['comentario'],
-            archivos=data.get('archivos')
-        )
+        # Obtener el ID del usuario actual
+        current_user = Usuario.query.filter_by(email=current_user_email).first()
+        if not current_user:
+            return jsonify({'message': 'Usuario no encontrado'}), 404
+        
+        # Detectar si es JSON o FormData
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            # FormData con archivos
+            comentario_texto = request.form.get('comentario')
+            if not comentario_texto:
+                return jsonify({'message': 'El comentario es obligatorio'}), 400
+            
+            archivos_metadata = []
+            
+            # Procesar archivos si existen
+            if 'files' in request.files:
+                files = request.files.getlist('files')
+                
+                for file in files:
+                    if file.filename == '':
+                        continue
+                    
+                    # Validar extensión
+                    if not allowed_file(file.filename):
+                        return jsonify({'message': f'Tipo de archivo no permitido: {file.filename}'}), 400
+                    
+                    # Leer contenido para validar tamaño
+                    file.seek(0, os.SEEK_END)
+                    file_size = file.tell()
+                    file.seek(0)
+                    
+                    # Validar tamaño
+                    is_valid, error_msg = validate_file_size(file_size)
+                    if not is_valid:
+                        return jsonify({'message': f'{file.filename}: {error_msg}'}), 400
+                    
+                    try:
+                        # Generar nombre único y guardar
+                        upload_path = get_upload_path(ticket_id)
+                        unique_filename = generate_unique_filename(file.filename)
+                        filepath = os.path.join(upload_path, unique_filename)
+                        
+                        file.save(filepath)
+                        
+                        # Obtener información del archivo
+                        file_info = get_file_info(unique_filename, filepath)
+                        file_info['nombre_original'] = file.filename
+                        
+                        archivos_metadata.append(file_info)
+                        
+                        AppLogger.info(
+                            LogCategory.SOPORTE,
+                            f"Archivo subido para comentario en ticket {ticket_id}",
+                            filename=file.filename,
+                            size_mb=file_info['tamano_mb']
+                        )
+                    except Exception as e:
+                        AppLogger.error(LogCategory.SOPORTE, f"Error al guardar archivo {file.filename}", exc=e)
+                        return jsonify({'message': f'Error al guardar archivo: {str(e)}'}), 500
+            
+            nuevo_comentario = SoporteTicketComentario(
+                ticket_id=ticket_id,
+                es_admin=True,
+                admin_id=current_user.id,
+                usuario_id=current_user.id,  # Registrar el usuario admin que comenta
+                comentario=comentario_texto,
+                archivos=archivos_metadata if archivos_metadata else None,
+                fecha_creacion=get_local_now()  # Usar zona horaria local
+            )
+        else:
+            # JSON tradicional
+            data = request.get_json()
+            
+            if not data.get('comentario'):
+                return jsonify({'message': 'El comentario es obligatorio'}), 400
+            
+            nuevo_comentario = SoporteTicketComentario(
+                ticket_id=ticket_id,
+                es_admin=True,
+                admin_id=current_user.id,
+                usuario_id=current_user.id,  # Registrar el usuario admin que comenta
+                comentario=data['comentario'],
+                archivos=data.get('archivos'),
+                fecha_creacion=get_local_now()  # Usar zona horaria local
+            )
         
         db.session.add(nuevo_comentario)
         
@@ -222,6 +471,7 @@ def agregar_comentario_admin(ticket_id):
         }), 201
     except Exception as e:
         db.session.rollback()
+        AppLogger.error(LogCategory.SOPORTE, f"Error al agregar comentario ticket {ticket_id}", exc=e)
         return jsonify({'message': f'Error al agregar comentario: {str(e)}'}), 500
 
 
@@ -241,19 +491,30 @@ def cerrar_ticket(ticket_id):
         if ticket.estado == 'cerrado':
             return jsonify({'message': 'El ticket ya está cerrado'}), 400
         
+        # Validar que el ticket tenga un analista asignado
+        if not ticket.asignado_a:
+            return jsonify({'message': 'No se puede cerrar un ticket sin analista asignado'}), 400
+        
         data = request.get_json() or {}
-        current_user_id = get_jwt_identity()
+        current_user_email = get_jwt_identity()
+        
+        # Obtener el ID del usuario actual
+        current_user = Usuario.query.filter_by(email=current_user_email).first()
+        if not current_user:
+            return jsonify({'message': 'Usuario no encontrado'}), 404
         
         ticket.estado = 'cerrado'
-        ticket.fecha_cierre = datetime.utcnow()
+        ticket.fecha_cierre = get_local_now()
         
         # Agregar comentario de cierre
         motivo = data.get('motivo', 'Ticket cerrado por administrador')
         comentario_cierre = SoporteTicketComentario(
             ticket_id=ticket_id,
             es_admin=True,
-            admin_id=current_user_id,
-            comentario=f'[Cierre] {motivo}'
+            admin_id=current_user.id,
+            usuario_id=current_user.id,
+            comentario=f'[Cierre] {motivo}',
+            fecha_creacion=get_local_now()
         )
         db.session.add(comentario_cierre)
         
@@ -285,17 +546,25 @@ def reabrir_ticket(ticket_id):
             return jsonify({'message': 'Solo se pueden reabrir tickets cerrados'}), 400
         
         data = request.get_json() or {}
-        current_user_id = get_jwt_identity()
+        current_user_email = get_jwt_identity()
+        
+        # Obtener el ID del usuario actual
+        current_user = Usuario.query.filter_by(email=current_user_email).first()
+        if not current_user:
+            return jsonify({'message': 'Usuario no encontrado'}), 404
         
         ticket.estado = 'abierto'
         ticket.fecha_cierre = None
+        ticket.fecha_actualizacion = get_local_now()
         
         motivo = data.get('motivo', 'Ticket reabierto por administrador')
         comentario_reapertura = SoporteTicketComentario(
             ticket_id=ticket_id,
             es_admin=True,
-            admin_id=current_user_id,
-            comentario=f'[Reapertura] {motivo}'
+            admin_id=current_user.id,
+            usuario_id=current_user.id,
+            comentario=f'[Reapertura] {motivo}',
+            fecha_creacion=get_local_now()
         )
         db.session.add(comentario_reapertura)
         
@@ -450,22 +719,32 @@ def subir_archivo(ticket_id):
 def descargar_archivo(ticket_id, filename):
     """
     GET /admin/soporte-tickets/:id/archivo/:filename
-    Descarga un archivo adjunto del ticket
+    Descarga un archivo adjunto del ticket o de sus comentarios
     """
     try:
         ticket = SoporteTicket.query.get(ticket_id)
         if not ticket:
             return jsonify({'message': 'Ticket no encontrado'}), 404
         
-        # Verificar que el archivo existe en extra_data
-        if not ticket.extra_data or 'archivos' not in ticket.extra_data:
-            return jsonify({'message': 'El ticket no tiene archivos adjuntos'}), 404
-        
         archivo_encontrado = None
-        for archivo in ticket.extra_data['archivos']:
-            if archivo.get('nombre') == filename:
-                archivo_encontrado = archivo
-                break
+        
+        # Buscar primero en archivos del ticket (extra_data)
+        if ticket.extra_data and 'archivos' in ticket.extra_data:
+            for archivo in ticket.extra_data['archivos']:
+                if archivo.get('nombre') == filename:
+                    archivo_encontrado = archivo
+                    break
+        
+        # Si no se encontró, buscar en archivos de comentarios
+        if not archivo_encontrado:
+            for comentario in ticket.comentarios:
+                if comentario.archivos:
+                    for archivo in comentario.archivos:
+                        if archivo.get('nombre') == filename:
+                            archivo_encontrado = archivo
+                            break
+                if archivo_encontrado:
+                    break
         
         if not archivo_encontrado:
             return jsonify({'message': 'Archivo no encontrado'}), 404

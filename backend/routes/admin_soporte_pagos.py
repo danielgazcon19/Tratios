@@ -1,15 +1,26 @@
 """
 Rutas de administración para pagos de soporte
 """
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from database.db import db
+#Services
+from models.usuario import Usuario
+#Models
 from models.soporte_pago import SoportePago
 from models.soporte_suscripcion import SoporteSuscripcion
+#Utils
 from utils.security import admin_required
 
 admin_soporte_pagos_bp = Blueprint('admin_soporte_pagos', __name__, url_prefix='/admin/soporte-pagos')
+
+# Zona horaria de Colombia (UTC-5)
+COLOMBIA_TZ = timezone(timedelta(hours=-5))
+
+def get_local_now():
+    """Obtiene la fecha/hora actual en zona horaria de Colombia"""
+    return datetime.now(COLOMBIA_TZ)
 
 
 @admin_soporte_pagos_bp.route('', methods=['GET'])
@@ -17,12 +28,16 @@ admin_soporte_pagos_bp = Blueprint('admin_soporte_pagos', __name__, url_prefix='
 def listar_pagos_soporte():
     """
     GET /admin/soporte-pagos
-    Lista todos los pagos de soporte con filtros
-    Query params: soporte_suscripcion_id, estado, desde, hasta
+    Lista todos los pagos de soporte con filtros y paginación
+    Query params: 
+        - soporte_suscripcion_id, estado, desde, hasta
+        - empresa_id, metodo_pago, referencia
+        - page (default: 1), per_page (default: 10)
     """
     try:
         query = SoportePago.query
         
+        # Filtros existentes
         soporte_suscripcion_id = request.args.get('soporte_suscripcion_id', type=int)
         if soporte_suscripcion_id:
             query = query.filter(SoportePago.soporte_suscripcion_id == soporte_suscripcion_id)
@@ -39,12 +54,65 @@ def listar_pagos_soporte():
         if hasta:
             query = query.filter(SoportePago.fecha_pago <= datetime.fromisoformat(hasta))
         
-        pagos = query.order_by(SoportePago.fecha_pago.desc()).all()
+        # Nuevos filtros de búsqueda
+        empresa_id = request.args.get('empresa_id', type=int)
+        if empresa_id:
+            query = query.join(SoporteSuscripcion).filter(SoporteSuscripcion.empresa_id == empresa_id)
+        
+        metodo_pago = request.args.get('metodo_pago')
+        if metodo_pago:
+            query = query.filter(SoportePago.metodo_pago.ilike(f'%{metodo_pago}%'))
+        
+        referencia = request.args.get('referencia')
+        if referencia:
+            query = query.filter(SoportePago.referencia_pago.ilike(f'%{referencia}%'))
+        
+        # Búsqueda general (busca en referencia, método de pago o detalle)
+        busqueda = request.args.get('busqueda')
+        if busqueda:
+            query = query.filter(
+                db.or_(
+                    SoportePago.referencia_pago.ilike(f'%{busqueda}%'),
+                    SoportePago.metodo_pago.ilike(f'%{busqueda}%'),
+                    SoportePago.detalle.ilike(f'%{busqueda}%')
+                )
+            )
+        
+        # Paginación
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # Limitar per_page a un máximo razonable
+        per_page = min(per_page, 100)
+        
+        # Obtener total antes de paginar
+        total = query.count()
+        
+        # Ordenar y paginar
+        pagos = query.order_by(SoportePago.fecha_pago.desc()).paginate(
+            page=page, 
+            per_page=per_page, 
+            error_out=False
+        )
+        
+        # Calcular monto total (solo pagos exitosos)
+        monto_total_query = SoportePago.query
+        if soporte_suscripcion_id:
+            monto_total_query = monto_total_query.filter(SoportePago.soporte_suscripcion_id == soporte_suscripcion_id)
+        if estado:
+            monto_total_query = monto_total_query.filter(SoportePago.estado == estado)
+        else:
+            monto_total_query = monto_total_query.filter(SoportePago.estado == 'exitoso')
+        
+        monto_total = float(sum(p.monto for p in monto_total_query.all()))
         
         return jsonify({
-            'pagos': [p.to_dict(include_relations=True) for p in pagos],
-            'total': len(pagos),
-            'monto_total': float(sum(p.monto for p in pagos if p.estado == 'exitoso'))
+            'pagos': [p.to_dict(include_relations=True) for p in pagos.items],
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'pages': pagos.pages,
+            'monto_total': monto_total
         }), 200
     except Exception as e:
         return jsonify({'message': f'Error al listar pagos de soporte: {str(e)}'}), 500
@@ -85,7 +153,7 @@ def registrar_pago_soporte():
     """
     try:
         data = request.get_json()
-        current_user_id = get_jwt_identity()
+        current_user_email = get_jwt_identity()
         
         # Validaciones
         if not data.get('soporte_suscripcion_id'):
@@ -94,6 +162,11 @@ def registrar_pago_soporte():
             return jsonify({'message': 'fecha_pago es obligatoria'}), 400
         if not data.get('monto'):
             return jsonify({'message': 'monto es obligatorio'}), 400
+        
+        # Obtener el ID del usuario actual
+        current_user = Usuario.query.filter_by(email=current_user_email).first()
+        if not current_user:
+            return jsonify({'message': 'Usuario no encontrado'}), 404
         
         # Verificar que existe la suscripción de soporte
         soporte_suscripcion = SoporteSuscripcion.query.get(data['soporte_suscripcion_id'])
@@ -104,15 +177,27 @@ def registrar_pago_soporte():
         if estado not in ['exitoso', 'fallido', 'pendiente']:
             return jsonify({'message': 'Estado inválido'}), 400
         
+        # Parsear fecha_pago y agregar hora actual de Colombia
+        fecha_pago_str = data['fecha_pago']
+        if 'T' in fecha_pago_str or ' ' in fecha_pago_str:
+            # Ya tiene hora
+            fecha_pago = datetime.fromisoformat(fecha_pago_str.replace('Z', '+00:00'))
+        else:
+            # Solo tiene fecha, usar hora actual de Colombia
+            fecha_base = datetime.fromisoformat(fecha_pago_str)
+            hora_actual = get_local_now()
+            fecha_pago = datetime.combine(fecha_base.date(), hora_actual.time(), tzinfo=COLOMBIA_TZ)
+        
         nuevo_pago = SoportePago(
             soporte_suscripcion_id=data['soporte_suscripcion_id'],
-            fecha_pago=datetime.fromisoformat(data['fecha_pago']),
+            fecha_pago=fecha_pago,
             monto=data['monto'],
             metodo_pago=data.get('metodo_pago'),
             referencia_pago=data.get('referencia_pago'),
             estado=estado,
             detalle=data.get('detalle'),
-            registrado_por=current_user_id
+            registrado_por=current_user.id,
+            fecha_creacion=get_local_now()
         )
         
         db.session.add(nuevo_pago)

@@ -60,6 +60,73 @@
 
   <!-- ============ TAB TICKETS ============ -->
   <div *ngIf="tabActiva === 'tickets'" class="tab-content">
+    <!-- Estadísticas de Tickets -->
+    <div class="stats-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon"><i class="fas fa-ticket"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.total }}</span>
+          <span class="stat-label">Total Tickets</span>
+        </div>
+      </div>
+      
+      <div class="stat-card success">
+        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.activos }}</span>
+          <span class="stat-label">Activos</span>
+        </div>
+      </div>
+      
+      <div class="stat-card warning">
+        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.criticos }}</span>
+          <span class="stat-label">Críticos</span>
+        </div>
+      </div>
+      
+      <div class="stat-card info">
+        <div class="stat-icon"><i class="fas fa-user-slash"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.sin_asignar }}</span>
+          <span class="stat-label">Sin Asignar</span>
+        </div>
+      </div>
+      
+      <div class="stat-card open">
+        <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.abiertos }}</span>
+          <span class="stat-label">Abiertos</span>
+        </div>
+      </div>
+      
+      <div class="stat-card process">
+        <div class="stat-icon"><i class="fas fa-cog"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.en_proceso }}</span>
+          <span class="stat-label">En Proceso</span>
+        </div>
+      </div>
+      
+      <div class="stat-card pending">
+        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.pendiente_respuesta }}</span>
+          <span class="stat-label">Pend. Respuesta</span>
+        </div>
+      </div>
+      
+      <div class="stat-card closed">
+        <div class="stat-icon"><i class="fas fa-check-double"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.cerrados }}</span>
+          <span class="stat-label">Cerrados</span>
+        </div>
+      </div>
+    </div>
+
     <div class="filtros-bar">
       <div class="filtros-group">
         <select [(ngModel)]="filtroEstadoTicket" (change)="filtrarTickets()" class="filtro-select">
@@ -104,13 +171,11 @@
           </div>
           <div class="form-group">
             <label>Suscripción de Soporte *</label>
-            <select [(ngModel)]="nuevoTicket.soporte_suscripcion_id" class="form-control">
-              <option [value]="0">Seleccione suscripción</option>
-              <ng-container *ngFor="let sus of soporteSuscripciones">
-                <option *ngIf="sus.empresa_id === nuevoTicket.empresa_id && sus.estado === 'activo'" [value]="sus.id">
-                  {{ sus.tipo_soporte?.nombre }} - {{ formatDate(sus.fecha_inicio) }}
-                </option>
-              </ng-container>
+            <select [(ngModel)]="nuevoTicket.soporte_suscripcion_id" class="form-control" [disabled]="!suscripcionSoporteActiva || cargandoSuscripcionSoporte">
+              <option [value]="0">{{ cargandoSuscripcionSoporte ? 'Verificando...' : (suscripcionSoporteActiva ? 'Suscripción cargada' : 'Seleccione empresa primero') }}</option>
+              <option *ngIf="suscripcionSoporteActiva" [value]="suscripcionSoporteActiva.id" [selected]="true">
+                {{ suscripcionSoporteActiva.tipo_soporte?.nombre }} - {{ formatDate(suscripcionSoporteActiva.fecha_inicio) }}
+              </option>
             </select>
           </div>
         </div>
@@ -348,10 +413,15 @@
               <button class="btn-icon btn-view" (click)="verDetalleTicket(ticket)" title="Ver detalle">
                 <i class="fas fa-eye"></i>
               </button>
+              <button class="btn-icon btn-primary" (click)="gestionarTicket(ticket)" title="Gestionar ticket">
+                <i class="fas fa-cog"></i>
+              </button>
               <button class="btn-icon btn-success" 
                       *ngIf="ticket.estado !== 'cerrado' && ticket.estado !== 'cancelado'"
-                      (click)="cerrarTicket(ticket)" title="Cerrar">
-                <i class="fas fa-check-lg"></i>
+                      [disabled]="!ticket.asignado_a"
+                      [title]="ticket.asignado_a ? 'Cerrar ticket' : 'Debes asignar un analista antes de cerrar el ticket'"
+                      (click)="cerrarTicket(ticket)">
+                <i class="fas fa-check-circle"></i>
               </button>
             </td>
           </tr>
@@ -507,10 +577,9 @@
                       (click)="renovarSoporteSuscripcion(sus)" title="Renovar">
                 <i class="fas fa-arrow-rotate-right"></i>
               </button>
-              <button class="btn-icon btn-danger" 
-                      *ngIf="sus.estado === 'activo'"
-                      (click)="cancelarSoporteSuscripcion(sus)" title="Cancelar">
-                <i class="fas fa-xmark"></i>
+              <button class="btn-icon btn-warning" 
+                      (click)="cambiarEstadoSuscripcion(sus)" title="Cambiar Estado">
+                <i class="fas fa-exchange-alt"></i>
               </button>
             </td>
           </tr>
@@ -670,7 +739,7 @@
             <select [(ngModel)]="nuevoPago.soporte_suscripcion_id" class="form-control">
               <option [value]="0">Seleccione suscripción</option>
               <option *ngFor="let sus of soporteSuscripciones" [value]="sus.id">
-                {{ sus.empresa?.nombre }} - {{ sus.tipo_soporte?.nombre }}
+                #{{ sus.id }} - {{ sus.empresa?.nombre || 'Sin empresa' }} - {{ sus.tipo_soporte?.nombre || 'Sin tipo' }} [{{ getEstadoSuscripcionLabel(sus.estado) }}]
               </option>
             </select>
           </div>
@@ -682,7 +751,12 @@
           </div>
           <div class="form-group">
             <label>Monto *</label>
-            <input type="number" [(ngModel)]="nuevoPago.monto" class="form-control" min="0">
+            <input type="text" 
+                   [(ngModel)]="montoFormateado" 
+                   (blur)="formatearMonto()"
+                   (focus)="desformatearMonto()"
+                   class="form-control" 
+                   placeholder="$ 0">
           </div>
           <div class="form-group">
             <label>Estado</label>
@@ -701,6 +775,12 @@
           <div class="form-group">
             <label>Referencia</label>
             <input type="text" [(ngModel)]="nuevoPago.referencia_pago" class="form-control" placeholder="Ej: TRF-123456">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Detalle (Opcional)</label>
+            <textarea [(ngModel)]="nuevoPago.detalle" class="form-control" rows="3" placeholder="Información adicional del pago..."></textarea>
           </div>
         </div>
         <div class="formulario-actions">

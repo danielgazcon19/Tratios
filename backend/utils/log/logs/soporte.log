@@ -40,3 +40,47 @@
 2025-12-05 20:42:09 | INFO     | Consulta finalizada | total=2
 2025-12-05 20:43:58 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
 2025-12-05 20:43:58 | INFO     | Consulta finalizada | total=2
+2025-12-09 12:47:04 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=1 | suscripcion_id=2
+2025-12-09 12:47:04 | INFO     | Ticket creado exitosamente | ticket_id=1 | empresa_id=1 | suscripcion_id=2 | titulo=Falla al iniciar sesion | prioridad=alta | creado_por=18
+2025-12-09 12:47:04 | INFO     | Archivo subido para ticket 1 | filename=ChatGPT Image 6 nov 2025, 08_52_23.png | size_mb=1.7
+2025-12-09 15:00:38 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-09 15:00:38 | INFO     | Ticket creado exitosamente | ticket_id=2 | empresa_id=7 | suscripcion_id=3 | titulo=Reporte de fallo al crear contrato por un valor muy alto | prioridad=baja | creado_por=18
+2025-12-09 15:00:39 | INFO     | Archivo subido para ticket 2 | filename=control-total.png | size_mb=1.14
+2025-12-09 17:17:26 | INFO     | Archivo subido para ticket 1 | filename=carta solicitud tratsteo.docx | size_mb=0.03
+2025-12-09 17:17:26 | INFO     | Archivo subido para ticket 1 | filename=Planes-Tratios.png | size_mb=0.68
+2025-12-09 18:02:45 | INFO     | Archivo subido para comentario en ticket 1 | filename=Módulo 1 - Solución - Ejercicios Operaciones.pdf | size_mb=0.42
+2025-12-09 18:56:00 | INFO     | Archivo subido para comentario en ticket 2 | filename=Gemini_Generated_Image_6jo65h6jo65h6jo6.png | size_mb=0.78
+2025-12-09 19:17:11 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:17:11 | INFO     | Consulta finalizada | total=2
+2025-12-09 19:17:33 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:17:33 | INFO     | Consulta finalizada | total=2
+2025-12-09 19:26:32 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:26:32 | INFO     | Consulta finalizada | total=2
+2025-12-09 19:27:39 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:27:39 | INFO     | Consulta finalizada | total=2
+2025-12-09 19:32:30 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:32:30 | INFO     | Consulta finalizada | total=2
+2025-12-09 19:32:50 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:32:50 | INFO     | Consulta finalizada | total=2
+2025-12-09 19:33:39 | INFO     | Suscripción soporte cambió a pendiente_pago | suscripcion_soporte_id=2 | estado_anterior=activo | estado_nuevo=pendiente_pago | motivo=Se cambia estado a pendiente de pago ya qeu no se ha recibido el pago para renovar la suscripcion de soporte.
+2025-12-09 19:33:39 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:33:39 | INFO     | Consulta finalizada | total=2
+2025-12-09 19:39:02 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:39:02 | INFO     | Consulta finalizada | total=2
+2025-12-09 19:39:18 | INFO     | Suscripción soporte cambió a activo | suscripcion_soporte_id=2 | estado_anterior=pendiente_pago | estado_nuevo=activo | motivo=Se verifica el pago del cliente.
+2025-12-09 19:39:19 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 19:39:19 | INFO     | Consulta finalizada | total=2
+2025-12-09 20:13:45 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 20:13:45 | INFO     | Consulta finalizada | total=2
+2025-12-09 20:13:48 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 20:13:48 | INFO     | Consulta finalizada | total=2
+2025-12-09 20:14:12 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 20:14:12 | INFO     | Consulta finalizada | total=2
+2025-12-09 20:45:52 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None
+2025-12-09 20:45:52 | INFO     | Consulta finalizada | total=2
+2025-12-09 20:50:28 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-09 20:50:28 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-09 20:51:38 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-09 20:51:38 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-09 20:52:53 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-09 20:52:53 | INFO     | Consulta finalizada | total=2 | page=1

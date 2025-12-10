@@ -1005,3 +1005,362 @@ button {
     gap: 8px;
   }
 }
+
+/* Estilos modernos para modales de gestión */
+/* Estilos de modales ahora están inline en el component.ts para mayor consistencia con admin-suscripciones */
+
+/* ============ ESTADÍSTICAS DE TICKETS ============ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  perspective: 1000px;
+}
+
+.stat-card {
+  position: relative;
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--card-color-start), var(--card-color-end));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.stat-card:hover::before {
+  transform: scaleX(1);
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, var(--card-color-light) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.stat-card:hover::after {
+  opacity: 0.15;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: white;
+  background: linear-gradient(135deg, var(--card-color-start), var(--card-color-end));
+  box-shadow: 0 4px 12px var(--card-shadow);
+  transition: all 0.4s ease;
+  flex-shrink: 0;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.08) rotate(5deg);
+  box-shadow: 0 6px 18px var(--card-shadow);
+}
+
+.stat-icon::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--card-color-start), var(--card-color-end));
+  opacity: 0.4;
+  filter: blur(6px);
+  z-index: -1;
+  transition: opacity 0.4s ease;
+}
+
+.stat-card:hover .stat-icon::before {
+  opacity: 0.7;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  z-index: 1;
+  min-width: 0;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--card-color-start), var(--card-color-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-value {
+  transform: scale(1.05);
+  letter-spacing: 0.5px;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: color 0.3s ease;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-card:hover .stat-label {
+  color: #475569;
+}
+
+/* Colores específicos para cada tipo de estadística */
+.stat-card.primary {
+  --card-color-start: #3b82f6;
+  --card-color-end: #1d4ed8;
+  --card-color-light: #3b82f6;
+  --card-shadow: rgba(59, 130, 246, 0.4);
+}
+
+.stat-card.success {
+  --card-color-start: #10b981;
+  --card-color-end: #059669;
+  --card-color-light: #10b981;
+  --card-shadow: rgba(16, 185, 129, 0.4);
+}
+
+.stat-card.warning {
+  --card-color-start: #f59e0b;
+  --card-color-end: #d97706;
+  --card-color-light: #f59e0b;
+  --card-shadow: rgba(245, 158, 11, 0.4);
+}
+
+.stat-card.info {
+  --card-color-start: #06b6d4;
+  --card-color-end: #0891b2;
+  --card-color-light: #06b6d4;
+  --card-shadow: rgba(6, 182, 212, 0.4);
+}
+
+.stat-card.open {
+  --card-color-start: #8b5cf6;
+  --card-color-end: #7c3aed;
+  --card-color-light: #8b5cf6;
+  --card-shadow: rgba(139, 92, 246, 0.4);
+}
+
+.stat-card.process {
+  --card-color-start: #f97316;
+  --card-color-end: #ea580c;
+  --card-color-light: #f97316;
+  --card-shadow: rgba(249, 115, 22, 0.4);
+}
+
+.stat-card.pending {
+  --card-color-start: #64748b;
+  --card-color-end: #475569;
+  --card-color-light: #64748b;
+  --card-shadow: rgba(100, 116, 139, 0.4);
+}
+
+.stat-card.closed {
+  --card-color-start: #14b8a6;
+  --card-color-end: #0d9488;
+  --card-color-light: #14b8a6;
+  --card-shadow: rgba(20, 184, 166, 0.4);
+}
+
+/* Responsive para estadísticas */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+  
+  .stat-card {
+    padding: 15px;
+  }
+  
+  .stat-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.3rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.4rem;
+/* Animación de entrada para las tarjetas */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card {
+  animation: slideInUp 0.6s ease-out backwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+.stat-card:nth-child(5) { animation-delay: 0.25s; }
+.stat-card:nth-child(6) { animation-delay: 0.3s; }
+.stat-card:nth-child(7) { animation-delay: 0.35s; }
+.stat-card:nth-child(8) { animation-delay: 0.4s; }
+
+/* Efecto de pulso para valores críticos */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.stat-card.warning .stat-value,
+.stat-card.warning .stat-icon {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Responsive para estadísticas */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 10px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  
+  .stat-card {
+    padding: 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+  
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+  }
+  
+  .stat-value {
+    font-size: 1.4rem;
+  }
+  
+  .stat-label {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-3px) scale(1.01);
+  }
+}

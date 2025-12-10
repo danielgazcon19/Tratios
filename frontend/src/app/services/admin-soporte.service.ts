@@ -145,6 +145,7 @@ export interface SoporteComentario {
 
 export interface CrearComentarioDto {
   comentario: string;
+  es_admin?: boolean;
   archivos?: string[];
 }
 
@@ -202,7 +203,7 @@ export class AdminSoporteService {
 
   // ============ SUSCRIPCIONES DE SOPORTE ============
 
-  listarSoporteSuscripciones(filtros?: { estado?: string; empresa_id?: number }): Observable<SoporteSuscripcion[]> {
+  listarSoporteSuscripciones(filtros?: any): Observable<any> {
     let params = new HttpParams();
     if (filtros?.estado) {
       params = params.set('estado', filtros.estado);
@@ -210,8 +211,22 @@ export class AdminSoporteService {
     if (filtros?.empresa_id) {
       params = params.set('empresa_id', filtros.empresa_id.toString());
     }
-    return this.http.get<{ suscripciones: SoporteSuscripcion[], total: number }>(`${this.apiUrl}/admin/soporte-suscripciones`, { params })
-      .pipe(map(response => response.suscripciones));
+    if (filtros?.busqueda) {
+      params = params.set('busqueda', filtros.busqueda);
+    }
+    if (filtros?.page) {
+      params = params.set('page', filtros.page.toString());
+    }
+    if (filtros?.per_page) {
+      params = params.set('per_page', filtros.per_page.toString());
+    }
+    return this.http.get<{ 
+      suscripciones: SoporteSuscripcion[], 
+      total: number,
+      page: number,
+      per_page: number,
+      pages: number
+    }>(`${this.apiUrl}/admin/soporte-suscripciones`, { params });
   }
 
   obtenerSoporteSuscripcion(id: number): Observable<SoporteSuscripcion> {
@@ -224,6 +239,10 @@ export class AdminSoporteService {
 
   actualizarSoporteSuscripcion(id: number, data: Partial<CrearSoporteSuscripcionDto>): Observable<any> {
     return this.http.put(`${this.apiUrl}/admin/soporte-suscripciones/${id}`, data);
+  }
+
+  cambiarEstadoSuscripcion(id: number, data: { estado: string, motivo?: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/soporte-suscripciones/${id}/cambiar-estado`, data);
   }
 
   cancelarSoporteSuscripcion(id: number, motivo?: string): Observable<any> {
@@ -240,13 +259,13 @@ export class AdminSoporteService {
 
   obtenerSuscripcionActivaEmpresa(empresaId: number): Observable<{tiene_soporte: boolean; suscripcion?: SoporteSuscripcion; message?: string}> {
     return this.http.get<{tiene_soporte: boolean; suscripcion?: SoporteSuscripcion; message?: string}>(
-      `${this.apiUrl}/admin/soporte-suscripciones/empresa/${empresaId}/verificar-activa`
+      `${this.apiUrl}/admin/soporte-suscripciones/por-empresa/${empresaId}`
     );
   }
 
   // ============ PAGOS DE SOPORTE ============
 
-  listarSoportePagos(filtros?: { soporte_suscripcion_id?: number; estado?: string }): Observable<SoportePago[]> {
+  listarSoportePagos(filtros?: any): Observable<any> {
     let params = new HttpParams();
     if (filtros?.soporte_suscripcion_id) {
       params = params.set('soporte_suscripcion_id', filtros.soporte_suscripcion_id.toString());
@@ -254,8 +273,38 @@ export class AdminSoporteService {
     if (filtros?.estado) {
       params = params.set('estado', filtros.estado);
     }
-    return this.http.get<{ pagos: SoportePago[], total: number, monto_total: number }>(`${this.apiUrl}/admin/soporte-pagos`, { params })
-      .pipe(map(response => response.pagos));
+    if (filtros?.empresa_id) {
+      params = params.set('empresa_id', filtros.empresa_id.toString());
+    }
+    if (filtros?.metodo_pago) {
+      params = params.set('metodo_pago', filtros.metodo_pago);
+    }
+    if (filtros?.referencia) {
+      params = params.set('referencia', filtros.referencia);
+    }
+    if (filtros?.busqueda) {
+      params = params.set('busqueda', filtros.busqueda);
+    }
+    if (filtros?.desde) {
+      params = params.set('desde', filtros.desde);
+    }
+    if (filtros?.hasta) {
+      params = params.set('hasta', filtros.hasta);
+    }
+    if (filtros?.page) {
+      params = params.set('page', filtros.page.toString());
+    }
+    if (filtros?.per_page) {
+      params = params.set('per_page', filtros.per_page.toString());
+    }
+    return this.http.get<{ 
+      pagos: SoportePago[], 
+      total: number, 
+      monto_total: number,
+      page: number,
+      per_page: number,
+      pages: number
+    }>(`${this.apiUrl}/admin/soporte-pagos`, { params });
   }
 
   obtenerSoportePago(id: number): Observable<SoportePago> {
@@ -276,7 +325,7 @@ export class AdminSoporteService {
 
   // ============ TICKETS DE SOPORTE ============
 
-  listarSoporteTickets(filtros?: FiltrosTicket): Observable<SoporteTicket[]> {
+  listarSoporteTickets(filtros?: any): Observable<any> {
     let params = new HttpParams();
     if (filtros?.estado) {
       params = params.set('estado', filtros.estado);
@@ -290,8 +339,23 @@ export class AdminSoporteService {
     if (filtros?.asignado_a) {
       params = params.set('asignado_a', filtros.asignado_a.toString());
     }
-    return this.http.get<{ tickets: SoporteTicket[], total: number, estadisticas: any }>(`${this.apiUrl}/admin/soporte-tickets`, { params })
-      .pipe(map(response => response.tickets));
+    if (filtros?.busqueda) {
+      params = params.set('busqueda', filtros.busqueda);
+    }
+    if (filtros?.page) {
+      params = params.set('page', filtros.page.toString());
+    }
+    if (filtros?.per_page) {
+      params = params.set('per_page', filtros.per_page.toString());
+    }
+    return this.http.get<{ 
+      tickets: SoporteTicket[], 
+      total: number, 
+      page: number, 
+      per_page: number, 
+      pages: number, 
+      estadisticas: any 
+    }>(`${this.apiUrl}/admin/soporte-tickets`, { params });
   }
 
   obtenerSoporteTicket(id: number): Observable<SoporteTicket> {
@@ -314,6 +378,10 @@ export class AdminSoporteService {
     return this.http.post(`${this.apiUrl}/admin/soporte-tickets/${id}/estado`, { estado });
   }
 
+  actualizarTicket(id: number, cambios: { estado?: string; prioridad?: string; asignado_a?: number }): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/admin/soporte-tickets/${id}`, cambios);
+  }
+
   cerrarTicket(id: number, comentarioFinal?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/soporte-tickets/${id}/cerrar`, { comentario: comentarioFinal });
   }
@@ -326,6 +394,10 @@ export class AdminSoporteService {
     return this.http.delete(`${this.apiUrl}/admin/soporte-tickets/${id}`);
   }
 
+  obtenerTicketDetalle(id: number): Observable<SoporteTicket> {
+    return this.http.get<SoporteTicket>(`${this.apiUrl}/admin/soporte-tickets/${id}`);
+  }
+
   // ============ COMENTARIOS EN TICKETS ============
 
   listarComentariosTicket(ticketId: number): Observable<SoporteComentario[]> {
@@ -334,6 +406,19 @@ export class AdminSoporteService {
 
   agregarComentario(ticketId: number, data: CrearComentarioDto): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/soporte-tickets/${ticketId}/comentarios`, data);
+  }
+
+  agregarComentarioTicket(ticketId: number, comentario: string, esAdmin: boolean): Observable<any> {
+    return this.agregarComentario(ticketId, { comentario, es_admin: esAdmin });
+  }
+
+  agregarComentarioConArchivos(ticketId: number, comentario: string, archivos: File[]): Observable<any> {
+    const formData = new FormData();
+    formData.append('comentario', comentario);
+    archivos.forEach(archivo => {
+      formData.append('files', archivo);
+    });
+    return this.http.post(`${this.apiUrl}/admin/soporte-tickets/${ticketId}/comentarios`, formData);
   }
 
   // ============ ARCHIVOS DE TICKETS ============
@@ -360,5 +445,11 @@ export class AdminSoporteService {
 
   obtenerEstadisticasTickets(): Observable<EstadisticasSoporte> {
     return this.http.get<EstadisticasSoporte>(`${this.apiUrl}/admin/soporte-tickets/estadisticas`);
+  }
+
+  // ============ USUARIOS ============
+
+  listarUsuarios(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/admin/usuarios`);
   }
 }

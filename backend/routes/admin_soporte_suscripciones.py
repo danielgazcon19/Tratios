@@ -21,8 +21,11 @@ admin_soporte_suscripciones_bp = Blueprint('admin_soporte_suscripciones', __name
 def listar_suscripciones_soporte():
     """
     GET /admin/soporte-suscripciones
-    Lista todas las suscripciones de soporte con filtros
-    Query params: empresa_id, estado, soporte_tipo_id
+    Lista todas las suscripciones de soporte con filtros y paginación
+    Query params: 
+        - empresa_id, estado, soporte_tipo_id
+        - busqueda (busca en empresa y tipo de soporte)
+        - page (default: 1), per_page (default: 20)
     """
     try:
         query = SoporteSuscripcion.query
@@ -30,13 +33,15 @@ def listar_suscripciones_soporte():
         empresa_id = request.args.get('empresa_id', type=int)
         estado = request.args.get('estado')
         soporte_tipo_id = request.args.get('soporte_tipo_id', type=int)
+        busqueda = request.args.get('busqueda')
         
         AppLogger.info(
             LogCategory.SOPORTE,
             "Listar suscripciones soporte",
             empresa_id=empresa_id,
             estado=estado,
-            soporte_tipo_id=soporte_tipo_id
+            soporte_tipo_id=soporte_tipo_id,
+            busqueda=busqueda
         )
         
         if empresa_id:
@@ -48,13 +53,42 @@ def listar_suscripciones_soporte():
         if soporte_tipo_id:
             query = query.filter(SoporteSuscripcion.soporte_tipo_id == soporte_tipo_id)
         
-        suscripciones = query.order_by(SoporteSuscripcion.fecha_creacion.desc()).all()
+        # Búsqueda general (requiere join con empresa)
+        if busqueda:
+            from models.empresa import Empresa
+            from models.soporte_tipo import SoporteTipo
+            query = query.join(Empresa).join(SoporteTipo).filter(
+                db.or_(
+                    Empresa.nombre.ilike(f'%{busqueda}%'),
+                    SoporteTipo.nombre.ilike(f'%{busqueda}%')
+                )
+            )
         
-        AppLogger.info(LogCategory.SOPORTE, "Consulta finalizada", total=len(suscripciones))
+        # Paginación
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        # Limitar per_page a un máximo razonable
+        per_page = min(per_page, 100)
+        
+        # Obtener total antes de paginar
+        total = query.count()
+        
+        # Ordenar y paginar
+        suscripciones = query.order_by(SoporteSuscripcion.fecha_creacion.desc()).paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+        
+        AppLogger.info(LogCategory.SOPORTE, "Consulta finalizada", total=total, page=page)
         
         return jsonify({
-            'suscripciones': [s.to_dict() for s in suscripciones],
-            'total': len(suscripciones)
+            'suscripciones': [s.to_dict() for s in suscripciones.items],
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'pages': suscripciones.pages
         }), 200
     except Exception as e:
         AppLogger.error(LogCategory.SOPORTE, "Error al listar suscripciones soporte", exc=e)
@@ -256,48 +290,91 @@ def actualizar_suscripcion_soporte(id):
         return jsonify({'message': f'Error al actualizar suscripción de soporte: {str(e)}'}), 500
 
 
-@admin_soporte_suscripciones_bp.route('/<int:id>/cancelar', methods=['POST'])
+@admin_soporte_suscripciones_bp.route('/<int:id>/cambiar-estado', methods=['POST'])
 @admin_required
-def cancelar_suscripcion_soporte(id):
+def cambiar_estado_suscripcion(id):
     """
-    POST /admin/soporte-suscripciones/:id/cancelar
-    Cancela una suscripción de soporte
-    Body: { motivo?: string }
+    POST /admin/soporte-suscripciones/:id/cambiar-estado
+    Cambia el estado de una suscripción de soporte
+    Body: { 
+        estado: 'activo' | 'vencido' | 'cancelado' | 'pendiente_pago',
+        motivo?: string 
+    }
     """
     try:
         suscripcion = SoporteSuscripcion.query.get(id)
         if not suscripcion:
-            AppLogger.warning(LogCategory.SOPORTE, "Suscripción soporte no encontrada para cancelar", id=id)
+            AppLogger.warning(LogCategory.SOPORTE, "Suscripción soporte no encontrada para cambiar estado", id=id)
             return jsonify({'message': 'Suscripción de soporte no encontrada'}), 404
         
-        if suscripcion.estado == 'cancelado':
-            return jsonify({'message': 'La suscripción ya está cancelada'}), 400
+        data = request.get_json()
+        if not data or 'estado' not in data:
+            return jsonify({'message': 'El campo estado es obligatorio'}), 400
         
-        data = request.get_json() or {}
+        nuevo_estado = data['estado']
+        estados_validos = ['activo', 'vencido', 'cancelado', 'pendiente_pago']
+        
+        if nuevo_estado not in estados_validos:
+            return jsonify({'message': f'Estado inválido. Estados permitidos: {", ".join(estados_validos)}'}), 400
+        
+        if suscripcion.estado == nuevo_estado:
+            return jsonify({'message': f'La suscripción ya está en estado {nuevo_estado}'}), 400
+        
         motivo = data.get('motivo', '')
-        
         estado_anterior = suscripcion.estado
-        suscripcion.estado = 'cancelado'
+        
+        # Mapeo de etiquetas para el log
+        etiquetas_estado = {
+            'activo': 'Activado',
+            'vencido': 'Vencido',
+            'cancelado': 'Cancelado',
+            'pendiente_pago': 'Pendiente de pago'
+        }
+        
+        suscripcion.estado = nuevo_estado
+        
+        # Agregar nota con el cambio de estado
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+        nota_cambio = f'\n[{timestamp}] Estado: {estado_anterior} → {nuevo_estado}'
         if motivo:
-            suscripcion.notas = (suscripcion.notas or '') + f'\n[Cancelado: {motivo}]'
+            nota_cambio += f' - Motivo: {motivo}'
+        
+        suscripcion.notas = (suscripcion.notas or '') + nota_cambio
         
         db.session.commit()
         
         AppLogger.info(
             LogCategory.SOPORTE,
-            "Suscripción soporte cancelada",
+            f"Suscripción soporte cambió a {nuevo_estado}",
             suscripcion_soporte_id=id,
             estado_anterior=estado_anterior,
+            estado_nuevo=nuevo_estado,
             motivo=motivo
         )
         
         return jsonify({
-            'message': 'Suscripción de soporte cancelada exitosamente',
+            'message': f'Suscripción de soporte {etiquetas_estado[nuevo_estado].lower()} exitosamente',
             'suscripcion': suscripcion.to_dict()
         }), 200
     except Exception as e:
         db.session.rollback()
-        AppLogger.error(LogCategory.SOPORTE, "Error al cancelar suscripción soporte", exc=e, suscripcion_id=id)
+        AppLogger.error(LogCategory.SOPORTE, "Error al cambiar estado suscripción soporte", exc=e, suscripcion_id=id)
+        return jsonify({'message': f'Error al cambiar estado de suscripción: {str(e)}'}), 500
+
+
+@admin_soporte_suscripciones_bp.route('/<int:id>/cancelar', methods=['POST'])
+@admin_required
+def cancelar_suscripcion_soporte(id):
+    """
+    POST /admin/soporte-suscripciones/:id/cancelar
+    Cancela una suscripción de soporte (método legacy, usar /cambiar-estado)
+    Body: { motivo?: string }
+    """
+    try:
+        data = request.get_json() or {}
+        # Redirigir al nuevo endpoint
+        return cambiar_estado_suscripcion(id)
+    except Exception as e:
         return jsonify({'message': f'Error al cancelar suscripción de soporte: {str(e)}'}), 500
 
 
@@ -349,6 +426,7 @@ def obtener_soporte_activo_empresa(empresa_id):
     """
     try:
         hoy = datetime.utcnow().date()
+        print(f"Consultando soporte para empresa {empresa_id} con fecha {hoy}")
         suscripcion = SoporteSuscripcion.query.filter(
             SoporteSuscripcion.empresa_id == empresa_id,
             SoporteSuscripcion.estado == 'activo',
