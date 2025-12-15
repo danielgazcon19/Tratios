@@ -4,8 +4,10 @@ Rutas de administración para tickets de soporte
 import os
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, send_file, current_app
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended.exceptions import NoAuthorizationError
 from werkzeug.utils import secure_filename
+from functools import wraps
 from database.db import db
 from models.soporte_ticket import SoporteTicket, SoporteTicketComentario
 from models.soporte_suscripcion import SoporteSuscripcion
@@ -20,6 +22,62 @@ from utils.file_handler import (
 
 admin_soporte_tickets_bp = Blueprint('admin_soporte_tickets', __name__, url_prefix='/admin/soporte-tickets')
 
+
+def admin_or_api_key_required(f):
+    """
+    Decorador que permite acceso mediante:
+    1. JWT de administrador (para el panel admin)
+    2. API Key (para consumo externo via API privada)
+    
+    Esto permite que los endpoints puedan ser usados por ambos contextos.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Verificar si viene con API Key
+        api_key = request.headers.get('X-API-Key')
+        
+        if api_key:
+            # Validar API Key
+            valid_api_key = current_app.config.get('SAAS_API_KEY') or os.environ.get('SAAS_API_KEY')
+            
+            if not valid_api_key:
+                AppLogger.error(LogCategory.SOPORTE, 'API Key no configurada en el servidor')
+                return jsonify({'message': 'Configuración de servidor incorrecta', 'error': 'server_config_error'}), 500
+            
+            if api_key != valid_api_key:
+                AppLogger.warning(LogCategory.SOPORTE, 'Intento de acceso con API Key inválida')
+                return jsonify({'message': 'API Key inválida', 'error': 'invalid_api_key'}), 403
+            
+            # API Key válida, permitir acceso
+            return f(*args, **kwargs)
+        
+        # Si no hay API Key, verificar JWT de admin
+        try:
+            verify_jwt_in_request()
+            current_user_email = get_jwt_identity()
+            
+            # Verificar que sea admin
+            current_user = Usuario.query.filter_by(email=current_user_email).first()
+            if not current_user:
+                AppLogger.warning(LogCategory.SOPORTE, f'Usuario no encontrado: {current_user_email}')
+                return jsonify({'message': 'Usuario no encontrado'}), 404
+            
+            if current_user.rol != 'admin':
+                AppLogger.warning(LogCategory.SOPORTE, f'Intento de acceso sin permisos de admin: {current_user_email} (rol: {current_user.rol})')
+                return jsonify({'message': 'Se requieren permisos de administrador'}), 403
+            
+            # Usuario admin válido
+            return f(*args, **kwargs)
+            
+        except NoAuthorizationError:
+            AppLogger.warning(LogCategory.SOPORTE, 'Intento de acceso sin autenticación')
+            return jsonify({'message': 'Se requiere autenticación (JWT o API Key)', 'error': 'unauthorized'}), 401
+        except Exception as e:
+            AppLogger.error(LogCategory.SOPORTE, f'Error en autenticación: {str(e)}')
+            return jsonify({'message': 'Error en la autenticación', 'error': 'auth_error'}), 500
+    
+    return decorated_function
+
 # Zona horaria de Colombia (UTC-5)
 COLOMBIA_TZ = timezone(timedelta(hours=-5))
 
@@ -27,16 +85,214 @@ def get_local_now():
     """Obtiene la fecha/hora actual en zona horaria de Colombia"""
     return datetime.now(COLOMBIA_TZ)
 
+def normalize_datetime(dt):
+    """
+    Convierte un datetime naive a aware con timezone de Colombia.
+    Si ya tiene timezone, lo retorna sin cambios.
+    """
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Es naive, asumir que está en hora de Colombia
+        return dt.replace(tzinfo=COLOMBIA_TZ)
+    return dt
+
+
+def calcular_disponibilidad_soporte(suscripcion):
+    """
+    Calcula la disponibilidad de tickets/horas según la modalidad del tipo de soporte.
+    
+    Args:
+        suscripcion: SoporteSuscripcion instance
+    
+    Returns:
+        dict con información de disponibilidad:
+        {
+            'tiene_disponible': bool,
+            'mensaje': str,
+            'consumido': int/float,
+            'maximo': int/float,
+            'disponible': int/float,
+            'modalidad': str,
+            'periodo_inicio': date,
+            'periodo_fin': date,
+            'requiere_horario_laboral': bool,
+            'respuesta_esperada': str
+        }
+    """
+    tipo_soporte = suscripcion.tipo_soporte
+    modalidad = tipo_soporte.modalidad
+    
+    resultado = {
+        'tiene_disponible': True,
+        'mensaje': '',
+        'consumido': 0,
+        'maximo': 0,
+        'disponible': 0,
+        'modalidad': modalidad,
+        'periodo_inicio': suscripcion.fecha_inicio,
+        'periodo_fin': suscripcion.fecha_fin,
+        'requiere_horario_laboral': False,
+        'respuesta_esperada': ''
+    }
+    
+    # Determinar periodo de evaluación basado en modalidad
+    fecha_inicio = suscripcion.fecha_inicio
+    fecha_fin = suscripcion.fecha_fin
+    
+    # Si es mensual o anual, usar el rango de fechas de la suscripción
+    # Ya está definido en fecha_inicio y fecha_fin
+    
+    # Validar si está dentro del periodo
+    ahora = get_local_now().date()
+    if ahora < fecha_inicio or (fecha_fin and ahora > fecha_fin):
+        resultado['tiene_disponible'] = False
+        resultado['mensaje'] = 'La suscripción de soporte no está vigente en este momento'
+        return resultado
+    
+    # Modalidad: por_horas
+    if modalidad == 'por_horas':
+        max_horas = tipo_soporte.max_horas or 0
+        horas_consumidas = float(suscripcion.horas_consumidas or 0)
+        horas_disponibles = max_horas - horas_consumidas
+        
+        resultado['consumido'] = horas_consumidas
+        resultado['maximo'] = max_horas
+        resultado['disponible'] = horas_disponibles
+        
+        if horas_disponibles <= 0:
+            resultado['tiene_disponible'] = False
+            resultado['mensaje'] = f'Ha consumido todas las horas disponibles ({max_horas} horas) para este periodo'
+        else:
+            resultado['mensaje'] = f'Tiene {horas_disponibles:.2f} horas disponibles de {max_horas}'
+    
+    # Modalidad: por_tickets
+    elif modalidad == 'por_tickets':
+        max_tickets = tipo_soporte.max_tickets or 0
+        
+        # Contar tickets NO cancelados en el periodo (incluye abiertos, en_proceso, pendiente_respuesta, cerrados)
+        # Solo excluimos 'cancelado' porque esos no consumen el cupo
+        fecha_inicio_dt = datetime.combine(fecha_inicio, datetime.min.time(), tzinfo=COLOMBIA_TZ)
+        fecha_fin_dt = datetime.combine(fecha_fin or ahora, datetime.max.time(), tzinfo=COLOMBIA_TZ)
+        
+        tickets_activos = SoporteTicket.query.filter(
+            SoporteTicket.soporte_suscripcion_id == suscripcion.id,
+            SoporteTicket.fecha_creacion >= fecha_inicio_dt,
+            SoporteTicket.fecha_creacion <= fecha_fin_dt,
+            SoporteTicket.estado != 'cancelado'  # Solo excluir cancelados
+        ).count()
+        
+        tickets_disponibles = max_tickets - tickets_activos
+        
+        resultado['consumido'] = tickets_activos
+        resultado['maximo'] = max_tickets
+        resultado['disponible'] = tickets_disponibles
+        
+        if tickets_disponibles <= 0:
+            resultado['tiene_disponible'] = False
+            resultado['mensaje'] = f'Ha consumido todos los tickets disponibles ({max_tickets} tickets) para este periodo'
+        else:
+            resultado['mensaje'] = f'Tiene {tickets_disponibles} tickets disponibles de {max_tickets}'
+    
+    # Modalidad: mensual o anual (soporte básico)
+    elif modalidad in ['mensual', 'anual']:
+        # Verificar si es tipo "básico" - requiere horario laboral
+        if 'basico' in tipo_soporte.nombre.lower() or 'básico' in tipo_soporte.nombre.lower():
+            resultado['requiere_horario_laboral'] = True
+            resultado['respuesta_esperada'] = 'Atención por correo y chat, en horario laboral. Respuesta en máximo 24 horas.'
+            
+            # Verificar si estamos en horario laboral (lunes a viernes, 8am-6pm Colombia)
+            ahora = get_local_now()
+            es_dia_laboral = ahora.weekday() < 5  # 0-4 es lunes a viernes
+            hora_actual = ahora.hour
+            es_horario_laboral = 8 <= hora_actual < 18
+            
+            if not es_dia_laboral or not es_horario_laboral:
+                resultado['mensaje'] = '⚠️ Horario laboral: Lunes a Viernes, 8:00 AM - 6:00 PM. Su ticket será atendido en el siguiente horario hábil.'
+            else:
+                resultado['mensaje'] = 'Soporte básico activo. Respuesta en máximo 24 horas hábiles.'
+        
+        # Verificar si es tipo "24/7" o "premium"
+        elif '24' in tipo_soporte.nombre or 'premium' in tipo_soporte.nombre.lower():
+            resultado['respuesta_esperada'] = 'Atención inmediata todos los días del año. Línea prioritaria.'
+            resultado['mensaje'] = '🚀 Soporte prioritario 24/7 activo. Atención inmediata.'
+        else:
+            resultado['mensaje'] = f'Soporte {tipo_soporte.nombre} activo - Sin límite de tickets'
+    
+    return resultado
+
+
+def actualizar_consumo_ticket_cerrado(ticket):
+    """
+    Actualiza el consumo de tickets/horas cuando se cierra un ticket.
+    
+    Args:
+        ticket: SoporteTicket instance que se está cerrando
+    """
+    suscripcion = ticket.soporte_suscripcion
+    tipo_soporte = suscripcion.tipo_soporte
+    modalidad = tipo_soporte.modalidad
+    
+    AppLogger.info(
+        LogCategory.SOPORTE,
+        "actualizar_consumo_ticket_cerrado LLAMADA",
+        ticket_id=ticket.id,
+        modalidad=modalidad,
+        suscripcion_id=suscripcion.id
+    )
+    
+    if modalidad == 'por_tickets':
+        # Incrementar contador de tickets consumidos
+        tickets_antes = suscripcion.tickets_consumidos or 0
+        suscripcion.tickets_consumidos = tickets_antes + 1
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            "Ticket consumido actualizado",
+            ticket_id=ticket.id,
+            suscripcion_id=suscripcion.id,
+            tickets_antes=tickets_antes,
+            tickets_despues=suscripcion.tickets_consumidos,
+            max_tickets=tipo_soporte.max_tickets
+        )
+    
+    elif modalidad == 'por_horas':
+        # Calcular horas desde creación hasta cierre
+        # Normalizar fechas para evitar error de naive vs aware
+        fecha_cierre_norm = normalize_datetime(ticket.fecha_cierre)
+        fecha_creacion_norm = normalize_datetime(ticket.fecha_creacion)
+        tiempo_transcurrido = fecha_cierre_norm - fecha_creacion_norm
+        horas_consumidas = tiempo_transcurrido.total_seconds() / 3600  # Convertir a horas
+        
+        # Actualizar total de horas consumidas
+        suscripcion.horas_consumidas = float(suscripcion.horas_consumidas or 0) + horas_consumidas
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            "Horas consumidas actualizadas",
+            ticket_id=ticket.id,
+            suscripcion_id=suscripcion.id,
+            horas_ticket=round(horas_consumidas, 2),
+            horas_consumidas_total=round(float(suscripcion.horas_consumidas), 2),
+            max_horas=tipo_soporte.max_horas
+        )
+    
+    # NO hacer commit aquí - se hará en la función que llama
+
 
 @admin_soporte_tickets_bp.route('', methods=['POST'])
-@admin_required
+@admin_or_api_key_required
 def crear_ticket():
     """
     POST /admin/soporte-tickets
     Crea un nuevo ticket de soporte
+    
+    Autenticación: JWT Admin o API Key
+    
     Body: {
         soporte_suscripcion_id: int,
         empresa_id: int,
+        usuario_id: int,
         titulo: string,
         descripcion?: string,
         prioridad?: string (baja|media|alta|critica)
@@ -44,13 +300,26 @@ def crear_ticket():
     """
     try:
         data = request.get_json()
-        current_user_email = get_jwt_identity()
         
-        # Obtener el ID del usuario actual
-        current_user = Usuario.query.filter_by(email=current_user_email).first()
-        if not current_user:
-            AppLogger.error(LogCategory.SOPORTE, "Usuario no encontrado", email=current_user_email)
-            return jsonify({'message': 'Usuario no encontrado'}), 404
+        # Determinar usuario: puede venir en data (API) o de JWT (admin panel)
+        usuario_id = data.get('usuario_id')
+        
+        if not usuario_id:
+            # Intentar obtener de JWT si no viene en data
+            try:
+                current_user_email = get_jwt_identity()
+                current_user = Usuario.query.filter_by(email=current_user_email).first()
+                if not current_user:
+                    AppLogger.error(LogCategory.SOPORTE, "Usuario no encontrado", email=current_user_email)
+                    return jsonify({'message': 'Usuario no encontrado'}), 404
+                usuario_id = current_user.id
+            except:
+                return jsonify({'message': 'usuario_id es obligatorio cuando se usa API Key'}), 400
+        else:
+            # Validar que el usuario existe
+            current_user = Usuario.query.get(usuario_id)
+            if not current_user:
+                return jsonify({'message': 'Usuario no encontrado'}), 404
         
         AppLogger.info(
             LogCategory.SOPORTE,
@@ -103,6 +372,23 @@ def crear_ticket():
             )
             return jsonify({'message': 'La suscripción no pertenece a la empresa seleccionada'}), 400
         
+        # VALIDAR DISPONIBILIDAD DE SOPORTE
+        disponibilidad = calcular_disponibilidad_soporte(suscripcion)
+        
+        if not disponibilidad['tiene_disponible']:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                "Sin disponibilidad de soporte",
+                suscripcion_id=suscripcion.id,
+                modalidad=disponibilidad['modalidad'],
+                consumido=disponibilidad['consumido'],
+                maximo=disponibilidad['maximo']
+            )
+            return jsonify({
+                'message': disponibilidad['mensaje'],
+                'disponibilidad': disponibilidad
+            }), 400
+        
         # Crear el ticket
         nuevo_ticket = SoporteTicket(
             soporte_suscripcion_id=data['soporte_suscripcion_id'],
@@ -146,11 +432,14 @@ def crear_ticket():
 
 
 @admin_soporte_tickets_bp.route('', methods=['GET'])
-@admin_required
+@admin_or_api_key_required
 def listar_tickets():
     """
     GET /admin/soporte-tickets
     Lista todos los tickets con filtros y paginación
+    
+    Autenticación: JWT Admin o API Key
+    
     Query params: 
         - empresa_id, estado, prioridad, asignado_a, sin_asignar
         - busqueda (busca en título y descripción)
@@ -226,11 +515,14 @@ def listar_tickets():
             'per_page': per_page,
             'pages': total_pages,
             'estadisticas': {
+                'total': total,
                 'abiertos': sum(1 for t in all_tickets if t.estado == 'abierto'),
                 'en_proceso': sum(1 for t in all_tickets if t.estado == 'en_proceso'),
                 'pendiente_respuesta': sum(1 for t in all_tickets if t.estado == 'pendiente_respuesta'),
                 'cerrados': sum(1 for t in all_tickets if t.estado == 'cerrado'),
-                'criticos': sum(1 for t in all_tickets if t.prioridad == 'critica' and t.estado not in ['cerrado', 'cancelado'])
+                'criticos': sum(1 for t in all_tickets if t.prioridad == 'critica' and t.estado not in ['cerrado', 'cancelado']),
+                'sin_asignar': sum(1 for t in all_tickets if t.asignado_a is None),
+                'activos': sum(1 for t in all_tickets if t.estado in ['abierto', 'en_proceso', 'pendiente_respuesta'])
             }
         }), 200
     except Exception as e:
@@ -238,11 +530,13 @@ def listar_tickets():
 
 
 @admin_soporte_tickets_bp.route('/<int:ticket_id>', methods=['GET'])
-@admin_required
+@admin_or_api_key_required
 def obtener_ticket(ticket_id):
     """
     GET /admin/soporte-tickets/:id
     Obtiene un ticket con todos sus comentarios
+    
+    Autenticación: JWT Admin o API Key
     """
     try:
         ticket = SoporteTicket.query.get(ticket_id)
@@ -284,8 +578,16 @@ def actualizar_ticket(ticket_id):
             ticket.estado = data['estado']
             cambios.append(f'Estado: {estado_anterior} → {data["estado"]}')
             
-            if data['estado'] == 'cerrado':
+            # Si se está cerrando el ticket, actualizar fecha de cierre
+            if data['estado'] == 'cerrado' and estado_anterior != 'cerrado':
                 ticket.fecha_cierre = get_local_now()
+                AppLogger.info(
+                    LogCategory.SOPORTE,
+                    "Cerrando ticket - Actualizará consumo",
+                    ticket_id=ticket.id,
+                    estado_anterior=estado_anterior,
+                    fecha_cierre=ticket.fecha_cierre.isoformat() if ticket.fecha_cierre else None
+                )
         
         if 'prioridad' in data:
             if data['prioridad'] not in ['baja', 'media', 'alta', 'critica']:
@@ -315,6 +617,22 @@ def actualizar_ticket(ticket_id):
                 fecha_creacion=get_local_now()
             )
             db.session.add(comentario_sistema)
+        
+        # Si se cerró el ticket, actualizar consumo ANTES del commit
+        if 'estado' in data and data['estado'] == 'cerrado' and ticket.estado == 'cerrado':
+            AppLogger.info(
+                LogCategory.SOPORTE,
+                "ANTES DE LLAMAR actualizar_consumo_ticket_cerrado",
+                ticket_id=ticket.id,
+                data_estado=data.get('estado'),
+                ticket_estado=ticket.estado
+            )
+            actualizar_consumo_ticket_cerrado(ticket)
+            AppLogger.info(
+                LogCategory.SOPORTE,
+                "DESPUÉS DE LLAMAR actualizar_consumo_ticket_cerrado",
+                ticket_id=ticket.id
+            )
         
         db.session.commit()
         
@@ -350,31 +668,46 @@ def listar_comentarios_ticket(ticket_id):
 
 
 @admin_soporte_tickets_bp.route('/<int:ticket_id>/comentarios', methods=['POST'])
-@admin_required
+@admin_or_api_key_required
 def agregar_comentario_admin(ticket_id):
     """
     POST /admin/soporte-tickets/:id/comentarios
-    Agrega un comentario de administrador al ticket con archivos opcionales
+    Agrega un comentario al ticket con archivos opcionales
+    
+    Autenticación: JWT Admin o API Key
     
     Acepta dos formatos:
-    1. JSON: { comentario: string, archivos?: array }
-    2. FormData: comentario (text) + files (multiple files)
+    1. JSON: { comentario: string, usuario_id?: int, es_interno?: bool, archivos?: array }
+    2. FormData: comentario (text) + usuario_id (optional) + es_interno (optional) + files (multiple files)
     """
     try:
         ticket = SoporteTicket.query.get(ticket_id)
         if not ticket:
             return jsonify({'message': 'Ticket no encontrado'}), 404
         
-        # Validar que el ticket tenga un analista asignado
-        if not ticket.asignado_a:
-            return jsonify({'message': 'No se puede agregar comentarios a un ticket sin analista asignado'}), 400
+        # Determinar usuario: puede venir en data/form (API) o de JWT (admin panel)
+        usuario_id = None
         
-        current_user_email = get_jwt_identity()
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            usuario_id = request.form.get('usuario_id')
+        elif request.is_json:
+            usuario_id = request.get_json().get('usuario_id')
         
-        # Obtener el ID del usuario actual
-        current_user = Usuario.query.filter_by(email=current_user_email).first()
-        if not current_user:
-            return jsonify({'message': 'Usuario no encontrado'}), 404
+        if not usuario_id:
+            # Intentar obtener de JWT si no viene en data
+            try:
+                current_user_email = get_jwt_identity()
+                current_user = Usuario.query.filter_by(email=current_user_email).first()
+                if not current_user:
+                    return jsonify({'message': 'Usuario no encontrado'}), 404
+                usuario_id = current_user.id
+            except:
+                return jsonify({'message': 'usuario_id es obligatorio cuando se usa API Key'}), 400
+        else:
+            # Validar que el usuario existe
+            current_user = Usuario.query.get(usuario_id)
+            if not current_user:
+                return jsonify({'message': 'Usuario no encontrado'}), 404
         
         # Detectar si es JSON o FormData
         if request.content_type and 'multipart/form-data' in request.content_type:
@@ -518,6 +851,15 @@ def cerrar_ticket(ticket_id):
         )
         db.session.add(comentario_cierre)
         
+        # Actualizar consumo de tickets/horas en la suscripción
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            "Cerrando ticket - Actualizará consumo",
+            ticket_id=ticket.id,
+            endpoint="cerrar_ticket"
+        )
+        actualizar_consumo_ticket_cerrado(ticket)
+        
         db.session.commit()
         
         return jsonify({
@@ -579,6 +921,136 @@ def reabrir_ticket(ticket_id):
         return jsonify({'message': f'Error al reabrir ticket: {str(e)}'}), 500
 
 
+@admin_soporte_tickets_bp.route('/<int:ticket_id>/cancelar', methods=['POST'])
+@admin_required
+def cancelar_ticket(ticket_id):
+    """
+    POST /admin/soporte-tickets/:id/cancelar
+    Cancela un ticket (no cuenta para el límite)
+    Body: { motivo?: string }
+    """
+    try:
+        ticket = SoporteTicket.query.get(ticket_id)
+        if not ticket:
+            return jsonify({'message': 'Ticket no encontrado'}), 404
+        
+        if ticket.estado == 'cancelado':
+            return jsonify({'message': 'El ticket ya está cancelado'}), 400
+        
+        if ticket.estado == 'cerrado':
+            return jsonify({'message': 'No se puede cancelar un ticket cerrado'}), 400
+        
+        data = request.get_json() or {}
+        current_user_email = get_jwt_identity()
+        
+        # Obtener el ID del usuario actual
+        current_user = Usuario.query.filter_by(email=current_user_email).first()
+        if not current_user:
+            return jsonify({'message': 'Usuario no encontrado'}), 404
+        
+        estado_anterior = ticket.estado
+        ticket.estado = 'cancelado'
+        ticket.fecha_actualizacion = get_local_now()
+        
+        motivo = data.get('motivo', 'Ticket cancelado')
+        comentario_cancelacion = SoporteTicketComentario(
+            ticket_id=ticket_id,
+            es_admin=True,
+            admin_id=current_user.id,
+            usuario_id=current_user.id,
+            comentario=f'[Cancelación] {motivo}',
+            fecha_creacion=get_local_now()
+        )
+        db.session.add(comentario_cancelacion)
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            "Ticket cancelado",
+            ticket_id=ticket.id,
+            estado_anterior=estado_anterior,
+            motivo=motivo,
+            cancelado_por=current_user.id
+        )
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Ticket cancelado exitosamente',
+            'ticket': ticket.to_dict()
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        AppLogger.error(
+            LogCategory.SOPORTE,
+            "Error al cancelar ticket",
+            ticket_id=ticket_id,
+            error=str(e)
+        )
+        return jsonify({'message': f'Error al cancelar ticket: {str(e)}'}), 500
+
+
+@admin_soporte_tickets_bp.route('/disponibilidad/<int:suscripcion_id>', methods=['GET'])
+@admin_required
+def consultar_disponibilidad(suscripcion_id):
+    """
+    GET /admin/soporte-tickets/disponibilidad/:suscripcion_id
+    Consulta la disponibilidad de tickets/horas para una suscripción de soporte
+    
+    Returns:
+        {
+            tiene_disponible: bool,
+            mensaje: string,
+            consumido: number,
+            maximo: number,
+            disponible: number,
+            modalidad: string,
+            periodo_inicio: date,
+            periodo_fin: date,
+            requiere_horario_laboral: bool,
+            respuesta_esperada: string,
+            tipo_soporte: {nombre, descripcion}
+        }
+    """
+    try:
+        suscripcion = SoporteSuscripcion.query.get(suscripcion_id)
+        if not suscripcion:
+            return jsonify({'message': 'Suscripción de soporte no encontrada'}), 404
+        
+        disponibilidad = calcular_disponibilidad_soporte(suscripcion)
+        
+        # Agregar información del tipo de soporte
+        disponibilidad['tipo_soporte'] = {
+            'id': suscripcion.tipo_soporte.id,
+            'nombre': suscripcion.tipo_soporte.nombre,
+            'descripcion': suscripcion.tipo_soporte.descripcion,
+            'modalidad': suscripcion.tipo_soporte.modalidad,
+            'precio': float(suscripcion.tipo_soporte.precio)
+        }
+        
+        # Agregar información de la empresa
+        disponibilidad['empresa'] = {
+            'id': suscripcion.empresa.id,
+            'nombre': suscripcion.empresa.nombre
+        }
+        
+        # Convertir fechas a string para JSON
+        if disponibilidad['periodo_inicio']:
+            disponibilidad['periodo_inicio'] = disponibilidad['periodo_inicio'].isoformat()
+        if disponibilidad['periodo_fin']:
+            disponibilidad['periodo_fin'] = disponibilidad['periodo_fin'].isoformat()
+        
+        return jsonify(disponibilidad), 200
+    
+    except Exception as e:
+        AppLogger.error(
+            LogCategory.SOPORTE,
+            "Error al consultar disponibilidad",
+            exc=e,
+            suscripcion_id=suscripcion_id
+        )
+        return jsonify({'message': f'Error al consultar disponibilidad: {str(e)}'}), 500
+
+
 @admin_soporte_tickets_bp.route('/estadisticas', methods=['GET'])
 @admin_required
 def estadisticas_tickets():
@@ -592,6 +1064,7 @@ def estadisticas_tickets():
         en_proceso = SoporteTicket.query.filter_by(estado='en_proceso').count()
         pendiente_respuesta = SoporteTicket.query.filter_by(estado='pendiente_respuesta').count()
         cerrados = SoporteTicket.query.filter_by(estado='cerrado').count()
+        cancelados = SoporteTicket.query.filter_by(estado='cancelado').count()
         
         criticos = SoporteTicket.query.filter(
             SoporteTicket.prioridad == 'critica',
@@ -609,6 +1082,7 @@ def estadisticas_tickets():
             'en_proceso': en_proceso,
             'pendiente_respuesta': pendiente_respuesta,
             'cerrados': cerrados,
+            'cancelados': cancelados,
             'criticos': criticos,
             'sin_asignar': sin_asignar,
             'activos': abiertos + en_proceso + pendiente_respuesta
@@ -618,11 +1092,14 @@ def estadisticas_tickets():
 
 
 @admin_soporte_tickets_bp.route('/<int:ticket_id>/upload', methods=['POST'])
-@admin_required
+@admin_or_api_key_required
 def subir_archivo(ticket_id):
     """
     POST /admin/soporte-tickets/:id/upload
     Sube archivos adjuntos para un ticket
+    
+    Autenticación: JWT Admin o API Key
+    
     Form-data: files (multiple files)
     """
     try:
@@ -715,11 +1192,13 @@ def subir_archivo(ticket_id):
 
 
 @admin_soporte_tickets_bp.route('/<int:ticket_id>/archivo/<filename>', methods=['GET'])
-@admin_required
+@admin_or_api_key_required
 def descargar_archivo(ticket_id, filename):
     """
     GET /admin/soporte-tickets/:id/archivo/:filename
     Descarga un archivo adjunto del ticket o de sus comentarios
+    
+    Autenticación: JWT Admin o API Key
     """
     try:
         ticket = SoporteTicket.query.get(ticket_id)

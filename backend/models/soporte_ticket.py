@@ -1,8 +1,15 @@
 """
 Modelo SoporteTicket y SoporteTicketComentario - Gestión de tickets de soporte
 """
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from database.db import db
+
+# Zona horaria de Colombia (UTC-5)
+COLOMBIA_TZ = timezone(timedelta(hours=-5))
+
+def get_colombia_now():
+    """Obtiene la fecha/hora actual en zona horaria de Colombia (UTC-5)"""
+    return datetime.now(COLOMBIA_TZ)
 
 
 class SoporteTicket(db.Model):
@@ -69,8 +76,8 @@ class SoporteTicket(db.Model):
         default='media'
     )
     asignado_a = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)  # Admin asignado
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=get_colombia_now)
+    fecha_actualizacion = db.Column(db.DateTime, default=get_colombia_now, onupdate=get_colombia_now)
     fecha_cierre = db.Column(db.DateTime, nullable=True)
     extra_data = db.Column(db.JSON, nullable=True)  # Info adicional: origen, versión, etc.
 
@@ -91,7 +98,7 @@ class SoporteTicket(db.Model):
     def cerrar(self):
         """Cierra el ticket"""
         self.estado = 'cerrado'
-        self.fecha_cierre = datetime.utcnow()
+        self.fecha_cierre = get_colombia_now()
 
     def to_dict(self, include_comentarios=False, include_relations=True):
         data = {
@@ -138,7 +145,7 @@ class SoporteTicketComentario(db.Model):
     admin_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)  # Si es admin, guardamos referencia
     comentario = db.Column(db.Text, nullable=False)
     archivos = db.Column(db.JSON, nullable=True)  # Lista de URLs/paths de archivos adjuntos
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=get_colombia_now)
 
     # Relaciones
     ticket = db.relationship('SoporteTicket', back_populates='comentarios')

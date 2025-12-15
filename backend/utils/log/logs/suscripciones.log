@@ -275,3 +275,81 @@
 2025-12-09 20:49:14 | INFO     | Consulta finalizada | total_resultados=2
 2025-12-09 20:49:30 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
 2025-12-09 20:49:30 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-09 20:51:11 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-09 20:51:12 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-09 20:51:18 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-09 20:51:18 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-09 20:53:43 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-09 20:53:43 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-09 20:53:45 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-09 20:53:45 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-09 20:58:35 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-09 20:58:35 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 08:24:42 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-10 08:24:42 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-10 08:25:06 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 08:25:06 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 08:32:13 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-10 08:32:13 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-10 08:32:16 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 08:32:16 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 08:35:09 | INFO     | Listar suscripciones | estado=activa | empresa_id=7 | nit=None
+2025-12-10 08:35:09 | INFO     | Consulta finalizada | total_resultados=1
+2025-12-10 08:35:15 | INFO     | Listar suscripciones | estado=activa | empresa_id=1 | nit=None
+2025-12-10 08:35:15 | INFO     | Consulta finalizada | total_resultados=1
+2025-12-10 08:35:28 | INFO     | Listar suscripciones | estado=activa | empresa_id=7 | nit=None
+2025-12-10 08:35:28 | INFO     | Consulta finalizada | total_resultados=1
+2025-12-10 08:37:03 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 08:37:03 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 09:24:10 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 09:24:10 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 11:29:43 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 11:29:43 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 11:29:58 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 11:29:58 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 11:34:46 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 11:34:46 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 11:35:31 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 11:35:31 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 11:40:06 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 11:40:06 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 11:47:13 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 11:47:13 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 11:47:34 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 11:47:34 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 11:51:44 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 11:51:44 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 12:07:27 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 12:07:27 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 12:20:17 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 12:20:17 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 12:35:05 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 12:35:05 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 12:35:34 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 12:35:34 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 12:35:51 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 12:35:51 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 14:33:13 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 14:33:13 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 14:45:52 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 14:45:52 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 14:51:01 | INFO     | Listar suscripciones | estado=activa | empresa_id=1 | nit=None
+2025-12-10 14:51:01 | INFO     | Consulta finalizada | total_resultados=1
+2025-12-10 15:06:47 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 15:06:47 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 15:37:55 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 15:37:55 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 15:43:08 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 15:43:08 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-10 15:48:12 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-10 15:48:12 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-11 08:32:06 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-11 08:32:06 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-11 08:36:10 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-11 08:36:10 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-11 08:44:50 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-11 08:44:50 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-11 09:11:42 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-11 09:11:42 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-11 12:16:13 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-11 12:16:13 | INFO     | Consulta finalizada | total_resultados=2

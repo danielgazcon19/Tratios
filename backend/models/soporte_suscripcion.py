@@ -1,8 +1,15 @@
 """
 Modelo SoporteSuscripcion - Vincula soporte a una suscripción/empresa
 """
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from database.db import db
+
+# Zona horaria de Colombia (UTC-5)
+COLOMBIA_TZ = timezone(timedelta(hours=-5))
+
+def get_colombia_now():
+    """Obtiene la fecha/hora actual en zona horaria de Colombia (UTC-5)"""
+    return datetime.now(COLOMBIA_TZ)
 
 
 class SoporteSuscripcion(db.Model):
@@ -57,8 +64,8 @@ class SoporteSuscripcion(db.Model):
     renovacion_automatica = db.Column(db.Boolean, default=False, nullable=False)  # Si se renueva automáticamente
     notas = db.Column(db.Text, nullable=True)
     creado_por = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=get_colombia_now)
+    fecha_actualizacion = db.Column(db.DateTime, default=get_colombia_now, onupdate=get_colombia_now)
 
     # Relaciones
     tipo_soporte = db.relationship('SoporteTipo', back_populates='suscripciones_soporte')
@@ -74,11 +81,11 @@ class SoporteSuscripcion(db.Model):
         db.Index('idx_soporte_suscripcion_fechas', 'fecha_inicio', 'fecha_fin'),
     )
 
-    def esta_activo(self):
+    def esta_vigente(self):
         """Verifica si la suscripción de soporte está activa y vigente"""
         if self.estado != 'activo':
             return False
-        hoy = datetime.utcnow().date()
+        hoy = get_colombia_now().date()
         if self.fecha_inicio > hoy:
             return False
         if self.fecha_fin and self.fecha_fin < hoy:
@@ -87,7 +94,7 @@ class SoporteSuscripcion(db.Model):
 
     def puede_crear_ticket(self):
         """Verifica si puede crear un nuevo ticket según la modalidad"""
-        if not self.esta_activo():
+        if not self.esta_vigente():
             return False, "La suscripción de soporte no está activa"
         
         if self.tipo_soporte.modalidad == 'por_tickets':
@@ -114,7 +121,7 @@ class SoporteSuscripcion(db.Model):
             'creado_por': self.creado_por,
             'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None,
             'fecha_actualizacion': self.fecha_actualizacion.isoformat() if self.fecha_actualizacion else None,
-            'esta_activo': self.esta_activo()
+            'esta_vigente': self.esta_vigente()
         }
         
         if include_relations:

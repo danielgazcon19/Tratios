@@ -86,6 +86,8 @@ export class AdminSoporteComponent implements OnInit {
   // Información de suscripción de soporte
   suscripcionSoporteActiva: any = null;
   cargandoSuscripcionSoporte = false;
+  disponibilidadSoporte: any = null;
+  cargandoDisponibilidad = false;
 
   // Estadísticas de tickets
   estadisticasTickets: any = {
@@ -94,6 +96,7 @@ export class AdminSoporteComponent implements OnInit {
     en_proceso: 0,
     pendiente_respuesta: 0,
     cerrados: 0,
+    cancelados: 0,
     criticos: 0,
     sin_asignar: 0,
     activos: 0
@@ -1453,6 +1456,10 @@ export class AdminSoporteComponent implements OnInit {
       descripcion: '',
       prioridad: 'media'
     };
+    // Limpiar archivos seleccionados
+    this.archivosSeleccionados = [];
+    this.disponibilidadSoporte = null;
+    this.suscripcionSoporteActiva = null;
   }
 
   onEmpresaChangeTicket(): void {
@@ -1464,12 +1471,17 @@ export class AdminSoporteComponent implements OnInit {
 
     // Consultar suscripción de soporte activa desde el backend
     this.cargandoSuscripcionSoporte = true;
+    this.disponibilidadSoporte = null;
+    
     this.soporteService.obtenerSuscripcionActivaEmpresa(this.nuevoTicket.empresa_id).subscribe({
       next: (response) => {
         this.cargandoSuscripcionSoporte = false;
         if (response.tiene_soporte && response.suscripcion) {
           this.suscripcionSoporteActiva = response.suscripcion;
           this.nuevoTicket.soporte_suscripcion_id = response.suscripcion.id;
+          
+          // Consultar disponibilidad de soporte
+          this.consultarDisponibilidadSoporte(response.suscripcion.id);
         } else {
           this.suscripcionSoporteActiva = null;
           this.nuevoTicket.soporte_suscripcion_id = 0;
@@ -1489,9 +1501,52 @@ export class AdminSoporteComponent implements OnInit {
     });
   }
 
+  consultarDisponibilidadSoporte(suscripcionId: number): void {
+    this.cargandoDisponibilidad = true;
+    this.soporteService.consultarDisponibilidadSoporte(suscripcionId).subscribe({
+      next: (disponibilidad) => {
+        this.cargandoDisponibilidad = false;
+        this.disponibilidadSoporte = disponibilidad;
+        
+        // Si no tiene disponible, mostrar alerta
+        if (!disponibilidad.tiene_disponible) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Sin Disponibilidad',
+            html: `
+              <p>${disponibilidad.mensaje}</p>
+              <div style="margin-top: 15px; padding: 10px; background: #f3f4f6; border-radius: 8px;">
+                <strong>Modalidad:</strong> ${this.getModalidadLabel(disponibilidad.modalidad)}<br>
+                <strong>Consumido:</strong> ${disponibilidad.consumido}<br>
+                <strong>Máximo:</strong> ${disponibilidad.maximo}
+              </div>
+            `,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#d33'
+          });
+        }
+      },
+      error: (error) => {
+        this.cargandoDisponibilidad = false;
+        console.error('Error al consultar disponibilidad:', error);
+      }
+    });
+  }
+
   guardarTicket(): void {
     if (!this.nuevoTicket.titulo || !this.nuevoTicket.empresa_id || !this.nuevoTicket.soporte_suscripcion_id) {
       Swal.fire('Error', 'Título, Empresa y Suscripción de Soporte son obligatorios', 'error');
+      return;
+    }
+
+    // Verificar disponibilidad antes de crear
+    if (this.disponibilidadSoporte && !this.disponibilidadSoporte.tiene_disponible) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Sin Disponibilidad',
+        text: this.disponibilidadSoporte.mensaje,
+        confirmButtonText: 'Entendido'
+      });
       return;
     }
 
@@ -1505,11 +1560,30 @@ export class AdminSoporteComponent implements OnInit {
         } else {
           Swal.fire('Éxito', 'Ticket creado correctamente', 'success');
           this.cargarTickets();
+          this.archivosSeleccionados = []; // Limpiar archivos
           this.toggleFormularioTicket();
         }
       },
       error: (error) => {
-        Swal.fire('Error', error.error?.message || 'No se pudo crear el ticket', 'error');
+        // Manejar error de disponibilidad del backend
+        if (error.error?.disponibilidad) {
+          const disp = error.error.disponibilidad;
+          Swal.fire({
+            icon: 'warning',
+            title: 'Sin Disponibilidad',
+            html: `
+              <p>${error.error.message}</p>
+              <div style="margin-top: 15px; padding: 10px; background: #f3f4f6; border-radius: 8px;">
+                <strong>Modalidad:</strong> ${this.getModalidadLabel(disp.modalidad)}<br>
+                <strong>Consumido:</strong> ${disp.consumido} / ${disp.maximo}
+              </div>
+            `,
+            confirmButtonText: 'Entendido'
+          });
+        } else {
+          Swal.fire('Error', error.error?.message || 'No se pudo crear el ticket', 'error');
+        }
+        // NO limpiar archivos aquí - el usuario puede corregir y reintentar
       }
     });
   }
@@ -2341,6 +2415,39 @@ export class AdminSoporteComponent implements OnInit {
     });
   }
 
+  cancelarTicket(ticket: SoporteTicket): void {
+    Swal.fire({
+      title: '¿Cancelar Ticket?',
+      html: `
+        <p>El ticket cancelado <strong>NO consumirá cupo</strong> de la suscripción.</p>
+        <p>Esta acción no se puede deshacer.</p>
+      `,
+      input: 'textarea',
+      inputLabel: 'Motivo de cancelación (opcional)',
+      inputPlaceholder: 'Ingrese el motivo de la cancelación...',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'No, mantener',
+      confirmButtonColor: '#d33'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.soporteService.cancelarTicket(ticket.id, result.value).subscribe({
+          next: () => {
+            Swal.fire('Cancelado', 'El ticket ha sido cancelado y no consumirá cupo', 'success');
+            this.cargarTickets();
+            if (this.ticketSeleccionado?.id === ticket.id) {
+              this.cerrarDetalleTicket();
+            }
+          },
+          error: (error) => {
+            Swal.fire('Error', error.error?.message || 'No se pudo cancelar el ticket', 'error');
+          }
+        });
+      }
+    });
+  }
+
   // ============ MANEJO DE ARCHIVOS ============
 
   onArchivosSeleccionados(event: any): void {
@@ -2448,6 +2555,7 @@ export class AdminSoporteComponent implements OnInit {
           confirmButtonText: 'Aceptar'
         });
 
+        this.archivosSeleccionados = []; // Limpiar archivos después de subir
         this.cargarTickets();
         this.toggleFormularioTicket();
       },
@@ -2455,6 +2563,7 @@ export class AdminSoporteComponent implements OnInit {
         this.subiendoArchivos = false;
         Swal.fire('Error', error.error?.message || 'Error al subir archivos', 'error');
         // Aún así cerrar el formulario ya que el ticket fue creado
+        this.archivosSeleccionados = []; // Limpiar archivos incluso con error
         this.toggleFormularioTicket();
       }
     });

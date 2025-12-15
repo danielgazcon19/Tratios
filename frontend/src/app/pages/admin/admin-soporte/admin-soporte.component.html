@@ -125,6 +125,14 @@
           <span class="stat-label">Cerrados</span>
         </div>
       </div>
+      
+      <div class="stat-card cancelled">
+        <div class="stat-icon"><i class="fas fa-ban"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ estadisticasTickets.cancelados || 0 }}</span>
+          <span class="stat-label">Cancelados</span>
+        </div>
+      </div>
     </div>
 
     <div class="filtros-bar">
@@ -200,25 +208,67 @@
                     placeholder="Describa en detalle el problema o solicitud"></textarea>
         </div>
 
-        <!-- Información de suscripción activa -->
-        <div *ngIf="suscripcionSoporteActiva && !cargandoSuscripcionSoporte" class="subscription-info">
-          <div class="subscription-header">
-            <i class="fas fa-check-circle"></i>
-            <strong>Soporte Activo: {{ suscripcionSoporteActiva.tipo_soporte?.nombre }}</strong>
-          </div>
-          <div class="subscription-details">
-            <span><i class="fas fa-calendar-check"></i> Estado: <span class="badge badge-success">{{ suscripcionSoporteActiva.estado }}</span></span>
-            <span *ngIf="suscripcionSoporteActiva.tickets_disponibles !== null">
-              <i class="fas fa-ticket-alt"></i> Tickets disponibles: {{ suscripcionSoporteActiva.tickets_disponibles }}
-            </span>
-            <span *ngIf="suscripcionSoporteActiva.horas_disponibles !== null">
-              <i class="fas fa-clock"></i> Horas disponibles: {{ suscripcionSoporteActiva.horas_disponibles }}
-            </span>
-          </div>
+        <!-- Información de suscripción y disponibilidad -->
+        <div *ngIf="cargandoSuscripcionSoporte || cargandoDisponibilidad" class="loading-message">
+          <i class="fas fa-spinner fa-spin"></i> Verificando disponibilidad de soporte...
         </div>
 
-        <div *ngIf="cargandoSuscripcionSoporte" class="loading-message">
-          <i class="fas fa-spinner fa-spin"></i> Verificando suscripción...
+        <div *ngIf="disponibilidadSoporte && !cargandoDisponibilidad" class="disponibilidad-info" 
+             [ngClass]="{'disponible': disponibilidadSoporte.tiene_disponible, 'sin-disponible': !disponibilidadSoporte.tiene_disponible}">
+          
+          <!-- Encabezado con estado -->
+          <div class="disponibilidad-header">
+            <i [class]="disponibilidadSoporte.tiene_disponible ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+            <strong>{{ disponibilidadSoporte.tipo_soporte?.nombre }}</strong>
+          </div>
+
+          <!-- Mensaje principal -->
+          <div class="disponibilidad-mensaje">
+            <p>{{ disponibilidadSoporte.mensaje }}</p>
+          </div>
+
+          <!-- Detalles según modalidad -->
+          <div class="disponibilidad-detalles">
+            <!-- Por tickets -->
+            <div *ngIf="disponibilidadSoporte.modalidad === 'por_tickets'" class="detalle-row">
+              <span class="detalle-label"><i class="fas fa-ticket-alt"></i> Tickets:</span>
+              <span class="detalle-valor">
+                <strong>{{ disponibilidadSoporte.disponible }}</strong> disponibles 
+                <span class="detalle-secundario">({{ disponibilidadSoporte.consumido }} / {{ disponibilidadSoporte.maximo }} usados)</span>
+              </span>
+            </div>
+
+            <!-- Por horas -->
+            <div *ngIf="disponibilidadSoporte.modalidad === 'por_horas'" class="detalle-row">
+              <span class="detalle-label"><i class="fas fa-clock"></i> Horas:</span>
+              <span class="detalle-valor">
+                <strong>{{ disponibilidadSoporte.disponible.toFixed(2) }}</strong> disponibles 
+                <span class="detalle-secundario">({{ disponibilidadSoporte.consumido.toFixed(2) }} / {{ disponibilidadSoporte.maximo }} usadas)</span>
+              </span>
+            </div>
+
+            <!-- Periodo -->
+            <div class="detalle-row">
+              <span class="detalle-label"><i class="fas fa-calendar-alt"></i> Periodo:</span>
+              <span class="detalle-valor">
+                {{ formatDate(disponibilidadSoporte.periodo_inicio) }} 
+                <span *ngIf="disponibilidadSoporte.periodo_fin">- {{ formatDate(disponibilidadSoporte.periodo_fin) }}</span>
+              </span>
+            </div>
+
+            <!-- Información adicional según tipo de soporte -->
+            <div *ngIf="disponibilidadSoporte.respuesta_esperada" class="respuesta-esperada">
+              <i class="fas fa-info-circle"></i>
+              <span>{{ disponibilidadSoporte.respuesta_esperada }}</span>
+            </div>
+
+            <!-- Advertencia para soporte básico fuera de horario -->
+            <div *ngIf="disponibilidadSoporte.requiere_horario_laboral && disponibilidadSoporte.mensaje.includes('⚠️')" 
+                 class="alerta-horario">
+              <i class="fas fa-clock"></i>
+              <span>Su ticket será procesado en el siguiente horario hábil (Lunes a Viernes, 8:00 AM - 6:00 PM)</span>
+            </div>
+          </div>
         </div>
 
         <!-- Campo de archivos adjuntos -->
@@ -422,6 +472,12 @@
                       [title]="ticket.asignado_a ? 'Cerrar ticket' : 'Debes asignar un analista antes de cerrar el ticket'"
                       (click)="cerrarTicket(ticket)">
                 <i class="fas fa-check-circle"></i>
+              </button>
+              <button class="btn-icon btn-danger" 
+                      *ngIf="ticket.estado !== 'cerrado' && ticket.estado !== 'cancelado'"
+                      title="Cancelar ticket (no consume cupo)"
+                      (click)="cancelarTicket(ticket)">
+                <i class="fas fa-ban"></i>
               </button>
             </td>
           </tr>

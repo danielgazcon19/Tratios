@@ -1,8 +1,15 @@
 """
 Modelo SoporteTipo - Catálogo de tipos de soporte
 """
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from database.db import db
+
+# Zona horaria de Colombia (UTC-5)
+COLOMBIA_TZ = timezone(timedelta(hours=-5))
+
+def get_colombia_now():
+    """Obtiene la fecha/hora actual en zona horaria de Colombia (UTC-5)"""
+    return datetime.now(COLOMBIA_TZ)
 
 
 class SoporteTipo(db.Model):
@@ -44,8 +51,8 @@ class SoporteTipo(db.Model):
     max_tickets = db.Column(db.Integer, nullable=True)  # Solo aplica para modalidad 'por_tickets'
     max_horas = db.Column(db.Integer, nullable=True)  # Solo aplica para modalidad 'por_horas'
     activo = db.Column(db.Boolean, default=True)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=get_colombia_now)
+    fecha_actualizacion = db.Column(db.DateTime, default=get_colombia_now, onupdate=get_colombia_now)
 
     # Relaciones
     suscripciones_soporte = db.relationship('SoporteSuscripcion', back_populates='tipo_soporte', lazy='dynamic')

@@ -166,6 +166,30 @@ export interface EstadisticasSoporte {
   por_prioridad: { prioridad: string; cantidad: number }[];
 }
 
+export interface DisponibilidadSoporte {
+  tiene_disponible: boolean;
+  mensaje: string;
+  consumido: number;
+  maximo: number;
+  disponible: number;
+  modalidad: 'mensual' | 'anual' | 'por_tickets' | 'por_horas';
+  periodo_inicio: string;
+  periodo_fin?: string;
+  requiere_horario_laboral: boolean;
+  respuesta_esperada: string;
+  tipo_soporte?: {
+    id: number;
+    nombre: string;
+    descripcion?: string;
+    modalidad: string;
+    precio: number;
+  };
+  empresa?: {
+    id: number;
+    nombre: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -362,6 +386,10 @@ export class AdminSoporteService {
     return this.http.get<SoporteTicket>(`${this.apiUrl}/admin/soporte-tickets/${id}`);
   }
 
+  consultarDisponibilidadSoporte(suscripcionId: number): Observable<DisponibilidadSoporte> {
+    return this.http.get<DisponibilidadSoporte>(`${this.apiUrl}/admin/soporte-tickets/disponibilidad/${suscripcionId}`);
+  }
+
   crearSoporteTicket(data: CrearSoporteTicketDto): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/soporte-tickets`, data);
   }
@@ -384,6 +412,10 @@ export class AdminSoporteService {
 
   cerrarTicket(id: number, comentarioFinal?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/soporte-tickets/${id}/cerrar`, { comentario: comentarioFinal });
+  }
+
+  cancelarTicket(id: number, motivo?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/soporte-tickets/${id}/cancelar`, { motivo });
   }
 
   reabrirTicket(id: number, motivo?: string): Observable<any> {

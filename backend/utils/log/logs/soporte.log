@@ -84,3 +84,151 @@
 2025-12-09 20:51:38 | INFO     | Consulta finalizada | total=2 | page=1
 2025-12-09 20:52:53 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
 2025-12-09 20:52:53 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-09 20:59:03 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-09 20:59:03 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-09 21:02:33 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-09 21:02:33 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-09 21:03:04 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-09 21:03:04 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 08:26:27 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 08:26:27 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 08:32:20 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 08:32:20 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 08:33:23 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 08:33:23 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 08:34:33 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-10 08:34:33 | INFO     | Ticket creado exitosamente | ticket_id=3 | empresa_id=7 | suscripcion_id=3 | titulo=Prueba 2 de falla | prioridad=media | creado_por=18
+2025-12-10 08:34:33 | INFO     | Archivo subido para ticket 3 | filename=Screenshot_22.jpg | size_mb=0.04
+2025-12-10 08:34:40 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 08:34:40 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 08:37:05 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 08:37:05 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 08:43:49 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-10 08:43:49 | INFO     | Ticket creado exitosamente | ticket_id=4 | empresa_id=7 | suscripcion_id=3 | titulo=Prueba 3 verificar tickets disponibles | prioridad=media | creado_por=18
+2025-12-10 08:43:49 | INFO     | Archivo subido para ticket 4 | filename=Comprobantes-nomina.pdf | size_mb=0.1
+2025-12-10 09:24:11 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 09:24:11 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 11:36:50 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-10 11:36:50 | INFO     | Ticket creado exitosamente | ticket_id=5 | empresa_id=7 | suscripcion_id=3 | titulo=Prueba 3 de crear ticket  | prioridad=media | creado_por=18
+2025-12-10 11:54:35 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-10 11:54:35 | INFO     | Ticket creado exitosamente | ticket_id=6 | empresa_id=7 | suscripcion_id=3 | titulo=Prueba 1 de ticket - falla | prioridad=media | creado_por=18
+2025-12-10 11:54:36 | INFO     | Archivo subido para ticket 6 | filename=Modulo_1_-_Solucion_-_Ejercicios_Operaciones_20251209_180245_a5cb800e.pdf | size_mb=0.42
+2025-12-10 11:56:46 | INFO     | Archivo subido para comentario en ticket 6 | filename=carta solicitud tratsteo.docx | size_mb=0.03
+2025-12-10 12:08:11 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-10 12:08:11 | INFO     | Ticket creado exitosamente | ticket_id=7 | empresa_id=7 | suscripcion_id=3 | titulo=Prueba 1  | prioridad=media | creado_por=18
+2025-12-10 12:08:11 | INFO     | Archivo subido para ticket 7 | filename=Modulo_1_-_Solucion_-_Ejercicios_Operaciones_20251209_180245_a5cb800e.pdf | size_mb=0.42
+2025-12-10 12:08:51 | INFO     | Archivo subido para comentario en ticket 7 | filename=rutas_padre.txt | size_mb=0.0
+2025-12-10 12:20:49 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-10 12:20:49 | INFO     | Ticket creado exitosamente | ticket_id=8 | empresa_id=7 | suscripcion_id=3 | titulo=Prueba 1 ticket | prioridad=media | creado_por=18
+2025-12-10 12:20:49 | INFO     | Archivo subido para ticket 8 | filename=Cred_CHIP_1125.pdf | size_mb=0.17
+2025-12-10 12:21:44 | INFO     | Cerrando ticket - Actualizará consumo | ticket_id=8 | endpoint=cerrar_ticket
+2025-12-10 12:21:44 | INFO     | actualizar_consumo_ticket_cerrado LLAMADA | ticket_id=8 | modalidad=por_tickets | suscripcion_id=3
+2025-12-10 12:21:44 | INFO     | Ticket consumido actualizado | ticket_id=8 | suscripcion_id=3 | tickets_antes=0 | tickets_despues=1 | max_tickets=2
+2025-12-10 12:23:36 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=1 | suscripcion_id=2
+2025-12-10 12:23:36 | INFO     | Ticket creado exitosamente | ticket_id=9 | empresa_id=1 | suscripcion_id=2 | titulo=Prueba 2 Soporte 24/7 | prioridad=media | creado_por=18
+2025-12-10 12:23:36 | INFO     | Archivo subido para ticket 9 | filename=738528756132485.png | size_mb=0.09
+2025-12-10 12:24:40 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-10 12:24:40 | INFO     | Ticket creado exitosamente | ticket_id=10 | empresa_id=7 | suscripcion_id=3 | titulo=Prueba 3  | prioridad=media | creado_por=18
+2025-12-10 12:24:41 | INFO     | Archivo subido para ticket 10 | filename=141213894811.pdf | size_mb=0.12
+2025-12-10 12:26:51 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=7 | suscripcion_id=3
+2025-12-10 12:26:51 | INFO     | Ticket creado exitosamente | ticket_id=11 | empresa_id=7 | suscripcion_id=3 | titulo=Prueba 4 cuando ya ha | prioridad=media | creado_por=18
+2025-12-10 12:26:51 | INFO     | Archivo subido para ticket 11 | filename=141213894811.pdf | size_mb=0.12
+2025-12-10 14:33:44 | INFO     | Ticket cancelado | ticket_id=11 | estado_anterior=abierto | motivo=Se cancela, se creo por error | cancelado_por=18
+2025-12-10 14:48:22 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 14:48:22 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 14:49:06 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 14:49:06 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 14:50:54 | INFO     | Suscripción soporte cambió a cancelado | suscripcion_soporte_id=2 | estado_anterior=activo | estado_nuevo=cancelado | motivo=Se cancela para crear otro tipo de suscripcion.
+2025-12-10 14:50:54 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 14:50:54 | INFO     | Consulta finalizada | total=2 | page=1
+2025-12-10 14:52:16 | INFO     | Crear suscripción soporte - Inicio | usuario_id=18 | data={suscripcion_id:2, empresa_id:1, soporte_tipo_id:4, fecha_inicio:2025-12-01, fecha_fin:2025-12-31, notas:Esta asesoria tiene especial que se factura al final de cada periodo por la cantidad de horas consumidas y se reunueva en automatico, renovacion_automatica:True}
+2025-12-10 14:52:16 | INFO     | Suscripción soporte creada | suscripcion_soporte_id=4 | empresa_id=1 | tipo_soporte=Asesoría Técnica Avanzada | precio=38000.0 | creado_por=18
+2025-12-10 14:52:16 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 14:52:16 | INFO     | Consulta finalizada | total=3 | page=1
+2025-12-10 15:11:10 | INFO     | Ticket cancelado | ticket_id=9 | estado_anterior=abierto | motivo=Se cancela por la suscripcion anterior | cancelado_por=18
+2025-12-10 15:13:54 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=1 | suscripcion_id=4
+2025-12-10 15:13:54 | INFO     | Ticket creado exitosamente | ticket_id=12 | empresa_id=1 | suscripcion_id=4 | titulo=Prueba 1 por horas | prioridad=media | creado_por=18
+2025-12-10 15:13:55 | INFO     | Archivo subido para ticket 12 | filename=Comprobante_Transferencia_Boton-Octubre-pipe.pdf | size_mb=0.82
+2025-12-10 15:18:46 | INFO     | Archivo subido para comentario en ticket 12 | filename=evidencia.pdf | size_mb=0.38
+2025-12-10 15:38:22 | INFO     | Cerrando ticket - Actualizará consumo | ticket_id=12 | estado_anterior=pendiente_respuesta | fecha_cierre=2025-12-10T15:38:22.479271-05:00
+2025-12-10 15:38:22 | INFO     | ANTES DE LLAMAR actualizar_consumo_ticket_cerrado | ticket_id=12 | data_estado=cerrado | ticket_estado=cerrado
+2025-12-10 15:38:22 | INFO     | actualizar_consumo_ticket_cerrado LLAMADA | ticket_id=12 | modalidad=por_horas | suscripcion_id=4
+2025-12-10 15:43:19 | INFO     | Cerrando ticket - Actualizará consumo | ticket_id=12 | estado_anterior=pendiente_respuesta | fecha_cierre=2025-12-10T15:43:19.709790-05:00
+2025-12-10 15:43:19 | INFO     | ANTES DE LLAMAR actualizar_consumo_ticket_cerrado | ticket_id=12 | data_estado=cerrado | ticket_estado=cerrado
+2025-12-10 15:43:19 | INFO     | actualizar_consumo_ticket_cerrado LLAMADA | ticket_id=12 | modalidad=por_horas | suscripcion_id=4
+2025-12-10 15:43:19 | INFO     | Horas consumidas actualizadas | ticket_id=12 | suscripcion_id=4 | horas_ticket=5.54 | horas_consumidas_total=5.54 | max_horas=100
+2025-12-10 15:43:19 | INFO     | DESPUÉS DE LLAMAR actualizar_consumo_ticket_cerrado | ticket_id=12
+2025-12-10 15:45:17 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 15:45:17 | INFO     | Consulta finalizada | total=3 | page=1
+2025-12-10 15:45:17 | ERROR    | Error al listar suscripciones soporte | exception=AttributeError: 'SoporteSuscripcion' object has no attribute 'esta_activo'
+2025-12-10 15:45:42 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 15:45:42 | INFO     | Consulta finalizada | total=3 | page=1
+2025-12-10 15:45:42 | ERROR    | Error al listar suscripciones soporte | exception=AttributeError: 'SoporteSuscripcion' object has no attribute 'esta_activo'
+2025-12-10 15:45:43 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 15:45:43 | INFO     | Consulta finalizada | total=3 | page=1
+2025-12-10 15:45:43 | ERROR    | Error al listar suscripciones soporte | exception=AttributeError: 'SoporteSuscripcion' object has no attribute 'esta_activo'
+2025-12-10 15:48:13 | INFO     | Listar suscripciones soporte | empresa_id=None | estado=None | soporte_tipo_id=None | busqueda=None
+2025-12-10 15:48:13 | INFO     | Consulta finalizada | total=3 | page=1
+2025-12-11 08:32:06 | ERROR    | Error en autenticación: 'Usuario' object has no attribute 'es_admin'
+2025-12-11 08:58:50 | INFO     | Crear ticket - Inicio | usuario_id=18 | empresa_id=1 | suscripcion_id=4
+2025-12-11 08:58:50 | INFO     | Ticket creado exitosamente | ticket_id=13 | empresa_id=1 | suscripcion_id=4 | titulo=Ticket de prueba  | prioridad=media | creado_por=18
+2025-12-11 08:58:51 | INFO     | Archivo subido para ticket 13 | filename=ChatGPT Image 3 abr 2025, 22_03_55.png | size_mb=2.34
+2025-12-11 09:11:31 | WARNING  | Intento de acceso sin autenticación
+2025-12-11 11:44:04 | INFO     | Intento  | empresa_id=1 | args={empresa_id:1}
+2025-12-11 11:45:54 | INFO     | Intento  | empresa_id=1 | args={empresa_id:1}
+2025-12-11 12:08:53 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-11 12:08:53 | ERROR    | Error al listar tickets: 'tuple' object has no attribute 'status_code' | empresa_id=1 | error='tuple' object has no attribute 'status_code'
+2025-12-11 12:10:59 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-11 12:10:59 | ERROR    | Error al listar tickets: 'pagination' | empresa_id=1 | error='pagination'
+2025-12-11 12:23:50 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-11 14:18:47 | INFO     | Listando tickets para empresa | empresa_id=1 | args={ticket_id:13, empresa_id:1}
+2025-12-12 14:49:25 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-12 14:49:25 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:38:33 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:38:33 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:38:53 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:38:53 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:38:53 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:38:53 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:39:50 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:39:50 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:39:50 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:39:50 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:48:42 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:48:42 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:48:42 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:48:42 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:48:45 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:48:45 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:51:08 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:51:08 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 09:51:10 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 09:51:10 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-13 10:03:34 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:03:34 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 10:03:37 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:03:37 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-13 10:03:47 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:03:47 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 10:03:49 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:03:49 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-13 10:03:58 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:03:58 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 10:04:01 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:04:01 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-13 10:04:28 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:04:28 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 10:04:30 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:04:30 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-13 10:04:35 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:04:35 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 10:04:38 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:04:38 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-13 10:04:51 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:04:51 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 10:04:54 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 10:04:54 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-13 12:18:11 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 12:18:11 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-13 12:18:14 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-13 12:18:14 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
