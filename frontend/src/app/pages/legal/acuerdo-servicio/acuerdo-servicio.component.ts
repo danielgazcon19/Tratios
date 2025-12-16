@@ -14,32 +14,36 @@ export class AcuerdoServicioComponent {
 
   severityLevels = [
     {
+      level: 'Crítica',
+      color: '#7c2d12',
+      bgColor: '#fafafa',
+      days: 'Hábiles y no hábiles',
+      response: ['Respuesta en 4 horas'],
+      description: 'Todos los fallos críticos que no permitan la conexión, interacción o respuesta con el API, plataforma web o software. Caída completa del sistema o funcionalidad crítica inoperante que afecta a todos los usuarios.'
+    },
+    {
       level: 'Alta',
       color: '#991b1b',
       bgColor: '#fafafa',
       days: 'Hábiles y no hábiles',
-      response: [
-        'Día y hora hábil: Una (1) hora para dar respuesta.',
-        'Día hábil y hora no hábil: Se da respuesta al siguiente día a partir de las 8am.',
-        'Día no hábil: Si la solicitud se hace de 8am a 8pm se da respuesta en dos (2) horas, si la solicitud se realiza después de las 8pm, se da respuesta al día siguiente a partir de las 8am.'
-      ],
-      description: 'Todos los fallos críticos que no permitan la conexión, interacción o respuesta con el API, plataforma web o software.'
+      response: ['Respuesta en 12 horas'],
+      description: 'Fallas graves que afectan significativamente el funcionamiento del sistema pero existe una solución alternativa temporal. Afecta a múltiples usuarios o funcionalidades importantes.'
     },
     {
       level: 'Media',
       color: '#b45309',
       bgColor: '#fafafa',
       days: 'Hábiles',
-      response: ['Cuatro (4) horas hábiles.'],
-      description: 'Fallas en el proceso de experiencia relacionados con funcionalidades parciales o características que no afectan el objetivo principal de la plataforma.'
+      response: ['Respuesta en 48 horas'],
+      description: 'Fallas en el proceso de experiencia relacionados con funcionalidades parciales o características que no afectan el objetivo principal de la plataforma. Afecta a usuarios específicos o funcionalidades no críticas.'
     },
     {
       level: 'Baja',
       color: '#166534',
       bgColor: '#fafafa',
       days: 'Hábiles',
-      response: ['Seis (6) horas hábiles.'],
-      description: 'Requerimientos de actualización en imagen, logos, cambios de textos, asesoría o preguntas frecuentes.'
+      response: ['Respuesta en 72 horas'],
+      description: 'Requerimientos de actualización en imagen, logos, cambios de textos, asesoría o preguntas frecuentes. Mejoras menores o ajustes estéticos que no afectan la operación.'
     }
   ];
 }

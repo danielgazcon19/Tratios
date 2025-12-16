@@ -353,3 +353,13 @@
 2025-12-11 09:11:42 | INFO     | Consulta finalizada | total_resultados=2
 2025-12-11 12:16:13 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
 2025-12-11 12:16:13 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-15 08:29:31 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-15 08:29:31 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-15 08:59:38 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-15 08:59:38 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-15 11:28:06 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-15 11:28:06 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-15 18:01:04 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-15 18:01:04 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-16 11:23:44 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-16 11:23:44 | INFO     | Consulta finalizada | total_resultados=2

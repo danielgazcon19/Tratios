@@ -195,6 +195,29 @@ def crear_ticket():
                 'message': 'Empresa no encontrada'
             }), 404
         
+        # Validar que tiene suscripción de soporte activa
+        soporte_activo = obtener_soporte_activo(empresa_id)
+        if not soporte_activo:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de crear ticket sin suscripción de soporte activa',
+                empresa_id=empresa_id
+            )
+            return jsonify({
+                'success': False,
+                'message': 'No cuenta con una suscripción de soporte activa. Contacte al administrador.',
+                'error': 'no_active_support'
+            }), 403
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Suscripción de soporte validada',
+            empresa_id=empresa_id,
+            soporte_id=soporte_activo.id,
+            tipo=soporte_activo.tipo_soporte.nombre,
+            estado=soporte_activo.estado
+        )
+        
         # Preparar datos para el endpoint de admin
         # Agregar metadata
         if 'metadata' in body:
@@ -478,6 +501,32 @@ def agregar_comentario(ticket_id):
                 'message': 'No tiene permisos para comentar en este ticket'
             }), 403
         
+        # Validar que tiene suscripción de soporte activa
+        soporte_activo = obtener_soporte_activo(empresa_id)
+        if not soporte_activo:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de agregar comentario sin suscripción de soporte activa',
+                empresa_id=empresa_id,
+                ticket_id=ticket_id
+            )
+            return jsonify({
+                'success': False,
+                'message': 'No cuenta con una suscripción de soporte activa. Contacte al administrador.',
+                'error': 'no_active_support'
+            }), 403
+        
+        # Agregar logging detallado para diagnóstico
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Invocando admin_agregar_comentario',
+            ticket_id=ticket_id,
+            content_type=request.content_type,
+            has_json=request.is_json,
+            has_form=bool(request.form),
+            has_files=bool(request.files)
+        )
+        
         # Invocar endpoint de admin
         result = agregar_comentario_admin(ticket_id)
         
@@ -490,10 +539,22 @@ def agregar_comentario(ticket_id):
         # Transformar respuesta al formato de la API interna
         if response.status_code == 201:
             data = response.get_json()
+            comentario_data = data.get('comentario', {})
+            comentario_id = comentario_data.get('id')
+            
+            AppLogger.info(
+                LogCategory.SOPORTE,
+                'Comentario creado exitosamente desde API externa',
+                ticket_id=ticket_id,
+                comentario_id=comentario_id,
+                usuario_id=comentario_data.get('usuario_id')
+            )
+            
             return jsonify({
                 'success': True,
                 'message': data.get('message', 'Comentario agregado exitosamente'),
-                'comentario': data.get('comentario')
+                'comentario': comentario_data,
+                'comentario_id': comentario_id  # Incluir ID para facilitar subida de archivos
             }), 201
         else:
             data = response.get_json()
@@ -514,19 +575,25 @@ def agregar_comentario(ticket_id):
 def subir_archivos(ticket_id):
     """
     POST /api/internal/support/tickets/:id/upload
-    Sube archivos adjuntos a un ticket
+    Sube archivos adjuntos a un ticket o comentario
     
     FormData:
     - files: archivos a subir (máx 10, 10MB c/u)
+    - comentario_id (opcional): ID del comentario al que asociar los archivos
     """
     try:
         empresa_id = request.empresa_id
+        
+        # Verificar si viene comentario_id en el form
+        comentario_id = request.form.get('comentario_id')
         
         AppLogger.info(
             LogCategory.SOPORTE,
             'Subiendo archivos a ticket desde API externa',
             empresa_id=empresa_id,
-            ticket_id=ticket_id
+            ticket_id=ticket_id,
+            comentario_id=comentario_id,
+            form_keys=list(request.form.keys())
         )
         
         # Validar que el ticket pertenece a la empresa
@@ -556,6 +623,21 @@ def subir_archivos(ticket_id):
                 'message': 'No tiene permisos para subir archivos a este ticket'
             }), 403
         
+        # Validar que tiene suscripción de soporte activa
+        soporte_activo = obtener_soporte_activo(empresa_id)
+        if not soporte_activo:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de subir archivos sin suscripción de soporte activa',
+                empresa_id=empresa_id,
+                ticket_id=ticket_id
+            )
+            return jsonify({
+                'success': False,
+                'message': 'No cuenta con una suscripción de soporte activa. Contacte al administrador.',
+                'error': 'no_active_support'
+            }), 403
+        
         # Invocar endpoint de admin
         result = admin_subir_archivo(ticket_id)
         
@@ -565,18 +647,26 @@ def subir_archivos(ticket_id):
         else:
             response = result
         
+        # Logging para diagnóstico
+        data = response.get_json()
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Respuesta de admin_subir_archivo',
+            status_code=response.status_code,
+            data=data
+        )
+        
         # Transformar respuesta al formato de la API interna
         if response.status_code == 200:
-            data = response.get_json()
+            archivos = data.get('archivos', [])
             return jsonify({
                 'success': True,
                 'message': data.get('message', 'Archivos subidos exitosamente'),
-                'archivos_subidos': data.get('archivos_subidos', []),
-                'total': data.get('total', 0),
+                'archivos_subidos': archivos,
+                'total': len(archivos),
                 'errores': data.get('errores', [])
             }), 200
         else:
-            data = response.get_json()
             return jsonify({
                 'success': False,
                 'message': data.get('message', 'Error al subir archivos')

@@ -447,7 +447,7 @@ export class AdminSoporteComponent implements OnInit {
     
     if (empresaId && empresaId > 0) {
       this.cargandoSuscripcionesEmpresa = true;
-      console.log('Cargando suscripciones para empresa_id:', empresaId);
+
       
       // Cargar suscripciones activas de la empresa seleccionada desde el backend
       this.suscripcionesService.listarSuscripciones({ 
@@ -455,7 +455,7 @@ export class AdminSoporteComponent implements OnInit {
         estado: 'activa' 
       }).subscribe({
         next: (suscripciones) => {
-          console.log('Suscripciones recibidas:', suscripciones);
+
           this.suscripcionesEmpresaSeleccionada = suscripciones;
           this.cargandoSuscripcionesEmpresa = false;
           // Si solo hay una suscripción, seleccionarla automáticamente

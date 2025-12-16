@@ -301,11 +301,15 @@ def crear_ticket():
     try:
         data = request.get_json()
         
+        # Detectar si es petición externa (API) o interna (Admin)
+        # Si tiene empresa_id en request, es petición externa de API
+        es_peticion_api_externa = hasattr(request, 'empresa_id')
+        
         # Determinar usuario: puede venir en data (API) o de JWT (admin panel)
         usuario_id = data.get('usuario_id')
         
         if not usuario_id:
-            # Intentar obtener de JWT si no viene en data
+            # Intentar obtener de JWT (solo para peticiones internas del admin)
             try:
                 current_user_email = get_jwt_identity()
                 current_user = Usuario.query.filter_by(email=current_user_email).first()
@@ -316,15 +320,30 @@ def crear_ticket():
             except:
                 return jsonify({'message': 'usuario_id es obligatorio cuando se usa API Key'}), 400
         else:
-            # Validar que el usuario existe
-            current_user = Usuario.query.get(usuario_id)
-            if not current_user:
-                return jsonify({'message': 'Usuario no encontrado'}), 404
+            # Solo validar existencia del usuario si es petición INTERNA (Admin)
+            # Para peticiones API externas, el usuario_id es de la BD de la instancia SaaS
+            if not es_peticion_api_externa:
+                current_user = Usuario.query.get(usuario_id)
+                if not current_user:
+                    AppLogger.warning(
+                        LogCategory.SOPORTE,
+                        'Usuario no encontrado en BD web (petición admin)',
+                        usuario_id=usuario_id
+                    )
+                    return jsonify({'message': 'Usuario no encontrado'}), 404
+            else:
+                AppLogger.info(
+                    LogCategory.SOPORTE,
+                    'Petición API externa: usuario_id no validado (pertenece a BD SaaS)',
+                    usuario_id=usuario_id,
+                    empresa_id=request.empresa_id
+                )
         
         AppLogger.info(
             LogCategory.SOPORTE,
             "Crear ticket - Inicio",
-            usuario_id=current_user.id,
+            usuario_id=usuario_id,
+            es_api_externa=es_peticion_api_externa,
             empresa_id=data.get('empresa_id'),
             suscripcion_id=data.get('soporte_suscripcion_id')
         )
@@ -397,7 +416,7 @@ def crear_ticket():
             descripcion=data.get('descripcion'),
             prioridad=prioridad,
             estado='abierto',
-            usuario_creador_id=current_user.id,  # Registrar quién creó el ticket
+            usuario_creador_id=usuario_id,  # ID del usuario (BD web si es admin, BD SaaS si es API externa)
             extra_data=None  # Los archivos se asocian a comentarios, no al ticket directamente
         )
         
@@ -412,7 +431,8 @@ def crear_ticket():
             suscripcion_id=nuevo_ticket.soporte_suscripcion_id,
             titulo=nuevo_ticket.titulo,
             prioridad=nuevo_ticket.prioridad,
-            creado_por=current_user.id
+            creado_por=usuario_id,
+            es_api_externa=es_peticion_api_externa
         )
         
         return jsonify({
@@ -681,9 +701,29 @@ def agregar_comentario_admin(ticket_id):
     2. FormData: comentario (text) + usuario_id (optional) + es_interno (optional) + files (multiple files)
     """
     try:
+        # Logging para diagnóstico
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'admin_agregar_comentario invocado',
+            ticket_id=ticket_id,
+            content_type=request.content_type,
+            has_json=request.is_json,
+            has_form=bool(request.form) if hasattr(request, 'form') else False,
+            has_files=bool(request.files) if hasattr(request, 'files') else False
+        )
+        
         ticket = SoporteTicket.query.get(ticket_id)
         if not ticket:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Ticket no encontrado en admin_agregar_comentario',
+                ticket_id=ticket_id
+            )
             return jsonify({'message': 'Ticket no encontrado'}), 404
+        
+        # Detectar si es petición externa (API) o interna (Admin)
+        # Si tiene empresa_id en request, es petición externa de API
+        es_peticion_api_externa = hasattr(request, 'empresa_id')
         
         # Determinar usuario: puede venir en data/form (API) o de JWT (admin panel)
         usuario_id = None
@@ -691,23 +731,55 @@ def agregar_comentario_admin(ticket_id):
         if request.content_type and 'multipart/form-data' in request.content_type:
             usuario_id = request.form.get('usuario_id')
         elif request.is_json:
-            usuario_id = request.get_json().get('usuario_id')
+            json_data = request.get_json()
+            usuario_id = json_data.get('usuario_id') if json_data else None
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Procesando comentario',
+            usuario_id=usuario_id,
+            es_api_externa=es_peticion_api_externa
+        )
         
         if not usuario_id:
-            # Intentar obtener de JWT si no viene en data
+            # Intentar obtener de JWT (solo para peticiones internas del admin)
             try:
                 current_user_email = get_jwt_identity()
                 current_user = Usuario.query.filter_by(email=current_user_email).first()
                 if not current_user:
+                    AppLogger.warning(
+                        LogCategory.SOPORTE,
+                        'Usuario JWT no encontrado',
+                        email=current_user_email
+                    )
                     return jsonify({'message': 'Usuario no encontrado'}), 404
                 usuario_id = current_user.id
-            except:
+            except Exception as jwt_error:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'Error al obtener JWT o usuario_id faltante',
+                    error=str(jwt_error)
+                )
                 return jsonify({'message': 'usuario_id es obligatorio cuando se usa API Key'}), 400
         else:
-            # Validar que el usuario existe
-            current_user = Usuario.query.get(usuario_id)
-            if not current_user:
-                return jsonify({'message': 'Usuario no encontrado'}), 404
+            # Solo validar existencia del usuario si es petición INTERNA (Admin)
+            # Para peticiones API externas, el usuario_id es de la BD de la instancia SaaS
+            if not es_peticion_api_externa:
+                current_user = Usuario.query.get(usuario_id)
+                if not current_user:
+                    AppLogger.warning(
+                        LogCategory.SOPORTE,
+                        'Usuario no encontrado en BD web (petición admin)',
+                        usuario_id=usuario_id
+                    )
+                    return jsonify({'message': 'Usuario no encontrado'}), 404
+            else:
+                AppLogger.info(
+                    LogCategory.SOPORTE,
+                    'Petición API externa: usuario_id no validado (pertenece a BD SaaS)',
+                    usuario_id=usuario_id,
+                    empresa_id=request.empresa_id
+                )
         
         # Detectar si es JSON o FormData
         if request.content_type and 'multipart/form-data' in request.content_type:
@@ -764,11 +836,13 @@ def agregar_comentario_admin(ticket_id):
                         AppLogger.error(LogCategory.SOPORTE, f"Error al guardar archivo {file.filename}", exc=e)
                         return jsonify({'message': f'Error al guardar archivo: {str(e)}'}), 500
             
+            # Para API externa: no es admin, es usuario de la instancia SaaS
+            # Para Admin interno: es admin
             nuevo_comentario = SoporteTicketComentario(
                 ticket_id=ticket_id,
-                es_admin=True,
-                admin_id=current_user.id,
-                usuario_id=current_user.id,  # Registrar el usuario admin que comenta
+                es_admin=not es_peticion_api_externa,
+                admin_id=usuario_id if not es_peticion_api_externa else None,
+                usuario_id=usuario_id,
                 comentario=comentario_texto,
                 archivos=archivos_metadata if archivos_metadata else None,
                 fecha_creacion=get_local_now()  # Usar zona horaria local
@@ -780,11 +854,13 @@ def agregar_comentario_admin(ticket_id):
             if not data.get('comentario'):
                 return jsonify({'message': 'El comentario es obligatorio'}), 400
             
+            # Para API externa: no es admin, es usuario de la instancia SaaS
+            # Para Admin interno: es admin
             nuevo_comentario = SoporteTicketComentario(
                 ticket_id=ticket_id,
-                es_admin=True,
-                admin_id=current_user.id,
-                usuario_id=current_user.id,  # Registrar el usuario admin que comenta
+                es_admin=not es_peticion_api_externa,
+                admin_id=usuario_id if not es_peticion_api_externa else None,
+                usuario_id=usuario_id,
                 comentario=data['comentario'],
                 archivos=data.get('archivos'),
                 fecha_creacion=get_local_now()  # Usar zona horaria local
@@ -1096,16 +1172,37 @@ def estadisticas_tickets():
 def subir_archivo(ticket_id):
     """
     POST /admin/soporte-tickets/:id/upload
-    Sube archivos adjuntos para un ticket
+    Sube archivos adjuntos para un ticket o comentario específico
     
     Autenticación: JWT Admin o API Key
     
-    Form-data: files (multiple files)
+    Form-data: 
+    - files (multiple files)
+    - comentario_id (opcional): Si se proporciona, asocia archivos al comentario en lugar del ticket
     """
     try:
         ticket = SoporteTicket.query.get(ticket_id)
         if not ticket:
             return jsonify({'message': 'Ticket no encontrado'}), 404
+        
+        # Verificar si se debe asociar a un comentario específico
+        comentario_id = request.form.get('comentario_id')
+        comentario = None
+        
+        if comentario_id:
+            comentario = SoporteTicketComentario.query.filter_by(
+                id=int(comentario_id),
+                ticket_id=ticket_id
+            ).first()
+            if not comentario:
+                return jsonify({'message': 'Comentario no encontrado'}), 404
+            
+            AppLogger.info(
+                LogCategory.SOPORTE,
+                'Subiendo archivos para comentario específico',
+                ticket_id=ticket_id,
+                comentario_id=comentario_id
+            )
         
         # Verificar que se envíen archivos
         if 'files' not in request.files:
@@ -1119,11 +1216,17 @@ def subir_archivo(ticket_id):
         if len(files) > 10:
             return jsonify({'message': 'Máximo 10 archivos por carga'}), 400
         
-        # Inicializar extra_data si no existe
-        if not ticket.extra_data:
-            ticket.extra_data = {'archivos': []}
-        elif 'archivos' not in ticket.extra_data:
-            ticket.extra_data['archivos'] = []
+        # Determinar dónde guardar los archivos
+        if comentario:
+            # Guardar en el comentario
+            if not comentario.archivos:
+                comentario.archivos = []
+        else:
+            # Guardar en el ticket
+            if not ticket.extra_data:
+                ticket.extra_data = {'archivos': []}
+            elif 'archivos' not in ticket.extra_data:
+                ticket.extra_data['archivos'] = []
         
         archivos_subidos = []
         errores = []
@@ -1160,15 +1263,25 @@ def subir_archivo(ticket_id):
                 file_info = get_file_info(unique_filename, filepath)
                 file_info['nombre_original'] = file.filename
                 
-                ticket.extra_data['archivos'].append(file_info)
-                archivos_subidos.append(file_info)
+                # Guardar en comentario o ticket según corresponda
+                if comentario:
+                    comentario.archivos.append(file_info)
+                    AppLogger.info(
+                        LogCategory.SOPORTE,
+                        f"Archivo subido para comentario {comentario_id} en ticket {ticket_id}",
+                        filename=file.filename,
+                        size_mb=file_info['tamano_mb']
+                    )
+                else:
+                    ticket.extra_data['archivos'].append(file_info)
+                    AppLogger.info(
+                        LogCategory.SOPORTE,
+                        f"Archivo subido para ticket {ticket_id}",
+                        filename=file.filename,
+                        size_mb=file_info['tamano_mb']
+                    )
                 
-                AppLogger.info(
-                    LogCategory.SOPORTE,
-                    f"Archivo subido para ticket {ticket_id}",
-                    filename=file.filename,
-                    size_mb=file_info['tamano_mb']
-                )
+                archivos_subidos.append(file_info)
             except Exception as e:
                 errores.append(f'{file.filename}: Error al guardar - {str(e)}')
         
