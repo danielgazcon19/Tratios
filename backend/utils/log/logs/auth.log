@@ -40,3 +40,22 @@
 2025-12-15 11:28:02 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
 2025-12-15 18:00:59 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
 2025-12-16 11:23:40 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 14:57:22 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 15:47:37 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 16:41:23 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 17:15:08 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 17:46:30 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 18:18:17 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 18:58:04 | WARNING  | Intento de login fallido - credenciales inválidas | email=pedrofarbelaez@tratios.com
+2025-12-16 18:58:08 | WARNING  | Intento de login fallido - credenciales inválidas | email=pedrofarbelaez@tratios.com
+2025-12-16 18:58:17 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 19:22:28 | INFO     | Login exitoso | user_id=21 | email=pedrofarbelaez@tratios.com | rol=admin
+2025-12-16 20:22:38 | INFO     | Login exitoso | user_id=22 | email=marceloganboa@gmail.com | rol=cliente
+2025-12-16 20:24:38 | INFO     | Login exitoso | user_id=18 | email=admin@tratios.com | rol=admin
+2025-12-16 20:54:50 | WARNING  | Intento de login fallido - credenciales inválidas | email=admin@tratios.com
+2025-12-16 20:55:01 | WARNING  | Intento de login fallido - credenciales inválidas | email=admin@tratios.com
+2025-12-16 20:55:04 | WARNING  | Intento de login fallido - credenciales inválidas | email=admin@tratios.com
+2025-12-16 20:55:16 | WARNING  | Intento de login fallido - credenciales inválidas | email=admin@tratios.com
+2025-12-16 20:55:26 | WARNING  | Intento de login fallido - credenciales inválidas | email=admin@tratios.com
+2025-12-16 20:55:35 | WARNING  | Intento de login fallido - credenciales inválidas | email=admin@tratios.com
+2025-12-16 20:55:49 | INFO     | Login exitoso | user_id=21 | email=pedrofarbelaez@tratios.com | rol=admin

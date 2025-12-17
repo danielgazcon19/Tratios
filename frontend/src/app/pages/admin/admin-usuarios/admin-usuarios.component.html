@@ -1,0 +1,473 @@
+<div class="admin-container">
+  <!-- Navegación del panel admin -->
+  <div class="admin-nav">
+    <a routerLink="/admin/empresas" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-building"></i>
+      Empresas
+    </a>
+    <a routerLink="/admin/suscripciones" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-file-invoice"></i>
+      Suscripciones
+    </a>
+    <a routerLink="/admin/planes" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-tags"></i>
+      Planes
+    </a>
+    <a routerLink="/admin/servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-cogs"></i>
+      Servicios
+    </a>
+    <a routerLink="/admin/plan-servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-link"></i>
+      Asociar Planes
+    </a>
+    <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-users"></i>
+      Usuarios
+    </a>
+    <a routerLink="/admin/soporte" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-headset"></i>
+      Soporte
+    </a>
+  </div>
+
+  <div class="header">
+    <h1>Gestión de Usuarios</h1>
+    <button class="btn-primary" (click)="abrirModalCrear()">
+      <i class="fas fa-plus"></i>
+      Nuevo Usuario
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-container">
+    <div class="form-group">
+      <label for="filtroSearch">Buscar:</label>
+      <input 
+        type="text" 
+        id="filtroSearch" 
+        [(ngModel)]="filtroSearch"
+        (keyup.enter)="aplicarFiltros()"
+        placeholder="Nombre o email...">
+    </div>
+
+    <div class="form-group">
+      <label for="filtroRol">Rol:</label>
+      <select id="filtroRol" [(ngModel)]="filtroRol">
+        <option value="">Todos</option>
+        <option value="admin">Admin</option>
+        <option value="cliente">Cliente</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="filtroEstado">Estado:</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado">
+        <option value="">Todos</option>
+        <option value="activo">Activos</option>
+        <option value="inactivo">Inactivos</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="filtroEmpresa">Empresa:</label>
+      <select id="filtroEmpresa" [(ngModel)]="filtroEmpresa">
+        <option value="">Todas</option>
+        <option *ngFor="let empresa of empresas" [value]="empresa.id">
+          {{ empresa.nombre }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filtros-actions">
+      <button class="btn-success" (click)="aplicarFiltros()">
+        <i class="fas fa-filter"></i>
+        Filtrar
+      </button>
+      <button class="btn-secondary" (click)="limpiarFiltros()">
+        <i class="fas fa-times"></i>
+        Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de usuarios -->
+  <div class="tabla-container">
+    <div *ngIf="cargando" class="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      Cargando usuarios...
+    </div>
+    
+    <div *ngIf="!cargando && usuarios.length === 0" class="empty-state">
+      <i class="fas fa-users fa-3x"></i>
+      <p>No hay usuarios registrados</p>
+    </div>
+
+    <table *ngIf="!cargando && usuarios.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Empresa</th>
+          <th>Estado</th>
+          <th>2FA</th>
+          <th>Creado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let usuario of usuarios">
+          <td>{{ usuario.id }}</td>
+          <td>{{ usuario.nombre }}</td>
+          <td>{{ usuario.email }}</td>
+          <td>
+            <span class="badge" [ngClass]="getRolBadgeClass(usuario.rol)">
+              {{ usuario.rol }}
+            </span>
+          </td>
+          <td>
+            <span *ngIf="usuario.empresa">{{ usuario.empresa.nombre }}</span>
+            <span *ngIf="!usuario.empresa" class="text-muted">-</span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getEstadoBadgeClass(usuario.is_active)">
+              {{ usuario.is_active ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <span *ngIf="usuario.otp_enabled" class="badge badge-success" title="2FA habilitado">
+              <i class="fas fa-shield-alt"></i>
+            </span>
+            <span *ngIf="!usuario.otp_enabled" class="text-muted">-</span>
+          </td>
+          <td>{{ usuario.creado_en | date: 'dd/MM/yyyy' }}</td>
+          <td class="acciones">
+            <button 
+              class="btn-icon btn-info" 
+              (click)="verDetalles(usuario)"
+              title="Ver detalles">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button 
+              class="btn-icon btn-warning" 
+              (click)="abrirModalEditar(usuario)"
+              title="Editar">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button 
+              class="btn-icon btn-secondary" 
+              (click)="cambiarPasswordUsuario(usuario)"
+              title="Cambiar contraseña">
+              <i class="fas fa-key"></i>
+            </button>
+            <button 
+              class="btn-icon"
+              [ngClass]="usuario.is_active ? 'btn-danger' : 'btn-success'"
+              (click)="toggleEstadoUsuario(usuario)"
+              [title]="usuario.is_active ? 'Inactivar' : 'Activar'">
+              <i class="fas" [ngClass]="usuario.is_active ? 'fa-ban' : 'fa-check'"></i>
+            </button>
+            <button 
+              class="btn-icon btn-danger" 
+              (click)="eliminarUsuario(usuario)"
+              title="Eliminar">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <div class="paginacion" *ngIf="!cargando && usuarios.length > 0">
+      <div class="paginacion-info">
+        Mostrando {{ (paginaActual - 1) * itemsPorPagina + 1 }} 
+        a {{ Math.min(paginaActual * itemsPorPagina, totalItems) }} 
+        de {{ totalItems }} usuarios
+      </div>
+      
+      <div class="paginacion-controles">
+        <button 
+          class="btn-paginacion" 
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(1)">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        
+        <button 
+          class="btn-paginacion" 
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(paginaActual - 1)">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        
+        <button 
+          *ngFor="let pagina of getPaginaArray()" 
+          class="btn-paginacion"
+          [class.active]="pagina === paginaActual"
+          (click)="cambiarPagina(pagina)">
+          {{ pagina }}
+        </button>
+        
+        <button 
+          class="btn-paginacion" 
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(paginaActual + 1)">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        
+        <button 
+          class="btn-paginacion" 
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(totalPaginas)">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de creación/edición -->
+  <div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
+    <div class="modal-content-modern" (click)="$event.stopPropagation()">
+      <!-- Header del modal -->
+      <div class="modal-header-modern">
+        <div class="modal-icon" [ngClass]="modoEdicion ? 'edit' : 'create'">
+          <i class="fas" [ngClass]="modoEdicion ? 'fa-user-edit' : 'fa-user-plus'"></i>
+        </div>
+        <h2 class="modal-title">{{ modoEdicion ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
+        <p class="modal-subtitle">{{ modoEdicion ? 'Actualiza la información del usuario' : 'Completa los datos del nuevo usuario' }}</p>
+        <button class="btn-close-modern" (click)="cerrarModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body del modal -->
+      <div class="modal-body-modern">
+        <form (ngSubmit)="guardarUsuario()">
+          <!-- Sección: Información básica -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="fas fa-id-card"></i>
+              Información Básica
+            </h3>
+            
+            <div class="form-grid">
+              <div class="form-group-modern">
+                <label for="nombre">
+                  <i class="fas fa-user"></i>
+                  Nombre completo *
+                </label>
+                <input 
+                  type="text" 
+                  id="nombre" 
+                  [(ngModel)]="formularioUsuario.nombre" 
+                  name="nombre"
+                  required
+                  placeholder="Ej: Juan Pérez García">
+              </div>
+
+              <div class="form-group-modern">
+                <label for="email">
+                  <i class="fas fa-envelope"></i>
+                  Email *
+                </label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  [(ngModel)]="formularioUsuario.email" 
+                  name="email"
+                  required
+                  placeholder="usuario@ejemplo.com">
+              </div>
+            </div>
+
+            <div *ngIf="!modoEdicion">
+              <div class="form-grid">
+                <div class="form-group-modern">
+                  <label for="password">
+                    <i class="fas fa-lock"></i>
+                    Contraseña *
+                  </label>
+                  <input 
+                    type="password" 
+                    id="password" 
+                    [(ngModel)]="formularioUsuario.password" 
+                    name="password"
+                    required
+                    (input)="validatePassword(formularioUsuario.password, confirmarPassword)"
+                    placeholder="Mínimo 6 caracteres">
+                </div>
+
+                <div class="form-group-modern">
+                  <label for="confirmarPassword">
+                    <i class="fas fa-lock"></i>
+                    Confirmar Contraseña *
+                  </label>
+                  <input 
+                    type="password" 
+                    id="confirmarPassword" 
+                    [(ngModel)]="confirmarPassword" 
+                    name="confirmarPassword"
+                    required
+                    (input)="validatePassword(formularioUsuario.password, confirmarPassword)"
+                    placeholder="Repite la contraseña">
+                </div>
+              </div>
+
+              <!-- Indicadores de requisitos de contraseña -->
+              <div class="password-requirements" *ngIf="formularioUsuario.password.length > 0">
+                <div class="requirement-title">La contraseña debe contener:</div>
+                <div class="requirements-grid">
+                  <div class="requirement-item" [class.valid]="passwordValidation.minLength" [class.invalid]="!passwordValidation.minLength">
+                    <i class="fas" [ngClass]="passwordValidation.minLength ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                    <span>Al menos 6 caracteres</span>
+                  </div>
+                  <div class="requirement-item" [class.valid]="passwordValidation.hasUppercase" [class.invalid]="!passwordValidation.hasUppercase">
+                    <i class="fas" [ngClass]="passwordValidation.hasUppercase ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                    <span>Una letra mayúscula (A-Z)</span>
+                  </div>
+                  <div class="requirement-item" [class.valid]="passwordValidation.hasLowercase" [class.invalid]="!passwordValidation.hasLowercase">
+                    <i class="fas" [ngClass]="passwordValidation.hasLowercase ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                    <span>Una letra minúscula (a-z)</span>
+                  </div>
+                  <div class="requirement-item" [class.valid]="passwordValidation.hasNumber" [class.invalid]="!passwordValidation.hasNumber">
+                    <i class="fas" [ngClass]="passwordValidation.hasNumber ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                    <span>Un número (0-9)</span>
+                  </div>
+                  <div class="requirement-item" [class.valid]="passwordValidation.hasSpecialChar" [class.invalid]="!passwordValidation.hasSpecialChar">
+                    <i class="fas" [ngClass]="passwordValidation.hasSpecialChar ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                    <span>Un carácter especial (!&#64;#$%^&*...)</span>
+                  </div>
+                  <div class="requirement-item" [class.valid]="passwordValidation.passwordsMatch" [class.invalid]="!passwordValidation.passwordsMatch && confirmarPassword.length > 0">
+                    <i class="fas" [ngClass]="passwordValidation.passwordsMatch ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                    <span>Las contraseñas coinciden</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Rol y empresa -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="fas fa-briefcase"></i>
+              Rol y Empresa
+            </h3>
+            
+            <div class="form-grid">
+              <div class="form-group-modern">
+                <label for="rol">
+                  <i class="fas fa-user-shield"></i>
+                  Rol *
+                </label>
+                <select 
+                  id="rol" 
+                  [(ngModel)]="formularioUsuario.rol" 
+                  name="rol"
+                  required>
+                  <option value="cliente">👤 Cliente</option>
+                  <option value="admin">👑 Administrador</option>
+                </select>
+              </div>
+
+              <div class="form-group-modern">
+                <label for="empresa">
+                  <i class="fas fa-building"></i>
+                  Empresa
+                </label>
+                <select 
+                  id="empresa" 
+                  [(ngModel)]="formularioUsuario.empresa_id" 
+                  name="empresa">
+                  <option [value]="undefined">Sin empresa asignada</option>
+                  <option *ngFor="let empresa of empresas" [value]="empresa.id">
+                    {{ empresa.nombre }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Información de contacto (colapsable/opcional) -->
+          <div class="form-section optional">
+            <h3 class="section-title">
+              <i class="fas fa-address-book"></i>
+              Información de Contacto
+              <span class="optional-badge">Opcional</span>
+            </h3>
+            
+            <div class="form-grid">
+              <div class="form-group-modern">
+                <label for="telefono">
+                  <i class="fas fa-phone"></i>
+                  Teléfono
+                </label>
+                <input 
+                  type="text" 
+                  id="telefono" 
+                  [(ngModel)]="formularioUsuario.telefono" 
+                  name="telefono"
+                  placeholder="+57 300 123 4567">
+              </div>
+
+              <div class="form-group-modern">
+                <label for="ciudad">
+                  <i class="fas fa-city"></i>
+                  Ciudad
+                </label>
+                <input 
+                  type="text" 
+                  id="ciudad" 
+                  [(ngModel)]="formularioUsuario.ciudad" 
+                  name="ciudad"
+                  placeholder="Ej: Bogotá">
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group-modern">
+                <label for="pais">
+                  <i class="fas fa-globe-americas"></i>
+                  País
+                </label>
+                <input 
+                  type="text" 
+                  id="pais" 
+                  [(ngModel)]="formularioUsuario.pais" 
+                  name="pais"
+                  placeholder="Ej: Colombia">
+              </div>
+
+              <div class="form-group-modern full-width">
+                <label for="direccion">
+                  <i class="fas fa-map-marker-alt"></i>
+                  Dirección
+                </label>
+                <textarea 
+                  id="direccion" 
+                  [(ngModel)]="formularioUsuario.direccion" 
+                  name="direccion"
+                  rows="2"
+                  placeholder="Dirección completa"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer del modal -->
+          <div class="modal-footer-modern">
+            <button type="button" class="btn-cancel-modern" (click)="cerrarModal()">
+              <i class="fas fa-times"></i>
+              Cancelar
+            </button>
+            <button type="submit" class="btn-submit-modern">
+              <i class="fas" [ngClass]="modoEdicion ? 'fa-check' : 'fa-plus'"></i>
+              {{ modoEdicion ? 'Actualizar Usuario' : 'Crear Usuario' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

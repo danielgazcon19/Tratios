@@ -744,3 +744,78 @@ Mencione el navegador&#x2F;sistema operativo, prioridad:critica, empresa_id:1} |
 2025-12-16 12:12:06 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.agregar_comentario | ip=127.0.0.1
 2025-12-16 12:12:06 | INFO     | Agregando comentario a ticket desde API externa | empresa_id=1 | ticket_id=17
 2025-12-16 12:12:06 | WARNING  | Intento de agregar comentario sin suscripción de soporte activa | empresa_id=1 | ticket_id=17
+2025-12-16 12:19:24 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.agregar_comentario | ip=127.0.0.1
+2025-12-16 12:19:24 | INFO     | Agregando comentario a ticket desde API externa | empresa_id=1 | ticket_id=17
+2025-12-16 12:19:24 | WARNING  | Intento de agregar comentario sin suscripción de soporte activa | empresa_id=1 | ticket_id=17
+2025-12-16 12:23:36 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:23:36 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:23:36 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:23:36 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:26:08 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:26:08 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:26:10 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.crear_ticket | ip=127.0.0.1
+2025-12-16 12:26:10 | INFO     | Creando ticket desde API externa | empresa_id=1 | usuario_id=1118120825 | prioridad=media
+2025-12-16 12:26:10 | WARNING  | Intento de crear ticket sin suscripción de soporte activa | empresa_id=1
+2025-12-16 12:27:43 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:27:43 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:27:43 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:27:43 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:27:52 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:27:52 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:27:52 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:27:52 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:28:12 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:28:12 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:28:12 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:28:12 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:30:55 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:30:55 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:30:57 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.crear_ticket | ip=127.0.0.1
+2025-12-16 12:30:57 | INFO     | Creando ticket desde API externa | empresa_id=1 | usuario_id=1118120825 | prioridad=media
+2025-12-16 12:30:57 | WARNING  | Intento de crear ticket sin suscripción de soporte activa | empresa_id=1
+2025-12-16 12:32:55 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:32:55 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:32:55 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:32:55 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:36:51 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:36:51 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:36:53 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.crear_ticket | ip=127.0.0.1
+2025-12-16 12:36:53 | INFO     | Creando ticket desde API externa | empresa_id=1 | usuario_id=1118120825 | prioridad=media
+2025-12-16 12:36:53 | WARNING  | Intento de crear ticket sin suscripción de soporte activa | empresa_id=1
+2025-12-16 12:38:23 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:38:23 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:38:23 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:38:23 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:39:23 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:39:23 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:39:26 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.crear_ticket | ip=127.0.0.1
+2025-12-16 12:39:26 | INFO     | Creando ticket desde API externa | empresa_id=1 | usuario_id=1118120825 | prioridad=media
+2025-12-16 12:39:26 | WARNING  | Intento de crear ticket sin suscripción de soporte activa | empresa_id=1
+2025-12-16 12:39:45 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:39:45 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-16 12:40:09 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.obtener_ticket_detalle | ip=127.0.0.1
+2025-12-16 12:40:09 | INFO     | Consultando detalle de ticket desde API externa | empresa_id=1 | ticket_id=15
+2025-12-16 12:42:15 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.agregar_comentario | ip=127.0.0.1
+2025-12-16 12:42:15 | INFO     | Agregando comentario a ticket desde API externa | empresa_id=1 | ticket_id=15
+2025-12-16 12:42:15 | WARNING  | Intento de agregar comentario sin suscripción de soporte activa | empresa_id=1 | ticket_id=15
+2025-12-16 12:43:04 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:43:04 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:43:06 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.obtener_ticket_detalle | ip=127.0.0.1
+2025-12-16 12:43:06 | INFO     | Consultando detalle de ticket desde API externa | empresa_id=1 | ticket_id=15
+2025-12-16 12:43:15 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:43:15 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:43:18 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.obtener_ticket_detalle | ip=127.0.0.1
+2025-12-16 12:43:18 | INFO     | Consultando detalle de ticket desde API externa | empresa_id=1 | ticket_id=15
+2025-12-16 12:43:24 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-16 12:43:24 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-16 12:43:26 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.obtener_ticket_detalle | ip=127.0.0.1
+2025-12-16 12:43:26 | INFO     | Consultando detalle de ticket desde API externa | empresa_id=1 | ticket_id=15
+2025-12-16 12:44:35 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.agregar_comentario | ip=127.0.0.1
+2025-12-16 12:44:35 | INFO     | Agregando comentario a ticket desde API externa | empresa_id=1 | ticket_id=15
+2025-12-16 12:44:35 | WARNING  | Intento de agregar comentario sin suscripción de soporte activa | empresa_id=1 | ticket_id=15
+2025-12-16 12:46:36 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | endpoint=api_soporte.agregar_comentario | ip=127.0.0.1
+2025-12-16 12:46:36 | INFO     | Agregando comentario a ticket desde API externa | empresa_id=1 | ticket_id=15
+2025-12-16 12:46:36 | WARNING  | Intento de agregar comentario sin suscripción de soporte activa | empresa_id=1 | ticket_id=15
+2025-12-16 19:34:16 | INFO     | Cerrando ticket - Actualizará consumo | ticket_id=14 | endpoint=cerrar_ticket
+2025-12-16 19:34:16 | INFO     | actualizar_consumo_ticket_cerrado LLAMADA | ticket_id=14 | modalidad=por_horas | suscripcion_id=4
+2025-12-16 19:34:16 | INFO     | Horas consumidas actualizadas | ticket_id=14 | suscripcion_id=4 | horas_ticket=9.45 | horas_consumidas_total=14.99 | max_horas=100

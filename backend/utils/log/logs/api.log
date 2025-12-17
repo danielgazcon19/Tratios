@@ -26,3 +26,13 @@
 2025-12-16 08:00:27 | INFO     | Acceso autorizado con API Key | endpoint=api.obtener_suscripcion_activa | ip=127.0.0.1
 2025-12-16 08:00:27 | INFO     | Consulta de suscripción activa por NIT | nit=80020548521-vxT20.Wd | ip=127.0.0.1
 2025-12-16 08:00:27 | INFO     | Consulta de suscripción exitosa | empresa_id=1 | empresa_nombre=La Casona | nit=80020548521-vxT20.Wd | plan_id=2 | plan_nombre=Pro | total_servicios=27
+2025-12-16 19:22:25 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-16 19:22:25 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-16 20:24:08 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-16 20:24:08 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-16 21:09:07 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-16 21:09:07 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-16 21:35:44 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-16 21:35:44 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-16 21:35:47 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-16 21:35:47 | INFO     | Planes obtenidos exitosamente | total_planes=3

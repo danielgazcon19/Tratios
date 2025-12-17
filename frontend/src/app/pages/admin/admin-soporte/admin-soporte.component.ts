@@ -16,6 +16,7 @@ import {
 } from '../../../services/admin-soporte.service';
 import { AdminEmpresasService, Empresa } from '../../../services/admin-empresas.service';
 import { AdminSuscripcionesService, Suscripcion } from '../../../services/admin-suscripciones.service';
+import { AdminUsuariosService, Usuario } from '../../../services/admin-usuarios.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -121,7 +122,8 @@ export class AdminSoporteComponent implements OnInit {
   constructor(
     private soporteService: AdminSoporteService,
     private empresasService: AdminEmpresasService,
-    private suscripcionesService: AdminSuscripcionesService
+    private suscripcionesService: AdminSuscripcionesService,
+    private usuariosService: AdminUsuariosService
   ) {}
 
   ngOnInit(): void {
@@ -2247,9 +2249,9 @@ export class AdminSoporteComponent implements OnInit {
 
   mostrarModalCambiarEstado(ticket: SoporteTicket): void {
     // Cargar lista de administradores para asignación
-    this.soporteService.listarUsuarios().subscribe({
-      next: (usuarios) => {
-        const admins = usuarios.filter((u: any) => u.rol === 'admin');
+    this.usuariosService.listarUsuarios({ rol: 'admin' }).subscribe({
+      next: (response) => {
+        const admins = response.usuarios.filter((u: Usuario) => u.rol === 'admin');
         
         Swal.fire({
           title: `Cambiar Estado/Prioridad - Ticket #${ticket.id}`,
