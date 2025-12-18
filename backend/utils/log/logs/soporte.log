@@ -819,3 +819,33 @@ Mencione el navegador&#x2F;sistema operativo, prioridad:critica, empresa_id:1} |
 2025-12-16 19:34:16 | INFO     | Cerrando ticket - Actualizará consumo | ticket_id=14 | endpoint=cerrar_ticket
 2025-12-16 19:34:16 | INFO     | actualizar_consumo_ticket_cerrado LLAMADA | ticket_id=14 | modalidad=por_horas | suscripcion_id=4
 2025-12-16 19:34:16 | INFO     | Horas consumidas actualizadas | ticket_id=14 | suscripcion_id=4 | horas_ticket=9.45 | horas_consumidas_total=14.99 | max_horas=100
+2025-12-17 17:06:19 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 17:06:20 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-17 17:06:20 | WARNING  | Intento de acceso con API Key inválida
+2025-12-17 17:06:22 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 17:06:22 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-17 17:06:22 | WARNING  | Intento de acceso con API Key inválida
+2025-12-17 19:50:33 | WARNING  | Intento de acceso sin X-Codigo-Key | ip=127.0.0.1 | endpoint=api_soporte.listar_tickets_empresa
+2025-12-17 19:50:36 | WARNING  | Intento de acceso sin X-Codigo-Key | ip=127.0.0.1 | endpoint=api_soporte.listar_tickets_empresa
+2025-12-17 19:51:42 | WARNING  | Intento de acceso sin X-Codigo-Key | ip=127.0.0.1 | endpoint=api_soporte.listar_tickets_empresa
+2025-12-17 19:51:42 | WARNING  | Intento de acceso sin X-Codigo-Key | ip=127.0.0.1 | endpoint=api_soporte.listar_tickets_empresa
+2025-12-17 19:55:49 | WARNING  | API Key inválida o expirada | empresa_id=1 | codigo_requerido=SOPORTE | ip=127.0.0.1 | endpoint=api_soporte.listar_tickets_empresa | api_key_prefix=HEUS-k0A
+2025-12-17 19:55:52 | WARNING  | API Key inválida o expirada | empresa_id=1 | codigo_requerido=SOPORTE | ip=127.0.0.1 | endpoint=api_soporte.listar_tickets_empresa | api_key_prefix=HEUS-k0A
+2025-12-17 19:57:15 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | api_key_codigo=SOPORTE | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 19:57:15 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-17 19:57:15 | WARNING  | Intento de acceso con API Key inválida
+2025-12-17 19:57:18 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | api_key_codigo=SOPORTE | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 19:57:18 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-17 19:57:18 | WARNING  | Intento de acceso con API Key inválida
+2025-12-17 19:58:42 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | api_key_codigo=SOPORTE | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 19:58:42 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-17 19:58:42 | WARNING  | Intento de acceso con API Key inválida
+2025-12-17 19:58:44 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | api_key_codigo=SOPORTE | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 19:58:44 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-17 19:58:44 | WARNING  | Intento de acceso con API Key inválida
+2025-12-17 20:07:14 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | api_key_codigo=SOPORTE | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 20:07:14 | INFO     | Listando tickets para empresa | empresa_id=1 | args={empresa_id:1}
+2025-12-17 20:07:14 | INFO     | Acceso autorizado con API Key desde BD | empresa_id=1 | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | api_key_codigo=SOPORTE | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 20:07:17 | INFO     | Acceso autorizado a API de soporte | empresa_id=1 | empresa_nombre=La Casona | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | api_key_codigo=SOPORTE | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1
+2025-12-17 20:07:17 | INFO     | Listando tickets para empresa | empresa_id=1 | args={page:1, per_page:20, empresa_id:1}
+2025-12-17 20:07:17 | INFO     | Acceso autorizado con API Key desde BD | empresa_id=1 | api_key_id=3 | api_key_nombre=API-Key Consumo Tickets de Soporte | api_key_codigo=SOPORTE | endpoint=api_soporte.listar_tickets_empresa | ip=127.0.0.1

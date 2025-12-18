@@ -391,3 +391,27 @@
 2025-12-16 21:12:05 | INFO     | Consulta finalizada | total_resultados=4
 2025-12-16 21:17:49 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
 2025-12-16 21:17:49 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-17 11:45:29 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-17 11:45:29 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-17 11:45:32 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-17 11:45:32 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-17 11:46:29 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-17 11:46:29 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-17 12:49:47 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-17 12:49:47 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-17 20:22:46 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-17 20:22:46 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-17 20:22:55 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-17 20:22:55 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-17 20:33:08 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-17 20:33:08 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-17 20:41:55 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None | page=1 | per_page=20
+2025-12-17 20:41:55 | INFO     | Consulta finalizada | total_resultados=4 | page=1 | per_page=20
+2025-12-17 20:42:08 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None | page=1 | per_page=20
+2025-12-17 20:42:08 | INFO     | Consulta finalizada | total_resultados=2 | page=1 | per_page=20
+2025-12-17 20:42:21 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None | page=1 | per_page=20
+2025-12-17 20:42:21 | INFO     | Consulta finalizada | total_resultados=2 | page=1 | per_page=20
+2025-12-17 20:42:50 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None | page=1 | per_page=20
+2025-12-17 20:42:50 | INFO     | Consulta finalizada | total_resultados=4 | page=1 | per_page=20
+2025-12-17 20:45:20 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None | page=1 | per_page=20
+2025-12-17 20:45:20 | INFO     | Consulta finalizada | total_resultados=2 | page=1 | per_page=20

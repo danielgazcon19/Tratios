@@ -5,6 +5,10 @@
       <i class="fas fa-building"></i>
       Empresas
     </a>
+    <a routerLink="/admin/api-keys" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-key"></i>
+      API Keys
+    </a>
     <a routerLink="/admin/suscripciones" routerLinkActive="active" class="nav-item">
       <i class="fas fa-file-invoice"></i>
       Suscripciones
@@ -29,6 +33,7 @@
       <i class="fas fa-headset"></i>
       Soporte
     </a>
+
   </div>
 
   <div class="header">
@@ -262,5 +267,51 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Paginación -->
+    <div class="paginacion-container" *ngIf="!cargando && suscripciones.length > 0">
+      <div class="paginacion-info">
+        Mostrando {{ (paginaActual - 1) * itemsPorPagina + 1 }} a 
+        {{ Math.min(paginaActual * itemsPorPagina, totalItems) }} de 
+        {{ totalItems }} suscripciones
+      </div>
+      <div class="paginacion-controles">
+        <button 
+          class="btn-paginacion" 
+          (click)="cambiarPagina(1)" 
+          [disabled]="paginaActual === 1"
+          title="Primera página">
+          <i class="fas fa-angles-left"></i>
+        </button>
+        <button 
+          class="btn-paginacion" 
+          (click)="cambiarPagina(paginaActual - 1)" 
+          [disabled]="paginaActual === 1"
+          title="Página anterior">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        <button 
+          *ngFor="let pagina of getPaginaArray()" 
+          class="btn-paginacion"
+          [class.active]="pagina === paginaActual"
+          (click)="cambiarPagina(pagina)">
+          {{ pagina }}
+        </button>
+        <button 
+          class="btn-paginacion" 
+          (click)="cambiarPagina(paginaActual + 1)" 
+          [disabled]="paginaActual === totalPaginas"
+          title="Página siguiente">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button 
+          class="btn-paginacion" 
+          (click)="cambiarPagina(totalPaginas)" 
+          [disabled]="paginaActual === totalPaginas"
+          title="Última página">
+          <i class="fas fa-angles-right"></i>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

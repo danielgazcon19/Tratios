@@ -3,7 +3,7 @@ API Interna de Soporte - Endpoints para instancias SaaS
 Permite crear tickets, agregar comentarios y consultar estado
 
 Este módulo actúa como un proxy que:
-1. Valida la API Key de la instancia SaaS
+1. Valida la API Key de la instancia SaaS desde base de datos
 2. Invoca los endpoints de admin_soporte_tickets.py que contienen la lógica de negocio
 3. Transforma las respuestas a un formato consistente para las instancias
 
@@ -15,12 +15,15 @@ from functools import wraps
 from flask import Blueprint, request, jsonify, current_app
 import hashlib
 from utils.log import AppLogger, LogCategory
+from utils.api_key_crypto import verificar_api_key
 from werkzeug.datastructures import ImmutableMultiDict
 from flask import make_response
+from database.db import db
 #Models
 from models.soporte_suscripcion import SoporteSuscripcion
 from models.empresa import Empresa
 from models.soporte_ticket import SoporteTicket
+from models.api_key import ApiKey, get_colombia_now
 # Routes
 
 from routes.admin_soporte_tickets import (
@@ -35,104 +38,162 @@ from routes.admin_soporte_tickets import (
 api_soporte_bp = Blueprint('api_soporte', __name__, url_prefix='/api/internal/support')
 
 
-def validar_api_key(fn):
+def validar_api_key():
     """
-    Decorador para validar API Key de instancias SaaS
+    Decorador para validar API Key de instancias SaaS desde base de datos.
+    Recibe el codigo (scope) desde el header X-Code-API enviado por el cliente.
     
-    Seguridad de Producción:
-    - La API Key identifica unívocamente la instancia/empresa
-    - No requiere headers adicionales redundantes
-    - Validación contra variable de entorno (SAAS_API_KEY)
-    - En producción: implementar tabla de API keys en BD con empresa_id asociado
+    Las API Keys se almacenan hasheadas con bcrypt en la tabla api_keys.
+    Cada key está asociada a una empresa y tiene un código que define su propósito.
     
     Requiere headers:
-    - X-API-Key: <API_KEY> - Clave única de la instancia
-    - X-Empresa-Id: <empresa_id> - ID de la empresa (validado contra la API Key)
+    - X-API-Key: API key en texto plano
+    - X-Empresa-Id: ID de la empresa
+    - X-Code-API: Código del scope ('soporte', 'licencias', 'facturacion', 'general')
+    
+    Requiere headers:
+    - X-API-Key: <API_KEY> - Clave única de la instancia (en texto plano)
+    - X-Empresa-Id: <empresa_id> - ID de la empresa que consume la API
+    
+    Validaciones:
+    1. Headers presentes y formato correcto
+    2. Empresa existe en BD
+    3. API Key existe, está activa, no expirada y tiene el código correcto
+    4. API Key pertenece a la empresa del header
+    5. Actualiza ultimo_uso de la API key (UTC)
     """
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        api_key = request.headers.get('X-API-Key')
-        empresa_id = request.headers.get('X-Empresa-Id')
-        
-        if not api_key:
-            AppLogger.warning(
+    def api_key_decorator(fn):
+        @wraps(fn)
+        def decorated_wrapper(*args, **kwargs):
+            api_key = request.headers.get('X-API-Key')
+            empresa_id_header = request.headers.get('X-Empresa-Id')
+            codigo_requerido = request.headers.get('X-Code-API')
+            print(f"api_key: {api_key}, empresa_id_header: {empresa_id_header}, codigo_requerido: {codigo_requerido}")
+            if not api_key:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'Intento de acceso sin X-API-Key',
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint
+                )
+                return jsonify({'success': False, 'message': 'X-API-Key header requerido'}), 401
+            
+            if not empresa_id_header:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'Intento de acceso sin X-Empresa-Id',
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint
+                )
+                return jsonify({'success': False, 'message': 'X-Empresa-Id header requerido'}), 401
+            
+            if not codigo_requerido:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'Intento de acceso sin X-Code-API',
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint
+                )
+                return jsonify({'success': False, 'message': 'X-Code-API header requerido'}), 401
+            
+            # Validar formato de empresa_id
+            try:
+                empresa_id = int(empresa_id_header)
+            except ValueError:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'X-Empresa-Id inválido (no numérico)',
+                    empresa_id_header=empresa_id_header,
+                    ip=request.remote_addr
+                )
+                return jsonify({'success': False, 'message': 'X-Empresa-Id debe ser numérico'}), 400
+            
+            # Validar que la empresa existe
+            empresa = Empresa.query.get(empresa_id)
+            if not empresa:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'Intento de acceso con empresa_id inexistente',
+                    empresa_id=empresa_id,
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint
+                )
+                return jsonify({'success': False, 'message': 'Empresa no encontrada'}), 404
+            
+            # Buscar API keys activas de la empresa con el código específico
+            api_keys = ApiKey.query.filter_by(
+                empresa_id=empresa_id,
+                codigo=codigo_requerido,
+                activo=True
+            ).all()
+            
+            if not api_keys:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    f'Empresa sin API keys activas para código {codigo_requerido}',
+                    empresa_id=empresa_id,
+                    codigo_requerido=codigo_requerido,
+                    ip=request.remote_addr
+                )
+                return jsonify({'success': False, 'message': f'No hay API keys activas para el scope "{codigo_requerido}"'}), 403
+            
+            # Verificar si alguna API key coincide
+            api_key_valida = None
+            for key_record in api_keys:
+                # Verificar expiración
+                if key_record.esta_expirada():
+                    continue
+                
+                # Verificar hash con bcrypt
+                if verificar_api_key(api_key, key_record.api_key_hash):
+                    api_key_valida = key_record
+                    break
+            
+            if not api_key_valida:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'API Key inválida o expirada',
+                    empresa_id=empresa_id,
+                    codigo_requerido=codigo_requerido,
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint,
+                    api_key_prefix=api_key[:8] if len(api_key) >= 8 else 'corta'
+                )
+                return jsonify({'success': False, 'message': 'API Key inválida o expirada'}), 403
+            
+            # Actualizar último uso con hora de Colombia
+            try:
+                api_key_valida.ultimo_uso = get_colombia_now()
+                db.session.commit()
+            except Exception as e:
+                AppLogger.error(
+                    LogCategory.SOPORTE,
+                    'Error al actualizar ultimo_uso de API key',
+                    api_key_id=api_key_valida.id,
+                    exc=e
+                )
+                # No bloqueamos el request por esto
+            
+            # Guardar información en request para uso posterior
+            request.empresa_id = empresa_id
+            request.api_key_id = api_key_valida.id
+            request.api_key_codigo = api_key_valida.codigo
+            
+            AppLogger.info(
                 LogCategory.SOPORTE,
-                'Intento de acceso sin X-API-Key',
-                ip=request.remote_addr,
-                endpoint=request.endpoint
-            )
-            return jsonify({'success': False, 'message': 'X-API-Key header requerido'}), 401
-        
-        if not empresa_id:
-            AppLogger.warning(
-                LogCategory.SOPORTE,
-                'Intento de acceso sin X-Empresa-Id',
-                ip=request.remote_addr,
-                endpoint=request.endpoint
-            )
-            return jsonify({'success': False, 'message': 'X-Empresa-Id header requerido'}), 401
-        
-        # Validar API Key
-        # TODO Producción: Implementar tabla api_keys con columnas:
-        # - id, api_key (único, indexado), empresa_id, activo, fecha_creacion, ultimo_uso
-        # Consultar: SELECT empresa_id FROM api_keys WHERE api_key = ? AND activo = true
-        
-        # Por ahora: validación contra variable de entorno
-        expected_key = current_app.config.get('SAAS_API_KEY')
-        
-        if not expected_key:
-            AppLogger.error(
-                LogCategory.SOPORTE,
-                'SAAS_API_KEY no configurada en el servidor',
-                endpoint=request.endpoint
-            )
-            return jsonify({'success': False, 'message': 'Configuración de API Key no encontrada'}), 500
-        
-        if api_key != expected_key:
-            AppLogger.warning(
-                LogCategory.SOPORTE,
-                'Intento de acceso con API Key inválida',
-                ip=request.remote_addr,
+                'Acceso autorizado a API de soporte',
+                empresa_id=empresa_id,
+                empresa_nombre=empresa.nombre,
+                api_key_id=api_key_valida.id,
+                api_key_nombre=api_key_valida.nombre,
+                api_key_codigo=api_key_valida.codigo,
                 endpoint=request.endpoint,
-                api_key_prefix=api_key[:8] if len(api_key) >= 8 else 'corta'
+                ip=request.remote_addr
             )
-            return jsonify({'success': False, 'message': 'API Key inválida'}), 401
-        
-        # Validar que la empresa existe
-        try:
-            empresa_id_int = int(empresa_id)
-        except ValueError:
-            return jsonify({'success': False, 'message': 'X-Empresa-Id debe ser un número'}), 400
-        
-        empresa = Empresa.query.get(empresa_id_int)
-        if not empresa:
-            AppLogger.warning(
-                LogCategory.SOPORTE,
-                'Intento de acceso con empresa_id inexistente',
-                empresa_id=empresa_id_int,
-                ip=request.remote_addr,
-                endpoint=request.endpoint
-            )
-            return jsonify({'success': False, 'message': 'Empresa no encontrada'}), 404
-        
-        # TODO Producción: Validar que la API Key pertenece a esta empresa
-        # if api_key_record.empresa_id != empresa_id_int:
-        #     return jsonify({'success': False, 'message': 'API Key no autorizada para esta empresa'}), 403
-        
-        # Guardar información en request para uso posterior
-        request.empresa_id = empresa_id_int
-        
-        AppLogger.info(
-            LogCategory.SOPORTE,
-            'Acceso autorizado a API de soporte',
-            empresa_id=empresa_id_int,
-            empresa_nombre=empresa.nombre,
-            endpoint=request.endpoint,
-            ip=request.remote_addr
-        )
-        
-        return fn(*args, **kwargs)
-    return wrapper
+            
+            return fn(*args, **kwargs)
+        return decorated_wrapper
+    return api_key_decorator
 
 def obtener_soporte_activo(empresa_id):
     """Obtiene la suscripción de soporte activa de una empresa"""
@@ -146,7 +207,7 @@ def obtener_soporte_activo(empresa_id):
     ).first()
 
 @api_soporte_bp.route('/create_tickets', methods=['POST'])
-@validar_api_key
+@validar_api_key()
 def crear_ticket():
     """
     POST /api/internal/support/tickets
@@ -287,7 +348,7 @@ def crear_ticket():
         }), 500
 
 @api_soporte_bp.route('/tickets', methods=['GET'])
-@validar_api_key
+@validar_api_key()
 def listar_tickets_empresa():
     """
     GET /api/internal/support/tickets
@@ -371,7 +432,7 @@ def listar_tickets_empresa():
 
 
 @api_soporte_bp.route('/ticket_id/<int:ticket_id>', methods=['GET'])
-@validar_api_key
+@validar_api_key()
 def obtener_ticket_detalle(ticket_id):
     """
     GET /api/internal/support/ticket_id/:id
@@ -444,8 +505,8 @@ def obtener_ticket_detalle(ticket_id):
         }), 500
 
 
-@api_soporte_bp.route('/tickets/<int:ticket_id>/comentarios', methods=['POST'])
-@validar_api_key
+@api_soporte_bp.route('/tickets/<int:ticket_id>/comments', methods=['POST'])
+@validar_api_key()
 def agregar_comentario(ticket_id):
     """
     POST /api/internal/support/tickets/:id/comentarios
@@ -570,9 +631,9 @@ def agregar_comentario(ticket_id):
         }), 500
 
 
-@api_soporte_bp.route('/tickets/<int:ticket_id>/upload', methods=['POST'])
-@validar_api_key
-def subir_archivos(ticket_id):
+@api_soporte_bp.route('/tickets/<int:ticket_id>/files', methods=['POST'])
+@validar_api_key()
+def subir_archivo(ticket_id):
     """
     POST /api/internal/support/tickets/:id/upload
     Sube archivos adjuntos a un ticket o comentario
@@ -680,7 +741,7 @@ def subir_archivos(ticket_id):
 
 
 @api_soporte_bp.route('/tickets/<int:ticket_id>/archivos/<filename>', methods=['GET'])
-@validar_api_key
+@validar_api_key()
 def descargar_archivo(ticket_id, filename):
     """
     GET /api/internal/support/tickets/:id/archivos/:filename
@@ -737,7 +798,7 @@ def descargar_archivo(ticket_id, filename):
 
 
 @api_soporte_bp.route('/status', methods=['GET'])
-@validar_api_key
+@validar_api_key()
 def verificar_soporte():
     """
     GET /api/internal/support/status

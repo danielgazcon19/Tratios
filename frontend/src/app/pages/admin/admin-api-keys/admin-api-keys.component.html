@@ -1,0 +1,367 @@
+<div class="admin-container">
+  <!-- Navegación del panel admin -->
+  <div class="admin-nav">
+    <a routerLink="/admin/empresas" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-building"></i>
+      Empresas
+    </a>
+    <a routerLink="/admin/api-keys" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-key"></i>
+      API Keys
+    </a>
+    <a routerLink="/admin/suscripciones" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-file-invoice"></i>
+      Suscripciones
+    </a>
+    <a routerLink="/admin/planes" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-tags"></i>
+      Planes
+    </a>
+    <a routerLink="/admin/servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-cogs"></i>
+      Servicios
+    </a>
+    <a routerLink="/admin/plan-servicios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-link"></i>
+      Asociar Planes
+    </a>
+    <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-users"></i>
+      Usuarios
+    </a>
+    <a routerLink="/admin/soporte" routerLinkActive="active" class="nav-item">
+      <i class="fas fa-headset"></i>
+      Soporte
+    </a>
+  </div>
+
+  <div class="header">
+    <h1>Gestión de API Keys</h1>
+    <button class="btn-primary" (click)="toggleFormulario()">
+      <i class="fas fa-plus"></i>
+      {{ mostrarFormulario ? 'Cancelar' : 'Nueva API Key' }}
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-container">
+    <div class="filtros-row">
+      <div class="form-group">
+        <label for="filtroEmpresa">Empresa</label>
+        <select id="filtroEmpresa" [(ngModel)]="filtroEmpresaId" class="form-control">
+          <option [value]="undefined">Todas</option>
+          <option *ngFor="let empresa of empresas" [value]="empresa.id">
+            {{ empresa.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="filtroEstado">Estado</label>
+        <select id="filtroEstado" [(ngModel)]="filtroActivo" class="form-control">
+          <option [value]="undefined">Todos</option>
+          <option [value]="true">Activas</option>
+          <option [value]="false">Inactivas</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="filtroBusqueda">Buscar</label>
+        <input 
+          type="text" 
+          id="filtroBusqueda" 
+          [(ngModel)]="filtroBusqueda" 
+          placeholder="Nombre de API key..."
+          class="form-control">
+      </div>
+
+      <div class="form-actions-inline">
+        <button class="btn-success" (click)="aplicarFiltros()">
+          <i class="fas fa-filter"></i> Aplicar
+        </button>
+        <button class="btn-secondary" (click)="limpiarFiltros()">
+          <i class="fas fa-times"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de nueva API key -->
+  <div class="formulario-container" *ngIf="mostrarFormulario">
+    <h3>Nueva API Key</h3>
+    <form (ngSubmit)="crearApiKey()">
+      <div class="form-group">
+        <label for="empresa">Empresa *</label>
+        <select 
+          id="empresa" 
+          [(ngModel)]="nuevaApiKey.empresa_id" 
+          name="empresa_id" 
+          required
+          class="form-control">
+          <option [value]="0">Seleccione una empresa</option>
+          <option *ngFor="let empresa of empresas" [value]="empresa.id">
+            {{ empresa.nombre }} ({{ empresa.nit }})
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="nombre">Nombre/Descripción *</label>
+        <input 
+          type="text" 
+          id="nombre" 
+          [(ngModel)]="nuevaApiKey.nombre" 
+          name="nombre" 
+          required
+          placeholder="Ej: Producción Principal, Desarrollo, Testing..."
+          class="form-control">
+        <small class="form-text text-muted">
+          Identifica el propósito o ambiente de esta API key
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="codigo">Código/Alcance *</label>
+        <select 
+          id="codigo" 
+          [(ngModel)]="nuevaApiKey.codigo" 
+          name="codigo" 
+          required
+          class="form-control">
+          <option value="LICENCIA">Licencias (Suscripciones)</option>
+          <option value="SOPORTE">Soporte (Tickets)</option>
+          <option value="FACTURACION">Facturación</option>
+          <option value="GENERAL">General</option>
+        </select>
+        <small class="form-text text-muted">
+          Define qué endpoints puede acceder esta API key
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="diasExpiracion">Días de expiración</label>
+        <input 
+          type="number" 
+          id="diasExpiracion" 
+          [(ngModel)]="nuevaApiKey.dias_expiracion" 
+          name="dias_expiracion"
+          min="1"
+          placeholder="365"
+          class="form-control">
+        <small class="form-text text-muted">
+          Deja vacío para que no expire. Recomendado: 90-365 días.
+        </small>
+      </div>
+
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Importante:</strong> La API key generada se mostrará <strong>solo una vez</strong>. Asegúrese de copiarla y guardarla en un lugar seguro.
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-success">
+          <i class="fas fa-key"></i> Generar API Key
+        </button>
+        <button type="button" class="btn-secondary" (click)="toggleFormulario()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Formulario de edición -->
+  <div class="formulario-container" *ngIf="mostrarFormularioEdicion && apiKeyEditando">
+    <h3>Editar API Key</h3>
+    <form (ngSubmit)="guardarEdicion()">
+      <div class="form-group">
+        <label>Empresa</label>
+        <input 
+          type="text" 
+          [value]="getNombreEmpresa(apiKeyEditando.empresa_id)"
+          class="form-control"
+          disabled>
+      </div>
+
+      <div class="form-group">
+        <label for="editNombre">Nombre/Descripción *</label>
+        <input 
+          type="text" 
+          id="editNombre" 
+          [(ngModel)]="apiKeyEditando.nombre" 
+          name="nombre" 
+          required
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input 
+            type="checkbox" 
+            [(ngModel)]="apiKeyEditando.activo"
+            name="activo">
+          Activa
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-success">Guardar Cambios</button>
+        <button type="button" class="btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de API keys -->
+  <div class="tabla-container">
+    <div *ngIf="cargando" class="loading">Cargando API keys...</div>
+
+    <div *ngIf="!cargando && apiKeys.length === 0" class="empty-state">
+      <i class="fas fa-key fa-3x"></i>
+      <p>No hay API keys registradas</p>
+      <button class="btn-primary" (click)="toggleFormulario()">Crear primera API Key</button>
+    </div>
+
+    <table *ngIf="!cargando && apiKeys.length > 0" class="tabla-api-keys">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Empresa</th>
+          <th>Nombre</th>
+          <th>Código</th>
+          <th>Estado</th>
+          <th>Creada</th>
+          <th>Último uso</th>
+          <th>Expira</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let apiKey of apiKeys" [class.row-expired]="estaExpirada(apiKey)">
+          <td>{{ apiKey.id }}</td>
+          <td>
+            <div class="empresa-info">
+              <strong>{{ apiKey.empresa_nombre || getNombreEmpresa(apiKey.empresa_id) }}</strong>
+              <small class="text-muted">ID: {{ apiKey.empresa_id }}</small>
+            </div>
+          </td>
+          <td>
+            <div class="api-key-name">
+              <i class="fas fa-key"></i>
+              {{ apiKey.nombre }}
+            </div>
+          </td>
+          <td>
+            <span [class]="getCodigoClass(apiKey.codigo)">
+              {{ getCodigoLabel(apiKey.codigo) }}
+            </span>
+          </td>
+          <td>
+            <span [class]="getEstadoClass(apiKey)">
+              {{ getEstadoTexto(apiKey) }}
+            </span>
+          </td>
+          <td class="text-small">{{ formatearFecha(apiKey.fecha_creacion) }}</td>
+          <td class="text-small">
+            <span *ngIf="apiKey.ultimo_uso">{{ formatearFecha(apiKey.ultimo_uso) }}</span>
+            <span *ngIf="!apiKey.ultimo_uso" class="text-muted">Nunca</span>
+          </td>
+          <td class="text-small">
+            <span *ngIf="apiKey.fecha_expiracion">
+              {{ formatearFecha(apiKey.fecha_expiracion) }}
+              <span *ngIf="getDiasRestantes(apiKey.fecha_expiracion) !== null && !estaExpirada(apiKey)" class="badge badge-warning-sm">
+                {{ getDiasRestantes(apiKey.fecha_expiracion) }}d
+              </span>
+            </span>
+            <span *ngIf="!apiKey.fecha_expiracion" class="text-muted">Sin expiración</span>
+          </td>
+          <td class="acciones-cell">
+            <button 
+              class="btn-icon btn-edit" 
+              (click)="editarApiKey(apiKey)" 
+              title="Editar">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button 
+              class="btn-icon" 
+              [class.btn-success]="!apiKey.activo"
+              [class.btn-warning]="apiKey.activo"
+              (click)="toggleEstado(apiKey)" 
+              [title]="apiKey.activo ? 'Desactivar' : 'Activar'">
+              <i class="fas" [class.fa-toggle-on]="apiKey.activo" [class.fa-toggle-off]="!apiKey.activo"></i>
+            </button>
+            <button 
+              class="btn-icon btn-info" 
+              (click)="renovarApiKey(apiKey)" 
+              title="Renovar (generar nueva clave)">
+              <i class="fas fa-arrow-rotate-right"></i>
+            </button>
+            <button 
+              class="btn-icon btn-danger" 
+              (click)="eliminarApiKey(apiKey)" 
+              title="Eliminar">
+              <i class="fas fa-xmark"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <div class="paginacion" *ngIf="!cargando && apiKeys.length > 0">
+      <div class="paginacion-info">
+        Mostrando {{ (paginaActual - 1) * itemsPorPagina + 1 }} 
+        a {{ Math.min(paginaActual * itemsPorPagina, totalItems) }} 
+        de {{ totalItems }} API keys
+      </div>
+      
+      <div class="paginacion-controles">
+        <button 
+          class="btn-paginacion" 
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(1)">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        
+        <button 
+          class="btn-paginacion" 
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(paginaActual - 1)">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        
+        <button 
+          *ngFor="let pagina of getPaginaArray()" 
+          class="btn-paginacion"
+          [class.active]="pagina === paginaActual"
+          (click)="cambiarPagina(pagina)">
+          {{ pagina }}
+        </button>
+        
+        <button 
+          class="btn-paginacion" 
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(paginaActual + 1)">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        
+        <button 
+          class="btn-paginacion" 
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(totalPaginas)">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Información adicional -->
+  <div class="info-section">
+    <h3><i class="fas fa-info-circle"></i> Información sobre API Keys</h3>
+    <ul>
+      <li>Las API keys se utilizan para autenticar llamadas a endpoints privados del sistema</li>
+      <li>Cada key está asociada a una empresa específica</li>
+      <li>Las claves se almacenan encriptadas (bcrypt) y solo se muestran una vez al crearlas/renovarlas</li>
+      <li>Para usar una API key, incluir los headers: <code>X-API-Key</code> y <code>X-Empresa-Id</code></li>
+      <li>Renovar una key genera una nueva clave e invalida la anterior inmediatamente</li>
+      <li>Se recomienda rotar las keys cada 90-365 días según criticidad</li>
+    </ul>
+  </div>
+</div>

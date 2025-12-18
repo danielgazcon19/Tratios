@@ -64,19 +64,20 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   margin-bottom: 20px;
-  display: flex;
+}
+
+.filtros-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
-  align-items: flex-end;
-  flex-wrap: wrap;
+  align-items: end;
 }
 
 .filtros-container .form-group {
   margin-bottom: 0;
-  flex: 1;
-  min-width: 200px;
 }
 
-.filtros-actions {
+.form-actions-inline {
   display: flex;
   gap: 10px;
 }
@@ -247,6 +248,25 @@ button:disabled {
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.form-control:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -337,10 +357,10 @@ tbody tr:hover {
 }
 
 /* Paginación */
-.paginacion {
+.paginacion-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 15px;
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #dee2e6;
@@ -357,30 +377,33 @@ tbody tr:hover {
 }
 
 .btn-paginacion {
-  padding: 6px 12px;
+  padding: 8px 12px;
   background: white;
   border: 1px solid #dee2e6;
-  color: #007bff;
+  color: #495057;
   cursor: pointer;
   transition: all 0.3s;
   min-width: 36px;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 .btn-paginacion:hover:not(:disabled) {
-  background: #e9ecef;
+  background: #f8f9fa;
+  border-color: #adb5bd;
 }
 
 .btn-paginacion.active {
-  background: #007bff;
+  background: #6c757d;
   color: white;
-  border-color: #007bff;
+  border-color: #6c757d;
 }
 
 .btn-paginacion:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: white;
-  color: #6c757d;
+  background: #f8f9fa;
+  color: #adb5bd;
 }
 
 /* Modal Moderno */

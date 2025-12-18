@@ -74,6 +74,14 @@ export interface Estadisticas {
   por_plan: { plan: string; cantidad: number }[];
 }
 
+export interface ListadoSuscripcionesResponse {
+  suscripciones: Suscripcion[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -82,10 +90,14 @@ export class AdminSuscripcionesService {
 
   constructor(private http: HttpClient) {}
 
-  listarSuscripciones(filtros?: { estado?: string; empresa_id?: number; nit?: string }): Observable<Suscripcion[]> {
+  listarSuscripciones(filtros?: { 
+    estado?: string; 
+    empresa_id?: number; 
+    nit?: string;
+    page?: number;
+    per_page?: number;
+  }): Observable<ListadoSuscripcionesResponse> {
     let params = new HttpParams();
-    
-
     
     if (filtros?.estado) {
       params = params.set('estado', filtros.estado);
@@ -96,10 +108,14 @@ export class AdminSuscripcionesService {
     if (filtros?.nit) {
       params = params.set('nit', filtros.nit);
     }
+    if (filtros?.page) {
+      params = params.set('page', filtros.page.toString());
+    }
+    if (filtros?.per_page) {
+      params = params.set('per_page', filtros.per_page.toString());
+    }
     
-
-    
-    return this.http.get<Suscripcion[]>(this.apiUrl, { params });
+    return this.http.get<ListadoSuscripcionesResponse>(this.apiUrl, { params });
   }
 
   crearSuscripcion(data: CrearSuscripcionDto): Observable<any> {
