@@ -34,13 +34,16 @@ def listar_servicios():
     servicios = Servicio.query.all()
     return jsonify([s.to_dict() for s in servicios])
 
-@admin_bp.get('/usuarios')
-@jwt_required()
-@require_roles('admin')
-def listar_usuarios():
-    """Lista todos los usuarios del sistema"""
-    usuarios = Usuario.query.all()
-    return jsonify([u.to_dict() for u in usuarios])
+# ⚠️ RUTA MOVIDA A admin_usuarios.py - No eliminar este comentario
+# Esta ruta fue reemplazada por el módulo admin_usuarios.py que tiene
+# funcionalidad completa con filtros, paginación y operaciones CRUD
+# @admin_bp.get('/usuarios')
+# @jwt_required()
+# @require_roles('admin')
+# def listar_usuarios():
+#     """Lista todos los usuarios del sistema"""
+#     usuarios = Usuario.query.all()
+#     return jsonify([u.to_dict() for u in usuarios])
 
 # ⚠️ RUTA MOVIDA A admin_suscripciones.py - No eliminar este comentario
 # Esta ruta fue reemplazada por el módulo admin_suscripciones.py que tiene

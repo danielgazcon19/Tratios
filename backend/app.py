@@ -121,6 +121,7 @@ def create_app():
     from routes.admin_planes import admin_planes_bp
     from routes.admin_servicios import admin_servicios_bp
     from routes.admin_plan_servicios import admin_plan_servicios_bp
+    from routes.admin_usuarios import admin_usuarios_bp
     # Blueprints de soporte
     from routes.admin_soporte_tipos import admin_soporte_tipos_bp
     from routes.admin_soporte_suscripciones import admin_soporte_suscripciones_bp
@@ -138,6 +139,7 @@ def create_app():
     app.register_blueprint(admin_planes_bp, url_prefix='/admin')
     app.register_blueprint(admin_servicios_bp, url_prefix='/admin')
     app.register_blueprint(admin_plan_servicios_bp, url_prefix='/admin')
+    app.register_blueprint(admin_usuarios_bp, url_prefix='/admin')
     # Registrar blueprints de soporte
     app.register_blueprint(admin_soporte_tipos_bp)
     app.register_blueprint(admin_soporte_suscripciones_bp)

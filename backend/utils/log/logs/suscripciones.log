@@ -363,3 +363,31 @@
 2025-12-15 18:01:04 | INFO     | Consulta finalizada | total_resultados=2
 2025-12-16 11:23:44 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
 2025-12-16 11:23:44 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-16 15:02:20 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-16 15:02:20 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-16 15:10:24 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-16 15:10:24 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-16 17:15:42 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-16 17:15:42 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-16 17:46:33 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-16 17:46:33 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-16 17:48:49 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-16 17:48:49 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-16 19:25:28 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-16 19:25:28 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-16 19:29:13 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-16 19:29:13 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-16 19:29:19 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-16 19:29:19 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-16 19:29:23 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-16 19:29:23 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-16 20:48:43 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-16 20:48:43 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-16 20:59:08 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-16 20:59:08 | INFO     | Consulta finalizada | total_resultados=2
+2025-12-16 21:00:07 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-16 21:00:07 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-16 21:12:05 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None
+2025-12-16 21:12:05 | INFO     | Consulta finalizada | total_resultados=4
+2025-12-16 21:17:49 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None
+2025-12-16 21:17:49 | INFO     | Consulta finalizada | total_resultados=2
