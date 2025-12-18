@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AdminUsuariosService, Usuario, CrearUsuarioDto, ActualizarUsuarioDto } from '../../../services/admin-usuarios.service';
 import { AdminEmpresasService, Empresa } from '../../../services/admin-empresas.service';
+import { ApiService } from '../../../services/api.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -60,14 +61,24 @@ export class AdminUsuariosComponent implements OnInit {
     passwordsMatch: false
   };
 
+  // Localización
+  paises: { code: string; name: string }[] = [];
+  ciudades: { name: string; state?: string }[] = [];
+  paisSeleccionado: string = '';
+  cargandoPaises = false;
+  cargandoCiudades = false;
+  busquedaPais = '';
+
   constructor(
     private adminUsuariosService: AdminUsuariosService,
-    private adminEmpresasService: AdminEmpresasService
+    private adminEmpresasService: AdminEmpresasService,
+    private apiService: ApiService
   ) {}
 
   ngOnInit(): void {
     this.cargarUsuarios();
     this.cargarEmpresas();
+    this.cargarPaises();
   }
 
   validatePassword(password: string, confirmPassword?: string) {
@@ -183,6 +194,9 @@ export class AdminUsuariosComponent implements OnInit {
       hasSpecialChar: false,
       passwordsMatch: false
     };
+    // Resetear localización
+    this.paisSeleccionado = '';
+    this.ciudades = [];
     this.mostrarModal = true;
   }
 
@@ -199,6 +213,16 @@ export class AdminUsuariosComponent implements OnInit {
       ciudad: usuario.ciudad,
       pais: usuario.pais
     };
+    
+    // Si el usuario tiene un país, buscar su código y cargar ciudades
+    if (usuario.pais) {
+      const paisEncontrado = this.paises.find(p => p.name === usuario.pais);
+      if (paisEncontrado) {
+        this.paisSeleccionado = paisEncontrado.code;
+        this.cargarCiudades(paisEncontrado.code);
+      }
+    }
+    
     this.mostrarModal = true;
   }
 
@@ -1037,5 +1061,77 @@ export class AdminUsuariosComponent implements OnInit {
     }
     
     return pages;
+  }
+
+  // Métodos de localización
+  cargarPaises(): void {
+    this.cargandoPaises = true;
+    this.apiService.obtenerPaises().subscribe({
+      next: (response: any) => {
+        this.paises = response.countries || [];
+        this.cargandoPaises = false;
+      },
+      error: (error: any) => {
+        console.error('Error al cargar países:', error);
+        this.cargandoPaises = false;
+        Swal.fire('Error', 'No se pudieron cargar los países', 'error');
+      }
+    });
+  }
+
+  buscarPaises(): void {
+    if (!this.busquedaPais || this.busquedaPais.length < 2) {
+      this.cargarPaises();
+      return;
+    }
+
+    this.cargandoPaises = true;
+    this.apiService.buscarPaises(this.busquedaPais).subscribe({
+      next: (response: any) => {
+        this.paises = response.countries || [];
+        this.cargandoPaises = false;
+      },
+      error: (error: any) => {
+        console.error('Error al buscar países:', error);
+        this.cargandoPaises = false;
+      }
+    });
+  }
+
+  onPaisChange(): void {
+    this.ciudades = [];
+    this.formularioUsuario.ciudad = '';
+    
+    if (!this.paisSeleccionado) {
+      this.formularioUsuario.pais = '';
+      return;
+    }
+
+    // Buscar el nombre del país seleccionado
+    const pais = this.paises.find(p => p.code === this.paisSeleccionado);
+    if (pais) {
+      this.formularioUsuario.pais = pais.name;
+      this.cargarCiudades(this.paisSeleccionado);
+    }
+  }
+
+  cargarCiudades(countryCode: string): void {
+    this.cargandoCiudades = true;
+    this.apiService.obtenerCiudades(countryCode).subscribe({
+      next: (response: any) => {
+        this.ciudades = response.cities || [];
+        this.cargandoCiudades = false;
+      },
+      error: (error: any) => {
+        console.error('Error al cargar ciudades:', error);
+        this.cargandoCiudades = false;
+        Swal.fire('Aviso', 'No se pudieron cargar las ciudades. Puedes escribirla manualmente.', 'info');
+      }
+    });
+  }
+
+  onCiudadChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.formularioUsuario.ciudad = select.value;
   }
 }

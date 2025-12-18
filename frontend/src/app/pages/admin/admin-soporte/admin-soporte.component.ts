@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -27,6 +27,8 @@ import Swal from 'sweetalert2';
   styleUrl: './admin-soporte.component.css'
 })
 export class AdminSoporteComponent implements OnInit {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  
   // Pestaña activa
   tabActiva: 'tipos' | 'suscripciones' | 'tickets' | 'pagos' = 'tickets';
   
@@ -1573,6 +1575,12 @@ export class AdminSoporteComponent implements OnInit {
   }
 
   guardarTicket(): void {
+    // Procesar archivos del input si los hay
+    if (this.fileInput?.nativeElement?.files && this.fileInput.nativeElement.files.length > 0) {
+      const event = { target: { files: this.fileInput.nativeElement.files } };
+      this.onArchivosSeleccionados(event);
+    }
+    
     if (!this.nuevoTicket.titulo || !this.nuevoTicket.empresa_id || !this.nuevoTicket.soporte_suscripcion_id) {
       Swal.fire('Error', 'Título, Empresa y Suscripción de Soporte son obligatorios', 'error');
       return;

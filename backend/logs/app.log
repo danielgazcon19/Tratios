@@ -2243,3 +2243,30 @@
 2025-12-17 20:46:43 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
 2025-12-17 20:46:43 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
 2025-12-17 20:46:43 | INFO | LocationService inicializado correctamente
+2025-12-18 09:08:16 | INFO | Iniciando la aplicación
+2025-12-18 09:08:17 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-18 09:08:17 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-18 09:08:17 | INFO | LocationService inicializado correctamente
+2025-12-18 09:08:18 | INFO | Iniciando la aplicación
+2025-12-18 09:08:18 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-18 09:08:18 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-18 09:08:18 | INFO | LocationService inicializado correctamente
+2025-12-18 09:48:20 | INFO | Iniciando la aplicación
+2025-12-18 09:48:20 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-18 09:48:20 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-18 09:48:20 | INFO | LocationService inicializado correctamente
+2025-12-18 09:49:28 | INFO | Iniciando la aplicación
+2025-12-18 09:49:28 | INFO | Base de datos SQLite de países disponible: D:\Software\Pagina\backend\data\countries.db
+2025-12-18 09:49:28 | INFO | Base de datos de ciudades disponible: 2 archivos encontrados
+2025-12-18 09:49:28 | INFO | LocationService inicializado correctamente
+2025-12-18 09:50:04 | INFO | Búsqueda de países 'colombia': 1 resultados
+2025-12-18 09:50:06 | INFO | SQLite devolvió 1122 ciudades para CO
+2025-12-18 09:50:07 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-18 10:17:14 | INFO | SQLite devolvió 250 países
+2025-12-18 10:31:52 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-18 10:32:10 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-18 10:32:30 | INFO | SQLite devolvió 300 ciudades para CL
+2025-12-18 10:32:39 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-18 10:32:59 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-18 10:40:04 | INFO | Ciudades de CO desde caché: 1122 ciudades
+2025-12-18 10:40:23 | INFO | Ciudades de CO desde caché: 1122 ciudades

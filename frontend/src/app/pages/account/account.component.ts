@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { toDataURL } from 'qrcode';
 import Swal from 'sweetalert2';
 import {
@@ -11,8 +11,6 @@ import {
   TransferEmpresaResponse
 } from '../../services/api.service';
 import { AuthSessionService } from '../../services/auth-session.service';
-import { Subject, Subscription, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 
 interface OtpSetupState {
   secret: string;
@@ -26,7 +24,7 @@ type SectionKey = 'personal' | 'seguridad' | 'suscripciones' | 'futuro';
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   template: `
     <section class="account-page" *ngIf="!initializing; else loadingTemplate">
       <header class="page-header">
@@ -129,49 +127,21 @@ type SectionKey = 'personal' | 'seguridad' | 'suscripciones' | 'futuro';
                   </label>
                   <label class="country-field">
                     <span>País</span>
-                    <div class="input-with-icon">
-                      <input
-                        type="text"
-                        formControlName="pais"
-                        placeholder="Escribe para buscar un país"
-                        autocomplete="off"
-                      />
-                      <button
-                        type="button"
-                        class="clear-icon-btn"
-                        *ngIf="profileForm.value.pais && !countriesLoading"
-                        (click)="clearCountrySelection()"
-                        aria-label="Limpiar país"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                      </button>
-                      <span class="loading-spinner" *ngIf="countriesLoading"></span>
-                    </div>
-                    <ul class="suggestions-list" *ngIf="countries.length && countrySearchTerm">
-                      <li
-                        *ngFor="let country of countries; trackBy: trackCountry"
-                        (click)="onCountrySuggestionSelected(country)"
-                      >
-                        <strong>{{ country.name }}</strong>
-                        <span class="country-code">{{ country.code }}</span>
-                      </li>
-                    </ul>
+                    <select [(ngModel)]="paisSeleccionado" [ngModelOptions]="{standalone: true}" (ngModelChange)="onPaisChange()" [disabled]="cargandoPaises">
+                      <option value="">Selecciona un país</option>
+                      <option *ngFor="let pais of paises" [value]="pais.code">{{ pais.name }}</option>
+                    </select>
+                    <small class="helper-text" *ngIf="cargandoPaises">Cargando países…</small>
                   </label>
                   <label class="city-field">
                     <span>Ciudad</span>
-                    <ng-container *ngIf="selectedCountryCode && cities.length; else manualCityInput">
-                      <select formControlName="ciudad" [attr.disabled]="citiesLoading ? '' : null">
-                        <option value="">Selecciona una ciudad</option>
-                        <option *ngFor="let city of cities" [value]="city.name">{{ city.name }}</option>
-                      </select>
-                    </ng-container>
-                    <ng-template #manualCityInput>
-                      <input type="text" formControlName="ciudad" placeholder="Ciudad de residencia" />
-                    </ng-template>
-                    <small class="helper-text" *ngIf="citiesLoading">Cargando ciudades…</small>
-                    <small class="field-error" *ngIf="!citiesLoading && locationError && selectedCountryCode && !cities.length">{{ locationError }}</small>
+                    <select *ngIf="ciudades.length > 0" formControlName="ciudad">
+                      <option value="">Selecciona una ciudad</option>
+                      <option *ngFor="let ciudad of ciudades" [value]="ciudad.name">{{ ciudad.name }}</option>
+                    </select>
+                    <input *ngIf="ciudades.length === 0 && paisSeleccionado" type="text" formControlName="ciudad" placeholder="Escribe tu ciudad" />
+                    <input *ngIf="!paisSeleccionado" type="text" formControlName="ciudad" placeholder="Primero selecciona un país" [disabled]="true" />
+                    <small class="helper-text" *ngIf="cargandoCiudades">Cargando ciudades…</small>
                   </label>
                   <label class="full-row">
                     <span>Dirección</span>
@@ -1654,22 +1624,11 @@ export class AccountComponent implements OnInit, OnDestroy {
   suscripcionEnProgreso: number | null = null;
   transferLoading = false;
   generatedTempPassword: string | null = null;
-  countries: { code: string; name: string }[] = [];
-  cities: Array<{ name: string; state?: string }> = [];
-  selectedCountryCode: string | null = null;
-  countriesLoading = false;
-  citiesLoading = false;
-  locationError: string | null = null;
-  countrySearchTerm = '';
-  countrySearchError: string | null = null;
-
-  private pendingCountryName: string | null = null;
-  private pendingCityName: string | null = null;
-  private pendingCountrySearched = false;
-  private countrySearchInitialized = false;
-  private countrySearch$ = new Subject<string>();
-  private countrySearchSubscription: Subscription | null = null;
-  private initialCountrySearchTerm: string | null = null;
+  paises: { code: string; name: string }[] = [];
+  ciudades: Array<{ name: string; state?: string }> = [];
+  paisSeleccionado: string = '';
+  cargandoPaises = false;
+  cargandoCiudades = false;
 
   readonly sectionMeta: Record<SectionKey, { title: string; description: string }> = {
     personal: {
@@ -1743,9 +1702,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.countrySearchSubscription?.unsubscribe();
-    this.countrySearchSubscription = null;
-    this.countrySearch$.complete();
+    // Cleanup si es necesario
   }
 
   get isAdmin(): boolean {
@@ -1757,7 +1714,7 @@ export class AccountComponent implements OnInit, OnDestroy {
 
     if (section === 'personal' || section === 'seguridad') {
       this.ensurePerfilLoaded();
-      this.ensureCountriesLoaded();
+      this.cargarPaises();
     }
 
     if (section === 'suscripciones') {
@@ -1829,235 +1786,76 @@ export class AccountComponent implements OnInit, OnDestroy {
     });
   }
 
-  private ensureCountriesLoaded(): void {
-    if (!this.countrySearchInitialized) {
-      this.initializeCountrySearch();
+  cargarPaises(): void {
+    if (this.paises.length > 0) {
+      return; // Ya están cargados
     }
 
-    if (this.countries.length) {
-      this.applyPendingLocation();
-      return;
-    }
-
-    const desired = this.pendingCountryName || (this.profileForm.value.pais || '').trim();
-    if (desired) {
-      this.triggerCountrySearch(desired);
-    }
-  }
-
-  private initializeCountrySearch(): void {
-    if (this.countrySearchInitialized) {
-      return;
-    }
-
-    this.countrySearchInitialized = true;
-    this.countrySearchSubscription = this.countrySearch$
-      .pipe(
-        debounceTime(250),
-        distinctUntilChanged(),
-        switchMap(rawTerm => {
-          const term = (rawTerm || '').trim();
-          this.countrySearchTerm = term;
-
-          if (!term) {
-            this.countriesLoading = false;
-            this.countrySearchError = null;
-            this.countries = [];
-            return of({ countries: [] });
+    this.cargandoPaises = true;
+    this.api.obtenerPaises().subscribe({
+      next: (response: any) => {
+        this.paises = response.countries || [];
+        this.cargandoPaises = false;
+        
+        // Si hay un país en el formulario, seleccionarlo
+        const paisActual = this.profileForm.value.pais;
+        if (paisActual) {
+          const pais = this.paises.find(p => p.name === paisActual);
+          if (pais) {
+            this.paisSeleccionado = pais.code;
+            this.cargarCiudades(pais.code);
           }
-
-          this.countriesLoading = true;
-          this.countrySearchError = null;
-          return this.api.buscarPaises(term).pipe(
-            catchError((error) => {
-              this.countriesLoading = false;
-              this.countrySearchError = error?.error?.message || 'No pudimos buscar países. Escríbelo manualmente si prefieres.';
-              return of({ countries: [] });
-            })
-          );
-        })
-      )
-      .subscribe(({ countries }) => {
-        this.countriesLoading = false;
-        const listado = (countries || [])
-          .filter((country): country is { code: string; name: string } => Boolean(country?.code && country?.name))
-          .map(country => ({ code: country.code, name: country.name }));
-        listado.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
-        this.countries = listado;
-
-        if (!listado.length && this.countrySearchTerm) {
-          this.countrySearchError = this.countrySearchError || 'No encontramos países que coincidan con tu búsqueda. Puedes ingresarlo manualmente.';
-        }
-
-        this.applyPendingLocation();
-      });
-
-    const initialTerm = this.initialCountrySearchTerm || (this.profileForm.value.pais || '').trim();
-    if (initialTerm) {
-      this.countrySearch$.next(initialTerm);
-      this.initialCountrySearchTerm = null;
-    }
-  }
-
-  private triggerCountrySearch(term: string): void {
-    const normalized = term ?? '';
-    if (!this.countrySearchInitialized) {
-      this.initialCountrySearchTerm = normalized;
-      return;
-    }
-    this.countrySearch$.next(normalized);
-  }
-
-  onCountrySearchInputEvent(event: Event): void {
-    const target = event.target as HTMLInputElement | null;
-    const value = target?.value ?? '';
-    this.onCountrySearchInput(value);
-  }
-
-  onCountryInputFocus(): void {
-    // Mostrar sugerencias si hay un término de búsqueda activo
-    const currentValue = this.profileForm.value.pais?.trim();
-    if (currentValue && currentValue.length >= 2 && !this.countries.length) {
-      this.countrySearch$.next(currentValue);
-    }
-  }
-
-  onCountrySearchInput(value: string): void {
-    const rawValue = value ?? '';
-    this.pendingCountryName = rawValue.trim() || null;
-    this.pendingCityName = null;
-    this.countrySearchError = null;
-    this.countrySearch$.next(rawValue);
-
-    if (!rawValue.trim()) {
-      this.selectedCountryCode = null;
-      this.cities = [];
-    }
-  }
-
-  onCountrySuggestionSelected(country: { code: string; name: string }): void {
-    if (!country?.code || !country?.name) {
-      return;
-    }
-
-    this.pendingCountrySearched = false;
-    this.selectedCountryCode = country.code;
-    this.pendingCountryName = country.name;
-    this.pendingCityName = null;
-    this.countrySearchTerm = country.name;
-    this.countrySearchError = null;
-    this.countries = [];
-    this.profileForm.patchValue({ pais: country.name, ciudad: '' });
-    this.locationError = null;
-    this.loadCitiesFor(country.code);
-  }
-
-  clearCountrySelection(): void {
-    this.pendingCountrySearched = false;
-    this.profileForm.patchValue({ pais: '', ciudad: '' });
-    this.countrySearchTerm = '';
-    this.selectedCountryCode = null;
-    this.pendingCountryName = null;
-    this.pendingCityName = null;
-    this.countries = [];
-    this.countrySearchError = null;
-    this.cities = [];
-    this.countrySearch$.next('');
-  }
-
-  trackCountry(index: number, country: { code: string; name: string }): string {
-    return country.code || `${index}`;
-  }
-
-  private loadCitiesFor(countryCode: string, preselect?: string): void {
-    const normalizedCode = (countryCode || '').trim().toUpperCase();
-    if (!normalizedCode) {
-      this.cities = [];
-      this.selectedCountryCode = null;
-      return;
-    }
-
-    this.selectedCountryCode = normalizedCode;
-    this.citiesLoading = true;
-    this.api.obtenerCiudades(normalizedCode).subscribe({
-      next: ({ cities }) => {
-        this.citiesLoading = false;
-        this.cities = (cities || [])
-          .filter(city => city && city.name && city.name.trim())
-          .map(city => ({ name: city.name.trim(), state: city.state || undefined }));
-        this.locationError = null;
-
-        if (preselect) {
-          this.ensureCityInList(preselect);
-        } else if (!this.profileForm.value.ciudad || !this.cities.some(city => city.name === this.profileForm.value.ciudad)) {
-          this.profileForm.patchValue({ ciudad: '' });
-          this.pendingCityName = null;
         }
       },
-      error: (error) => {
-        this.citiesLoading = false;
-        this.locationError = error?.error?.message || 'No pudimos cargar ciudades. Puedes ingresarla manualmente.';
-        this.cities = [];
+      error: (error: any) => {
+        console.error('Error al cargar países:', error);
+        this.cargandoPaises = false;
+        Swal.fire('Error', 'No se pudieron cargar los países', 'error');
       }
     });
   }
 
-  private applyPendingLocation(): void {
-    const desiredCountry = this.pendingCountryName || (this.profileForm.value.pais || '').trim();
-    if (!desiredCountry) {
-      this.selectedCountryCode = null;
-      this.cities = [];
+  onPaisChange(): void {
+    this.ciudades = [];
+    this.profileForm.patchValue({ ciudad: '' });
+    
+    if (!this.paisSeleccionado) {
+      this.profileForm.patchValue({ pais: '' });
       return;
     }
 
-    if (!this.countries.length) {
-      if (!this.pendingCountrySearched) {
-        this.pendingCountrySearched = true;
-        this.triggerCountrySearch(desiredCountry);
-      }
-      return;
+    // Buscar el nombre del país seleccionado
+    const pais = this.paises.find(p => p.code === this.paisSeleccionado);
+    if (pais) {
+      this.profileForm.patchValue({ pais: pais.name });
+      this.cargarCiudades(this.paisSeleccionado);
     }
-
-    const match = this.findCountryByName(desiredCountry);
-    if (!match) {
-      if (!this.pendingCountrySearched) {
-        this.pendingCountrySearched = true;
-        this.triggerCountrySearch(desiredCountry);
-      }
-      return;
-    }
-
-    this.pendingCountrySearched = false;
-    const changedCountry = this.selectedCountryCode !== match.code;
-    this.selectedCountryCode = match.code;
-
-    const desiredCity = this.pendingCityName || (this.profileForm.value.ciudad || '').trim();
-
-    if (changedCountry || !this.cities.length) {
-      this.loadCitiesFor(match.code, desiredCity || undefined);
-    } else if (desiredCity) {
-      this.ensureCityInList(desiredCity);
-    }
-
-    this.pendingCountryName = null;
   }
 
-  private findCountryByName(name: string): { code: string; name: string } | undefined {
-    const normalized = name.toLowerCase();
-    return this.countries.find(country => country.name.toLowerCase() === normalized || country.code.toLowerCase() === normalized);
-  }
-
-  private ensureCityInList(cityName: string | null | undefined): void {
-    if (!cityName) {
+  cargarCiudades(countryCode: string): void {
+    if (!countryCode) {
+      this.ciudades = [];
       return;
     }
-    const normalized = cityName.toLowerCase();
-    const exists = this.cities.some(city => city.name.toLowerCase() === normalized);
-    if (!exists) {
-      this.cities = [{ name: cityName }, ...this.cities];
-    }
-    this.profileForm.patchValue({ ciudad: cityName });
-    this.pendingCityName = null;
+
+    this.cargandoCiudades = true;
+    this.api.obtenerCiudades(countryCode).subscribe({
+      next: (response: any) => {
+        this.ciudades = response.cities || [];
+        this.cargandoCiudades = false;
+        
+        // Si hay una ciudad en el formulario, mantenerla seleccionada
+        const ciudadActual = this.profileForm.value.ciudad;
+        if (ciudadActual && this.ciudades.some(c => c.name === ciudadActual)) {
+          this.profileForm.patchValue({ ciudad: ciudadActual });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error al cargar ciudades:', error);
+        this.cargandoCiudades = false;
+        this.ciudades = [];
+      }
+    });
   }
 
   private patchProfileForm(usuario: UsuarioPerfil): void {
@@ -2069,13 +1867,17 @@ export class AccountComponent implements OnInit, OnDestroy {
       pais: usuario.pais || '',
       fecha_nacimiento: usuario.fecha_nacimiento ? usuario.fecha_nacimiento.substring(0, 10) : ''
     });
-    this.pendingCountryName = usuario.pais ? usuario.pais.trim() : null;
-    this.pendingCityName = usuario.ciudad ? usuario.ciudad.trim() : null;
-    this.pendingCountrySearched = false;
-    if (this.pendingCountryName) {
-      this.triggerCountrySearch(this.pendingCountryName);
+    
+    // Si hay un país guardado, seleccionarlo y cargar ciudades
+    if (usuario.pais) {
+      const pais = this.paises.find(p => p.name === usuario.pais);
+      if (pais) {
+        this.paisSeleccionado = pais.code;
+        if (this.paises.length > 0) {
+          this.cargarCiudades(pais.code);
+        }
+      }
     }
-    this.applyPendingLocation();
   }
 
   guardarPerfil(): void {
