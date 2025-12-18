@@ -36,8 +36,8 @@ def admin_required(fn):
 def listar_suscripciones():
     """
     GET /admin/suscripciones
-    Lista todas las suscripciones con filtros opcionales
-    Query params: ?estado=activa&empresa_id=1&nit=123456789
+    Lista todas las suscripciones con filtros opcionales y paginación
+    Query params: ?estado=activa&empresa_id=1&nit=123456789&page=1&per_page=20
     """
     try:
         # Usar joinedload para cargar las relaciones
@@ -50,6 +50,11 @@ def listar_suscripciones():
         estado = request.args.get('estado')
         empresa_id = request.args.get('empresa_id', type=int)
         nit = request.args.get('nit')
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        # Limitar per_page a un máximo razonable
+        per_page = min(per_page, 100)
         
         # Log de solicitud
         AppLogger.info(
@@ -57,7 +62,9 @@ def listar_suscripciones():
             "Listar suscripciones",
             estado=estado,
             empresa_id=empresa_id,
-            nit=nit
+            nit=nit,
+            page=page,
+            per_page=per_page
         )
         
         # Aplicar filtros
@@ -74,21 +81,37 @@ def listar_suscripciones():
                 query = query.filter(Suscripcion.empresa_id == empresa.id)
             else:
                 AppLogger.warning(LogCategory.SUSCRIPCIONES, "Empresa no encontrada por NIT", nit=nit)
-                return jsonify([]), 200
+                return jsonify({'suscripciones': [], 'total': 0, 'page': page, 'per_page': per_page, 'pages': 0}), 200
         
-        suscripciones = query.order_by(Suscripcion.creado_en.desc()).all()
+        # Obtener total antes de paginar
+        total = query.count()
+        
+        # Aplicar paginación
+        suscripciones_paginadas = query.order_by(Suscripcion.creado_en.desc()).paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
         
         AppLogger.info(
             LogCategory.SUSCRIPCIONES, 
             "Consulta finalizada",
-            total_resultados=len(suscripciones)
+            total_resultados=total,
+            page=page,
+            per_page=per_page
         )
         
         resultado = []
-        for suscripcion in suscripciones:
+        for suscripcion in suscripciones_paginadas.items:
             resultado.append(suscripcion.to_dict())
         
-        return jsonify(resultado), 200
+        return jsonify({
+            'suscripciones': resultado,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'pages': suscripciones_paginadas.pages
+        }), 200
     
     except Exception as e:
         AppLogger.error(LogCategory.SUSCRIPCIONES, f"Error al listar suscripciones", exc=e)

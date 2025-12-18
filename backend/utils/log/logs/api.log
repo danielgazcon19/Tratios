@@ -36,3 +36,42 @@
 2025-12-16 21:35:44 | INFO     | Planes obtenidos exitosamente | total_planes=3
 2025-12-16 21:35:47 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
 2025-12-16 21:35:47 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-17 11:33:50 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-17 11:33:50 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-17 11:34:12 | INFO     | Listado de API keys | total=0 | empresa_id=None
+2025-12-17 11:43:09 | INFO     | API Key creada | api_key_id=1 | empresa_id=1 | empresa_nombre=La Casona | nombre=API Consumo suscripcion activa | creado_por=18 | dias_expiracion=365
+2025-12-17 11:45:19 | INFO     | Listado de API keys | total=1 | empresa_id=None
+2025-12-17 11:45:31 | INFO     | Listado de API keys | total=1 | empresa_id=None
+2025-12-17 11:45:34 | INFO     | Listado de API keys | total=1 | empresa_id=None
+2025-12-17 12:49:43 | INFO     | Listado de API keys | total=1 | empresa_id=None
+2025-12-17 12:49:48 | INFO     | Listado de API keys | total=1 | empresa_id=None
+2025-12-17 14:28:39 | INFO     | Listado de API keys | total=1 | empresa_id=None
+2025-12-17 14:42:14 | INFO     | Listado de API keys | total=1 | empresa_id=None
+2025-12-17 15:37:37 | INFO     | Listado de API keys | total=0 | empresa_id=None
+2025-12-17 15:38:25 | INFO     | API Key creada | api_key_id=2 | empresa_id=1 | empresa_nombre=La Casona | nombre=API-Key Consumo de Suscripciones Activas | creado_por=18 | dias_expiracion=365
+2025-12-17 15:38:42 | INFO     | Listado de API keys | total=1 | empresa_id=None
+2025-12-17 15:40:49 | INFO     | API Key creada | api_key_id=3 | empresa_id=1 | empresa_nombre=La Casona | nombre=API-Key Consumo Tickets de Soporte | creado_por=18 | dias_expiracion=365
+2025-12-17 15:47:19 | INFO     | Listado de API keys | total=2 | empresa_id=None
+2025-12-17 16:55:53 | WARNING  | Intento de acceso sin X-Empresa-Id | ip=127.0.0.1 | endpoint=api.obtener_suscripcion_activa
+2025-12-17 16:56:03 | WARNING  | Intento de acceso sin X-Empresa-Id | ip=127.0.0.1 | endpoint=api.obtener_suscripcion_activa
+2025-12-17 16:56:57 | WARNING  | Intento de acceso sin X-Empresa-Id | ip=127.0.0.1 | endpoint=api.obtener_suscripcion_activa
+2025-12-17 16:58:18 | WARNING  | Intento de acceso sin X-Empresa-Id | ip=127.0.0.1 | endpoint=api.obtener_suscripcion_activa
+2025-12-17 17:03:10 | INFO     | Acceso autorizado con API Key | empresa_id=1 | api_key_id=2 | api_key_nombre=API-Key Consumo de Suscripciones Activas | endpoint=api.obtener_suscripcion_activa | ip=127.0.0.1
+2025-12-17 17:03:10 | INFO     | Consulta de suscripción activa por NIT | nit=80020548521-vxT20.Wd | ip=127.0.0.1
+2025-12-17 17:03:10 | INFO     | Consulta de suscripción exitosa | empresa_id=1 | empresa_nombre=La Casona | nit=80020548521-vxT20.Wd | plan_id=2 | plan_nombre=Pro | total_servicios=27
+2025-12-17 18:29:58 | INFO     | Listado de API keys | total=6 | empresa_id=None
+2025-12-17 19:47:54 | INFO     | Listado de API keys | total=6 | empresa_id=None
+2025-12-17 19:49:40 | INFO     | API Key eliminada | api_key_id=4 | empresa_id=1 | nombre=Test Licencias/Suscripciones | eliminado_por=18
+2025-12-17 19:49:41 | INFO     | Listado de API keys | total=5 | empresa_id=None
+2025-12-17 19:50:15 | INFO     | API Key desactivada | api_key_id=3 | activo=False | modificado_por=18
+2025-12-17 19:50:16 | INFO     | Listado de API keys | total=5 | empresa_id=None
+2025-12-17 19:56:03 | INFO     | API Key activada | api_key_id=3 | activo=True | modificado_por=18
+2025-12-17 19:56:03 | INFO     | Listado de API keys | total=5 | empresa_id=None
+2025-12-17 20:11:46 | INFO     | API Key renovada | api_key_id=5 | renovado_por=18 | dias_expiracion=365
+2025-12-17 20:11:56 | INFO     | Listado de API keys | total=5 | empresa_id=None
+2025-12-17 20:16:20 | INFO     | Listado de API keys | total=5 | empresa_id=None
+2025-12-17 20:19:28 | INFO     | Listado de API keys | total=5 | empresa_id=None
+2025-12-17 20:19:42 | INFO     | API Key creada | api_key_id=8 | empresa_id=7 | empresa_nombre=La Reina | nombre=API-Key Consumo de Suscripciones Activas | creado_por=18 | dias_expiracion=365
+2025-12-17 20:19:57 | INFO     | Listado de API keys | total=6 | empresa_id=None
+2025-12-17 20:34:27 | INFO     | Listado de API keys | total=6 | page=1 | per_page=20 | empresa_id=None
+2025-12-17 20:40:05 | INFO     | Listado de API keys | total=6 | page=1 | per_page=20 | empresa_id=None

@@ -1132,6 +1132,56 @@ button {
   align-self: flex-end;
 }
 
+/* Paginación */
+.paginacion-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+.paginacion-info {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.paginacion-controles {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-paginacion {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #dee2e6;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 36px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.btn-paginacion:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.btn-paginacion.active {
+  background: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.btn-paginacion:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f8f9fa;
+  color: #adb5bd;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .admin-nav {

@@ -128,6 +128,8 @@ def create_app():
     from routes.admin_soporte_pagos import admin_soporte_pagos_bp
     from routes.admin_soporte_tickets import admin_soporte_tickets_bp
     from routes.api_soporte import api_soporte_bp
+    # Blueprint de API keys
+    from routes.admin_api_keys import admin_api_keys_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -146,12 +148,15 @@ def create_app():
     app.register_blueprint(admin_soporte_pagos_bp)
     app.register_blueprint(admin_soporte_tickets_bp)
     app.register_blueprint(api_soporte_bp)
+    # Registrar blueprint de API keys
+    app.register_blueprint(admin_api_keys_bp)
 
     init_location_service(app)
     
     # Importar modelos para que SQLAlchemy los reconozca
     from models import usuario, empresa, servicio, suscripcion, log_acceso
     from models import soporte_tipo, soporte_suscripcion, soporte_pago, soporte_ticket
+    from models import api_key
 
     # Servir Angular SPA (solo en producción o si existe el build)
     angular_dist_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'frontend', 'browser')

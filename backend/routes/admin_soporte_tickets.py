@@ -9,11 +9,17 @@ from flask_jwt_extended.exceptions import NoAuthorizationError
 from werkzeug.utils import secure_filename
 from functools import wraps
 from database.db import db
+#Models
+from models.api_key import get_colombia_now
 from models.soporte_ticket import SoporteTicket, SoporteTicketComentario
 from models.soporte_suscripcion import SoporteSuscripcion
 from models.usuario import Usuario
+from models.api_key import ApiKey
+from models.empresa import Empresa
+#Utils
 from utils.security import admin_required
 from utils.log import AppLogger, LogCategory
+from utils.api_key_crypto import verificar_api_key
 from utils.file_handler import (
     allowed_file, validate_file_size, get_upload_path,
     generate_unique_filename, get_file_info, delete_ticket_files,
@@ -27,9 +33,12 @@ def admin_or_api_key_required(f):
     """
     Decorador que permite acceso mediante:
     1. JWT de administrador (para el panel admin)
-    2. API Key (para consumo externo via API privada)
+    2. API Key desde base de datos (para consumo externo via API privada)
     
-    Esto permite que los endpoints puedan ser usados por ambos contextos.
+    Requiere headers (cuando se usa API Key):
+    - X-API-Key: API key en texto plano
+    - X-Empresa-Id: ID de la empresa
+    - X-Code-API: Código del scope (recomendado: 'soporte')
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -37,16 +46,121 @@ def admin_or_api_key_required(f):
         api_key = request.headers.get('X-API-Key')
         
         if api_key:
-            # Validar API Key
-            valid_api_key = current_app.config.get('SAAS_API_KEY') or os.environ.get('SAAS_API_KEY')
+            # Validar API Key desde base de datos
+            empresa_id_header = request.headers.get('X-Empresa-Id')
+            codigo_requerido = request.headers.get('X-Code-API')
             
-            if not valid_api_key:
-                AppLogger.error(LogCategory.SOPORTE, 'API Key no configurada en el servidor')
-                return jsonify({'message': 'Configuración de servidor incorrecta', 'error': 'server_config_error'}), 500
+            if not empresa_id_header:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'Intento de acceso sin X-Empresa-Id',
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint
+                )
+                return jsonify({'message': 'X-Empresa-Id header requerido', 'error': 'missing_empresa_id'}), 401
             
-            if api_key != valid_api_key:
-                AppLogger.warning(LogCategory.SOPORTE, 'Intento de acceso con API Key inválida')
-                return jsonify({'message': 'API Key inválida', 'error': 'invalid_api_key'}), 403
+            if not codigo_requerido:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'Intento de acceso sin X-Code-API',
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint
+                )
+                return jsonify({'message': 'X-Code-API header requerido', 'error': 'missing_codigo_key'}), 401
+            
+            # Validar formato de empresa_id
+            try:
+                empresa_id = int(empresa_id_header)
+            except ValueError:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'X-Empresa-Id inválido (no numérico)',
+                    empresa_id_header=empresa_id_header,
+                    ip=request.remote_addr
+                )
+                return jsonify({'message': 'X-Empresa-Id debe ser numérico', 'error': 'invalid_empresa_id'}), 400
+            
+            # Validar que la empresa existe
+            empresa = Empresa.query.get(empresa_id)
+            if not empresa:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'Intento de acceso con empresa_id inexistente',
+                    empresa_id=empresa_id,
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint
+                )
+                return jsonify({'message': 'Empresa no encontrada', 'error': 'empresa_not_found'}), 404
+            
+            # Buscar API keys activas de la empresa con el código específico
+            api_keys = ApiKey.query.filter_by(
+                empresa_id=empresa_id,
+                codigo=codigo_requerido,
+                activo=True
+            ).all()
+            
+            if not api_keys:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    f'Empresa sin API keys activas para código {codigo_requerido}',
+                    empresa_id=empresa_id,
+                    codigo_requerido=codigo_requerido,
+                    ip=request.remote_addr
+                )
+                return jsonify({'message': f'No hay API keys activas para el scope "{codigo_requerido}"', 'error': 'no_active_keys'}), 403
+            
+            # Verificar si alguna API key coincide
+            api_key_valida = None
+            for key_record in api_keys:
+                # Verificar expiración
+                if key_record.esta_expirada():
+                    continue
+                
+                # Verificar hash con bcrypt
+                if verificar_api_key(api_key, key_record.api_key_hash):
+                    api_key_valida = key_record
+                    break
+            
+            if not api_key_valida:
+                AppLogger.warning(
+                    LogCategory.SOPORTE,
+                    'API Key inválida o expirada',
+                    empresa_id=empresa_id,
+                    codigo_requerido=codigo_requerido,
+                    ip=request.remote_addr,
+                    endpoint=request.endpoint,
+                    api_key_prefix=api_key[:8] if len(api_key) >= 8 else 'corta'
+                )
+                return jsonify({'message': 'API Key inválida o expirada', 'error': 'invalid_api_key'}), 403
+            
+            # Actualizar último uso con hora de Colombia
+            try:
+                api_key_valida.ultimo_uso = get_colombia_now()
+                db.session.commit()
+            except Exception as e:
+                AppLogger.error(
+                    LogCategory.SOPORTE,
+                    'Error al actualizar ultimo_uso de API key',
+                    api_key_id=api_key_valida.id,
+                    exc=e
+                )
+                # No bloqueamos el request por esto
+            
+            # Guardar contexto para uso posterior
+            request.api_key_id = api_key_valida.id
+            request.empresa_id = empresa_id
+            request.api_key_codigo = api_key_valida.codigo
+            
+            AppLogger.info(
+                LogCategory.SOPORTE,
+                'Acceso autorizado con API Key desde BD',
+                empresa_id=empresa_id,
+                api_key_id=api_key_valida.id,
+                api_key_nombre=api_key_valida.nombre,
+                api_key_codigo=api_key_valida.codigo,
+                endpoint=request.endpoint,
+                ip=request.remote_addr
+            )
             
             # API Key válida, permitir acceso
             return f(*args, **kwargs)

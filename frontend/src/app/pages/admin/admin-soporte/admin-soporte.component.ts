@@ -71,6 +71,13 @@ export class AdminSoporteComponent implements OnInit {
   filtroPrioridadTicket = '';
   filtroEmpresaTicket: number | null = null;
   mostrarFormularioTicket = false;
+  
+  // Paginación de tickets
+  paginaActual = 1;
+  itemsPorPagina = 20;
+  totalItems = 0;
+  totalPaginas = 0;
+  Math = Math;
   nuevoTicket: CrearSoporteTicketDto = {
     soporte_suscripcion_id: 0,
     empresa_id: 0,
@@ -410,8 +417,8 @@ export class AdminSoporteComponent implements OnInit {
 
   cargarSuscripciones(): void {
     this.suscripcionesService.listarSuscripciones({ estado: 'activa' }).subscribe({
-      next: (suscripciones) => {
-        this.suscripciones = suscripciones;
+      next: (response) => {
+        this.suscripciones = response.suscripciones;
       },
       error: (error) => console.error('Error al cargar suscripciones:', error)
     });
@@ -456,13 +463,13 @@ export class AdminSoporteComponent implements OnInit {
         empresa_id: empresaId, 
         estado: 'activa' 
       }).subscribe({
-        next: (suscripciones) => {
+        next: (response) => {
 
-          this.suscripcionesEmpresaSeleccionada = suscripciones;
+          this.suscripcionesEmpresaSeleccionada = response.suscripciones;
           this.cargandoSuscripcionesEmpresa = false;
           // Si solo hay una suscripción, seleccionarla automáticamente
-          if (suscripciones.length === 1) {
-            this.nuevaSuscripcion.suscripcion_id = suscripciones[0].id;
+          if (response.suscripciones.length === 1) {
+            this.nuevaSuscripcion.suscripcion_id = response.suscripciones[0].id;
           }
         },
         error: (error) => {
@@ -1396,7 +1403,10 @@ export class AdminSoporteComponent implements OnInit {
 
   cargarTickets(): void {
     this.cargando = true;
-    const filtros: any = {};
+    const filtros: any = {
+      page: this.paginaActual,
+      per_page: this.itemsPorPagina
+    };
     if (this.filtroEstadoTicket) filtros.estado = this.filtroEstadoTicket;
     if (this.filtroPrioridadTicket) filtros.prioridad = this.filtroPrioridadTicket;
     if (this.filtroEmpresaTicket) filtros.empresa_id = this.filtroEmpresaTicket;
@@ -1404,6 +1414,8 @@ export class AdminSoporteComponent implements OnInit {
     this.soporteService.listarSoporteTickets(filtros).subscribe({
       next: (response) => {
         this.tickets = response.tickets || [];
+        this.totalItems = response.total;
+        this.totalPaginas = response.pages;
         this.cargando = false;
         
         // Actualizar estadísticas si vienen en la respuesta
@@ -1434,7 +1446,32 @@ export class AdminSoporteComponent implements OnInit {
   }
 
   filtrarTickets(): void {
+    this.paginaActual = 1;
     this.cargarTickets();
+  }
+
+  cambiarPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+      this.cargarTickets();
+    }
+  }
+
+  getPaginaArray(): number[] {
+    const paginas: number[] = [];
+    const maxPaginas = 5;
+    let inicio = Math.max(1, this.paginaActual - Math.floor(maxPaginas / 2));
+    let fin = Math.min(this.totalPaginas, inicio + maxPaginas - 1);
+    
+    if (fin - inicio + 1 < maxPaginas) {
+      inicio = Math.max(1, fin - maxPaginas + 1);
+    }
+    
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    
+    return paginas;
   }
 
   cerrarDetalleTicket(): void {

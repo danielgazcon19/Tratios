@@ -59,6 +59,10 @@ export const routes: Routes = [
       { 
         path: 'soporte', 
         loadComponent: () => import('./pages/admin/admin-soporte/admin-soporte.component').then(m => m.AdminSoporteComponent) 
+      },
+      { 
+        path: 'api-keys', 
+        loadComponent: () => import('./pages/admin/admin-api-keys/admin-api-keys.component').then(m => m.AdminApiKeysComponent) 
       }
     ]
   },
