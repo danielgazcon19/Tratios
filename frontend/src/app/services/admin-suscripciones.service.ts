@@ -85,7 +85,7 @@ export class AdminSuscripcionesService {
   listarSuscripciones(filtros?: { estado?: string; empresa_id?: number; nit?: string }): Observable<Suscripcion[]> {
     let params = new HttpParams();
     
-    console.log('>>> listarSuscripciones llamado con filtros:', filtros);
+
     
     if (filtros?.estado) {
       params = params.set('estado', filtros.estado);
@@ -97,7 +97,7 @@ export class AdminSuscripcionesService {
       params = params.set('nit', filtros.nit);
     }
     
-    console.log('>>> URL final:', this.apiUrl, '>>> Params:', params.toString());
+
     
     return this.http.get<Suscripcion[]>(this.apiUrl, { params });
   }

@@ -86,6 +86,21 @@ export class AdminSoporteComponent implements OnInit {
   // Información de suscripción de soporte
   suscripcionSoporteActiva: any = null;
   cargandoSuscripcionSoporte = false;
+  disponibilidadSoporte: any = null;
+  cargandoDisponibilidad = false;
+
+  // Estadísticas de tickets
+  estadisticasTickets: any = {
+    total: 0,
+    abiertos: 0,
+    en_proceso: 0,
+    pendiente_respuesta: 0,
+    cerrados: 0,
+    cancelados: 0,
+    criticos: 0,
+    sin_asignar: 0,
+    activos: 0
+  };
 
   // ============ PAGOS ============
   pagos: SoportePago[] = [];
@@ -96,6 +111,9 @@ export class AdminSoporteComponent implements OnInit {
     monto: 0,
     estado: 'exitoso'
   };
+
+  // Monto formateado para UI
+  montoFormateado: string = '';
 
   // Admins para asignación
   admins: any[] = [];
@@ -129,6 +147,7 @@ export class AdminSoporteComponent implements OnInit {
         break;
       case 'pagos':
         this.cargarPagos();
+        this.cargarTodasSuscripciones(); // Cargar todas las suscripciones para el formulario de pagos
         break;
     }
   }
@@ -365,8 +384,9 @@ export class AdminSoporteComponent implements OnInit {
     if (this.filtroEmpresaSuscripcion) filtros.empresa_id = this.filtroEmpresaSuscripcion;
 
     this.soporteService.listarSoporteSuscripciones(filtros).subscribe({
-      next: (suscripciones) => {
-        this.soporteSuscripciones = suscripciones;
+      next: (response) => {
+        // Manejar tanto el formato antiguo (array) como el nuevo (objeto con paginación)
+        this.soporteSuscripciones = response.suscripciones || response || [];
         this.cargando = false;
       },
       error: (error) => {
@@ -427,7 +447,7 @@ export class AdminSoporteComponent implements OnInit {
     
     if (empresaId && empresaId > 0) {
       this.cargandoSuscripcionesEmpresa = true;
-      console.log('Cargando suscripciones para empresa_id:', empresaId);
+
       
       // Cargar suscripciones activas de la empresa seleccionada desde el backend
       this.suscripcionesService.listarSuscripciones({ 
@@ -435,7 +455,7 @@ export class AdminSoporteComponent implements OnInit {
         estado: 'activa' 
       }).subscribe({
         next: (suscripciones) => {
-          console.log('Suscripciones recibidas:', suscripciones);
+
           this.suscripcionesEmpresaSeleccionada = suscripciones;
           this.cargandoSuscripcionesEmpresa = false;
           // Si solo hay una suscripción, seleccionarla automáticamente
@@ -686,6 +706,197 @@ export class AdminSoporteComponent implements OnInit {
     });
   }
 
+  cambiarEstadoSuscripcion(suscripcion: SoporteSuscripcion): void {
+    const estadoActual = suscripcion.estado;
+    const estadoLabels: { [key: string]: string } = {
+      'activo': 'Activo',
+      'vencido': 'Vencido',
+      'cancelado': 'Cancelado',
+      'pendiente_pago': 'Pendiente de Pago'
+    };
+
+    Swal.fire({
+      title: '',
+      html: `
+        <div class="estado-modal">
+          <div class="modal-header-custom">
+            <div class="icon-circle estado">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <path d="M9 12l2 2 4-4"></path>
+              </svg>
+            </div>
+            <h2>Cambiar Estado de Suscripción</h2>
+            <p class="subtitle">Modifica el estado de la suscripción de soporte</p>
+          </div>
+
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Empresa</span>
+              <span class="info-value">${suscripcion.empresa?.nombre || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Tipo de Soporte</span>
+              <span class="info-value">${suscripcion.tipo_soporte?.nombre || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Estado Actual</span>
+              <span class="info-value estado-badge-current">${estadoLabels[estadoActual]}</span>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+              </svg>
+              Nuevo Estado
+            </label>
+            <select id="nuevo-estado" class="form-select">
+              <option value="">-- Seleccionar Estado --</option>
+              ${estadoActual !== 'activo' ? '<option value="activo">✅ Activo</option>' : ''}
+              ${estadoActual !== 'vencido' ? '<option value="vencido">⏰ Vencido</option>' : ''}
+              ${estadoActual !== 'pendiente_pago' ? '<option value="pendiente_pago">💳 Pendiente de Pago</option>' : ''}
+              ${estadoActual !== 'cancelado' ? '<option value="cancelado">❌ Cancelado</option>' : ''}
+            </select>
+          </div>
+
+          <div class="form-section">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Motivo del Cambio (opcional)
+            </label>
+            <textarea id="motivo-cambio" class="form-textarea" placeholder="Describe el motivo del cambio de estado..." rows="3"></textarea>
+          </div>
+        </div>
+
+        <style>
+          .estado-modal { text-align: left; }
+          .modal-header-custom { text-align: center; margin-bottom: 20px; }
+          .icon-circle.estado { 
+            width: 56px; height: 56px; 
+            background: linear-gradient(135deg, #06b6d4, #0891b2); 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            margin: 0 auto 12px; 
+            color: white;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+          }
+          .modal-header-custom h2 { margin: 0; font-size: 1.5rem; color: #1f2937; }
+          .modal-header-custom .subtitle { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
+          
+          .info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+          }
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e2e8f0;
+          }
+          .info-row:last-child { border-bottom: none; }
+          .info-label { color: #64748b; font-size: 0.9rem; }
+          .info-value { font-weight: 600; color: #1f2937; }
+          .estado-badge-current {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+          }
+          
+          .form-section { margin-bottom: 16px; }
+          .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+          }
+          .form-label svg { color: #6b7280; }
+          
+          .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #1f2937;
+            background: white;
+            transition: all 0.2s;
+          }
+          .form-select:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+          }
+          
+          .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #1f2937;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.2s;
+          }
+          .form-textarea:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+          }
+          .form-textarea::placeholder { color: #9ca3af; }
+        </style>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Cambiar Estado',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#06b6d4',
+      cancelButtonColor: '#6b7280',
+      width: '550px',
+      preConfirm: () => {
+        const nuevoEstado = (document.getElementById('nuevo-estado') as HTMLSelectElement).value;
+        const motivo = (document.getElementById('motivo-cambio') as HTMLTextAreaElement).value;
+
+        if (!nuevoEstado) {
+          Swal.showValidationMessage('Debes seleccionar un estado');
+          return false;
+        }
+
+        return { estado: nuevoEstado, motivo };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.soporteService.cambiarEstadoSuscripcion(suscripcion.id, result.value).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Estado Actualizado',
+              text: `La suscripción ahora está en estado: ${estadoLabels[result.value.estado]}`,
+              confirmButtonColor: '#06b6d4'
+            });
+            this.cargarSoporteSuscripciones();
+          },
+          error: (error) => {
+            Swal.fire('Error', error.error?.message || 'No se pudo cambiar el estado', 'error');
+          }
+        });
+      }
+    });
+  }
+
   renovarSoporteSuscripcion(suscripcion: SoporteSuscripcion): void {
     Swal.fire({
       title: 'Renovar Suscripción de Soporte',
@@ -721,6 +932,19 @@ export class AdminSoporteComponent implements OnInit {
   // ============ TICKETS ============
 
   verDetalleTicket(ticket: SoporteTicket): void {
+    // Primero cargar el ticket con todos los detalles incluyendo comentarios
+    this.soporteService.obtenerTicketDetalle(ticket.id).subscribe({
+      next: (ticketDetalle) => {
+        this.mostrarModalDetalle(ticketDetalle);
+      },
+      error: (error) => {
+        console.error('Error al cargar detalle:', error);
+        Swal.fire('Error', 'No se pudo cargar el detalle del ticket', 'error');
+      }
+    });
+  }
+
+  private mostrarModalDetalle(ticket: SoporteTicket): void {
     const estadoColors: { [key: string]: { bg: string; text: string; icon: string } } = {
       'abierto': { bg: '#dbeafe', text: '#2563eb', icon: '📂' },
       'en_progreso': { bg: '#fef3c7', text: '#d97706', icon: '⚙️' },
@@ -804,6 +1028,33 @@ export class AdminSoporteComponent implements OnInit {
           </div>
           ` : ''}
           
+          ${ticket.extra_data?.archivos?.length > 0 ? `
+          <div class="seccion">
+            <h3 class="seccion-titulo"><span class="icon">📎</span> Archivos Adjuntos</h3>
+            <div class="archivos-lista">
+              ${ticket.extra_data.archivos.map((archivo: any) => `
+                <div class="archivo-item" data-ticket-id="${ticket.id}" data-filename="${archivo.nombre}">
+                  <div class="archivo-icono">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"></path>
+                      <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                  </div>
+                  <div class="archivo-info">
+                    <span class="archivo-nombre">${archivo.nombre_original || archivo.nombre}</span>
+                    <span class="archivo-size">${archivo.tamano_mb ? archivo.tamano_mb.toFixed(2) + ' MB' : 'Tamaño desconocido'}</span>
+                  </div>
+                  <button class="btn-descargar-archivo" title="Descargar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+                    </svg>
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+          
           <div class="seccion">
             <h3 class="seccion-titulo"><span class="icon">📆</span> Fechas</h3>
             <div class="fechas-timeline">
@@ -826,6 +1077,60 @@ export class AdminSoporteComponent implements OnInit {
               ` : ''}
             </div>
           </div>
+
+          ${(ticket as any).comentarios && (ticket as any).comentarios.length > 0 ? `
+          <div class="seccion">
+            <h3 class="seccion-titulo"><span class="icon">💬</span> Historial de Comentarios</h3>
+            <div class="comentarios-timeline">
+              ${(ticket as any).comentarios.map((comentario: any, index: number) => `
+                <div class="comentario-item">
+                  <div class="comentario-header">
+                    <div class="user-badge">
+                      <div class="user-avatar ${comentario.es_admin ? 'admin' : 'cliente'}">
+                        ${comentario.es_admin ? '👨‍💼' : '👤'}
+                      </div>
+                      <div class="user-info">
+                        <span class="user-name">${comentario.admin_nombre || 'Usuario'}</span>
+                        <span class="user-role">${comentario.es_admin ? 'Equipo de Soporte' : 'Cliente'}</span>
+                      </div>
+                    </div>
+                    <span class="comentario-fecha">${this.formatDateTime(comentario.fecha_creacion)}</span>
+                  </div>
+                  <div class="comentario-body">
+                    <p>${comentario.comentario.replace(/\n/g, '<br>')}</p>
+                    ${comentario.archivos && comentario.archivos.length > 0 ? `
+                      <div class="comentario-archivos">
+                        <div class="archivos-header">📎 Archivos adjuntos (${comentario.archivos.length})</div>
+                        <div class="archivos-grid">
+                          ${comentario.archivos.map((archivo: any) => `
+                            <div class="archivo-card" data-ticket-id="${ticket.id}" data-filename="${archivo.nombre}">
+                              <div class="archivo-preview">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                  <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"></path>
+                                  <polyline points="13 2 13 9 20 9"></polyline>
+                                </svg>
+                              </div>
+                              <div class="archivo-details">
+                                <span class="archivo-name">${archivo.nombre_original || archivo.nombre}</span>
+                                <span class="archivo-meta">${archivo.tamano_mb ? archivo.tamano_mb.toFixed(2) + ' MB' : ''}</span>
+                              </div>
+                              <button class="btn-descargar-comentario" title="Descargar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+                                </svg>
+                              </button>
+                            </div>
+                          `).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+                  </div>
+                  ${index < (ticket as any).comentarios.length - 1 ? '<div class="timeline-connector"></div>' : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
         </div>
         
         ${this.getModalDetailStyles()}
@@ -839,11 +1144,251 @@ export class AdminSoporteComponent implements OnInit {
             background: #22c55e;
             box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
           }
+          .archivos-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+          }
+          .archivo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s;
+          }
+          .archivo-item:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          }
+          .archivo-icono {
+            flex-shrink: 0;
+            color: #64748b;
+          }
+          .archivo-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+          }
+          .archivo-nombre {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .archivo-size {
+            font-size: 0.8rem;
+            color: #64748b;
+          }
+          .btn-descargar-archivo {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .btn-descargar-archivo:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+          }
+          
+          /* Estilos para comentarios timeline */
+          .comentarios-timeline {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+          .comentario-item {
+            position: relative;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+          }
+          .comentario-item:hover {
+            background: #f1f5f9;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          }
+          .comentario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #cbd5e1;
+          }
+          .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+          }
+          .user-avatar.admin {
+            background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+          }
+          .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+          }
+          .user-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.95rem;
+          }
+          .user-role {
+            font-size: 0.8rem;
+            color: #64748b;
+          }
+          .comentario-fecha {
+            font-size: 0.85rem;
+            color: #64748b;
+          }
+          .comentario-body {
+            color: #334155;
+            line-height: 1.6;
+          }
+          .comentario-body p {
+            margin: 0;
+          }
+          .comentario-archivos {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #cbd5e1;
+          }
+          .archivos-header {
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+          }
+          .archivos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+          }
+          .archivo-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s;
+          }
+          .archivo-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+          }
+          .archivo-preview {
+            flex-shrink: 0;
+            color: #64748b;
+          }
+          .archivo-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+          }
+          .archivo-name {
+            font-size: 0.85rem;
+            color: #1e293b;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .archivo-meta {
+            font-size: 0.75rem;
+            color: #94a3b8;
+          }
+          .btn-descargar-comentario {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .btn-descargar-comentario:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+          }
+          .timeline-connector {
+            height: 12px;
+            width: 2px;
+            background: linear-gradient(to bottom, #e2e8f0, transparent);
+            margin: -8px auto 0;
+          }
         </style>
       `,
       confirmButtonText: 'Cerrar',
       confirmButtonColor: '#6b7280',
-      width: '600px'
+      width: '600px',
+      didOpen: () => {
+        // Event listeners para archivos del ticket principal
+        document.querySelectorAll('.btn-descargar-archivo').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const archivoItem = (e.target as HTMLElement).closest('.archivo-item');
+            if (archivoItem) {
+              const ticketId = archivoItem.getAttribute('data-ticket-id');
+              const filename = archivoItem.getAttribute('data-filename');
+              if (ticketId && filename) {
+                this.descargarArchivoTicket(parseInt(ticketId), filename);
+              }
+            }
+          });
+        });
+        
+        // Event listeners para archivos de comentarios
+        document.querySelectorAll('.btn-descargar-comentario').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const archivoCard = (e.target as HTMLElement).closest('.archivo-card');
+            if (archivoCard) {
+              const ticketId = archivoCard.getAttribute('data-ticket-id');
+              const filename = archivoCard.getAttribute('data-filename');
+              if (ticketId && filename) {
+                this.descargarArchivoTicket(parseInt(ticketId), filename);
+              }
+            }
+          });
+        });
+      }
     });
   }
 
@@ -855,14 +1400,33 @@ export class AdminSoporteComponent implements OnInit {
     if (this.filtroEmpresaTicket) filtros.empresa_id = this.filtroEmpresaTicket;
 
     this.soporteService.listarSoporteTickets(filtros).subscribe({
-      next: (tickets) => {
-        this.tickets = tickets;
+      next: (response) => {
+        this.tickets = response.tickets || [];
         this.cargando = false;
+        
+        // Actualizar estadísticas si vienen en la respuesta
+        if (response.estadisticas) {
+          this.estadisticasTickets = response.estadisticas;
+        }
       },
       error: (error) => {
         console.error('Error al cargar tickets:', error);
         Swal.fire('Error', 'No se pudieron cargar los tickets', 'error');
         this.cargando = false;
+      }
+    });
+    
+    // Cargar estadísticas solo si no vienen en la respuesta de tickets
+    this.cargarEstadisticasTickets();
+  }
+
+  cargarEstadisticasTickets(): void {
+    this.soporteService.obtenerEstadisticasTickets().subscribe({
+      next: (stats) => {
+        this.estadisticasTickets = stats;
+      },
+      error: (error) => {
+        console.error('Error al cargar estadísticas de tickets:', error);
       }
     });
   }
@@ -892,6 +1456,10 @@ export class AdminSoporteComponent implements OnInit {
       descripcion: '',
       prioridad: 'media'
     };
+    // Limpiar archivos seleccionados
+    this.archivosSeleccionados = [];
+    this.disponibilidadSoporte = null;
+    this.suscripcionSoporteActiva = null;
   }
 
   onEmpresaChangeTicket(): void {
@@ -903,12 +1471,17 @@ export class AdminSoporteComponent implements OnInit {
 
     // Consultar suscripción de soporte activa desde el backend
     this.cargandoSuscripcionSoporte = true;
+    this.disponibilidadSoporte = null;
+    
     this.soporteService.obtenerSuscripcionActivaEmpresa(this.nuevoTicket.empresa_id).subscribe({
       next: (response) => {
         this.cargandoSuscripcionSoporte = false;
         if (response.tiene_soporte && response.suscripcion) {
           this.suscripcionSoporteActiva = response.suscripcion;
           this.nuevoTicket.soporte_suscripcion_id = response.suscripcion.id;
+          
+          // Consultar disponibilidad de soporte
+          this.consultarDisponibilidadSoporte(response.suscripcion.id);
         } else {
           this.suscripcionSoporteActiva = null;
           this.nuevoTicket.soporte_suscripcion_id = 0;
@@ -928,9 +1501,52 @@ export class AdminSoporteComponent implements OnInit {
     });
   }
 
+  consultarDisponibilidadSoporte(suscripcionId: number): void {
+    this.cargandoDisponibilidad = true;
+    this.soporteService.consultarDisponibilidadSoporte(suscripcionId).subscribe({
+      next: (disponibilidad) => {
+        this.cargandoDisponibilidad = false;
+        this.disponibilidadSoporte = disponibilidad;
+        
+        // Si no tiene disponible, mostrar alerta
+        if (!disponibilidad.tiene_disponible) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Sin Disponibilidad',
+            html: `
+              <p>${disponibilidad.mensaje}</p>
+              <div style="margin-top: 15px; padding: 10px; background: #f3f4f6; border-radius: 8px;">
+                <strong>Modalidad:</strong> ${this.getModalidadLabel(disponibilidad.modalidad)}<br>
+                <strong>Consumido:</strong> ${disponibilidad.consumido}<br>
+                <strong>Máximo:</strong> ${disponibilidad.maximo}
+              </div>
+            `,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#d33'
+          });
+        }
+      },
+      error: (error) => {
+        this.cargandoDisponibilidad = false;
+        console.error('Error al consultar disponibilidad:', error);
+      }
+    });
+  }
+
   guardarTicket(): void {
     if (!this.nuevoTicket.titulo || !this.nuevoTicket.empresa_id || !this.nuevoTicket.soporte_suscripcion_id) {
       Swal.fire('Error', 'Título, Empresa y Suscripción de Soporte son obligatorios', 'error');
+      return;
+    }
+
+    // Verificar disponibilidad antes de crear
+    if (this.disponibilidadSoporte && !this.disponibilidadSoporte.tiene_disponible) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Sin Disponibilidad',
+        text: this.disponibilidadSoporte.mensaje,
+        confirmButtonText: 'Entendido'
+      });
       return;
     }
 
@@ -944,11 +1560,30 @@ export class AdminSoporteComponent implements OnInit {
         } else {
           Swal.fire('Éxito', 'Ticket creado correctamente', 'success');
           this.cargarTickets();
+          this.archivosSeleccionados = []; // Limpiar archivos
           this.toggleFormularioTicket();
         }
       },
       error: (error) => {
-        Swal.fire('Error', error.error?.message || 'No se pudo crear el ticket', 'error');
+        // Manejar error de disponibilidad del backend
+        if (error.error?.disponibilidad) {
+          const disp = error.error.disponibilidad;
+          Swal.fire({
+            icon: 'warning',
+            title: 'Sin Disponibilidad',
+            html: `
+              <p>${error.error.message}</p>
+              <div style="margin-top: 15px; padding: 10px; background: #f3f4f6; border-radius: 8px;">
+                <strong>Modalidad:</strong> ${this.getModalidadLabel(disp.modalidad)}<br>
+                <strong>Consumido:</strong> ${disp.consumido} / ${disp.maximo}
+              </div>
+            `,
+            confirmButtonText: 'Entendido'
+          });
+        } else {
+          Swal.fire('Error', error.error?.message || 'No se pudo crear el ticket', 'error');
+        }
+        // NO limpiar archivos aquí - el usuario puede corregir y reintentar
       }
     });
   }
@@ -987,7 +1622,773 @@ export class AdminSoporteComponent implements OnInit {
     });
   }
 
+  gestionarTicket(ticket: SoporteTicket): void {
+    const esTicketCerrado = ticket.estado === 'cerrado' || ticket.estado === 'cancelado';
+    const tieneAsignado = !!ticket.asignado_a;
+    
+    const opcionesHTML = `
+      <div class="gestionar-modal">
+        <div class="modal-header-custom">
+          <div class="icon-circle gestionar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 15a3 3 0 100-6 3 3 0 000 6z"></path>
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path>
+            </svg>
+          </div>
+          <h2>Gestionar Ticket #${ticket.id}</h2>
+          <p class="subtitle">Administrar acciones del ticket</p>
+        </div>
+        
+        <div class="info-card">
+          <div class="info-row">
+            <span class="info-label">Título</span>
+            <span class="info-value">${ticket.titulo}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Estado</span>
+            <span class="info-value estado-badge estado-${ticket.estado}">${this.getEstadoTicketLabel(ticket.estado)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Prioridad</span>
+            <span class="info-value prioridad-badge prioridad-${ticket.prioridad}">${this.getPrioridadLabel(ticket.prioridad)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Empresa</span>
+            <span class="info-value">${ticket.empresa?.nombre || 'N/A'}</span>
+          </div>
+        </div>
+
+        ${!tieneAsignado ? `
+        <div class="warning-banner">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Este ticket no tiene analista asignado. Debes asignarlo antes de agregar comentarios o cerrarlo.</span>
+        </div>
+        ` : ''}
+        
+        <div class="form-section">
+          <label class="form-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Acciones disponibles
+          </label>
+          
+          <div class="action-grid">
+            <div class="action-item" id="btn-ver-detalle">
+              <div class="action-icon primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
+              <span class="action-text">Ver Detalle</span>
+            </div>
+            
+            <div class="action-item ${!tieneAsignado ? 'disabled' : ''}" id="btn-agregar-comentario" ${!tieneAsignado ? 'data-disabled="true"' : ''}>
+              <div class="action-icon info">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+                </svg>
+              </div>
+              <span class="action-text">Comentario</span>
+            </div>
+            
+            ${!esTicketCerrado ? `
+              <div class="action-item" id="btn-cambiar-estado">
+                <div class="action-icon warning">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16 3 21 3 21 8"></polyline>
+                    <line x1="4" y1="20" x2="21" y2="3"></line>
+                    <polyline points="21 16 21 21 16 21"></polyline>
+                    <line x1="15" y1="15" x2="21" y2="21"></line>
+                  </svg>
+                </div>
+                <span class="action-text">Cambiar Estado</span>
+              </div>
+              
+              <div class="action-item ${!tieneAsignado ? 'disabled' : ''}" id="btn-cerrar" ${!tieneAsignado ? 'data-disabled="true"' : ''}>
+                <div class="action-icon success">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span class="action-text">Cerrar Ticket</span>
+              </div>
+            ` : `
+              <div class="action-item" id="btn-reabrir">
+                <div class="action-icon info">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2"/>
+                  </svg>
+                </div>
+                <span class="action-text">Reabrir</span>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        .gestionar-modal { text-align: left; }
+        .modal-header-custom { text-align: center; margin-bottom: 20px; }
+        .icon-circle.gestionar { 
+          width: 56px; height: 56px; 
+          background: linear-gradient(135deg, #8b5cf6, #7c3aed); 
+          border-radius: 50%; 
+          display: flex; align-items: center; justify-content: center; 
+          margin: 0 auto 12px; 
+          color: white;
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        .modal-header-custom h2 { margin: 0; font-size: 1.5rem; color: #1f2937; }
+        .modal-header-custom .subtitle { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
+        
+        .info-card {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 20px;
+        }
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 0;
+          border-bottom: 1px dashed #e2e8f0;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #64748b; font-size: 0.9rem; }
+        .info-value { font-weight: 600; color: #1f2937; }
+        
+        .estado-badge, .prioridad-badge {
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 600;
+        }
+        .estado-abierto { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .estado-en_proceso { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .estado-cerrado { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .prioridad-baja { background: #e2e8f0; color: #64748b; }
+        .prioridad-media { background: #fef3c7; color: #d97706; }
+        .prioridad-alta { background: #fee2e2; color: #dc2626; }
+        .prioridad-critica { background: linear-gradient(135deg, #dc2626, #991b1b); color: white; }
+        
+        .form-section { margin-bottom: 16px; }
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 12px;
+          font-size: 0.9rem;
+        }
+        .form-label svg { color: #6b7280; }
+        
+        .action-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+        
+        .action-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          padding: 16px;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+          background: white;
+        }
+        .action-item:hover {
+          border-color: #c4b5fd;
+          background: #faf5ff;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+        }
+        .action-item.disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+        
+        .warning-banner {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          background: #fef3c7;
+          border: 1px solid #fbbf24;
+          border-radius: 12px;
+          margin-bottom: 20px;
+          color: #92400e;
+        }
+        .warning-banner svg {
+          flex-shrink: 0;
+          color: #f59e0b;
+        }
+        .warning-banner span {
+          font-size: 0.9rem;
+          line-height: 1.4;
+        }
+        
+        .action-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
+        .action-icon.primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .action-icon.info { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .action-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .action-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+        
+        .action-text {
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #374151;
+          text-align: center;
+        }
+      </style>
+    `;
+    
+    Swal.fire({
+      html: opcionesHTML,
+      showConfirmButton: false,
+      showCancelButton: true,
+      cancelButtonText: 'Cerrar',
+      width: '550px',
+      didOpen: () => {
+        document.getElementById('btn-ver-detalle')?.addEventListener('click', () => {
+          Swal.close();
+          this.verDetalleTicket(ticket);
+        });
+        
+        document.getElementById('btn-agregar-comentario')?.addEventListener('click', (e) => {
+          const element = e.currentTarget as HTMLElement;
+          if (element.getAttribute('data-disabled') === 'true') {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Acción no disponible',
+              text: 'Debes asignar un analista al ticket antes de agregar comentarios',
+              confirmButtonText: 'Entendido'
+            });
+            return;
+          }
+          Swal.close();
+          this.mostrarModalComentario(ticket);
+        });
+        
+        document.getElementById('btn-cambiar-estado')?.addEventListener('click', () => {
+          Swal.close();
+          this.mostrarModalCambiarEstado(ticket);
+        });
+        
+        document.getElementById('btn-cerrar')?.addEventListener('click', (e) => {
+          const element = e.currentTarget as HTMLElement;
+          if (element.getAttribute('data-disabled') === 'true') {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Acción no disponible',
+              text: 'Debes asignar un analista al ticket antes de cerrarlo',
+              confirmButtonText: 'Entendido'
+            });
+            return;
+          }
+          Swal.close();
+          this.cerrarTicket(ticket);
+        });
+        
+        document.getElementById('btn-reabrir')?.addEventListener('click', () => {
+          Swal.close();
+          this.reabrirTicket(ticket);
+        });
+      }
+    });
+  }
+
+  mostrarModalComentario(ticket: SoporteTicket): void {
+    let archivosComentario: File[] = [];
+    
+    const comentarioHTML = `
+      <div class="comentario-modal">
+        <div class="modal-header-custom">
+          <div class="icon-circle comentario">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+              <path d="M9 10h.01M15 10h.01M9 14h6"></path>
+            </svg>
+          </div>
+          <h2>Agregar Comentario</h2>
+          <p class="subtitle">Ticket #${ticket.id} - ${ticket.titulo}</p>
+        </div>
+        
+        <div class="info-card">
+          <div class="info-row">
+            <span class="info-label">Estado Actual</span>
+            <span class="info-value estado-badge estado-${ticket.estado}">${this.getEstadoTicketLabel(ticket.estado)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Empresa</span>
+            <span class="info-value">${ticket.empresa?.nombre || 'N/A'}</span>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <label class="form-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Mensaje
+          </label>
+          <textarea id="comentario-texto" class="form-textarea" placeholder="Escribe tu comentario aquí..." rows="4"></textarea>
+        </div>
+        
+        <div class="form-section">
+          <label class="form-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"></path>
+            </svg>
+            Archivos adjuntos <span class="optional-text">(opcional)</span>
+          </label>
+          <div class="file-upload-area">
+            <input type="file" id="archivos-comentario" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
+            <label for="archivos-comentario" class="file-upload-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"></path>
+              </svg>
+              <span class="upload-text">Click para seleccionar archivos</span>
+              <span class="upload-hint">Múltiples archivos (max 5MB c/u)</span>
+            </label>
+          </div>
+          <div id="archivos-preview" class="files-preview"></div>
+        </div>
+      </div>
+      
+      <style>
+        .comentario-modal { text-align: left; }
+        .modal-header-custom { text-align: center; margin-bottom: 20px; }
+        .icon-circle.comentario { 
+          width: 56px; height: 56px; 
+          background: linear-gradient(135deg, #06b6d4, #0891b2); 
+          border-radius: 50%; 
+          display: flex; align-items: center; justify-content: center; 
+          margin: 0 auto 12px; 
+          color: white;
+          box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+        .modal-header-custom h2 { margin: 0; font-size: 1.5rem; color: #1f2937; }
+        .modal-header-custom .subtitle { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
+        
+        .info-card {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 20px;
+        }
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 0;
+          border-bottom: 1px dashed #e2e8f0;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #64748b; font-size: 0.9rem; }
+        .info-value { font-weight: 600; color: #1f2937; }
+        
+        .estado-badge {
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 600;
+        }
+        .estado-abierto { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .estado-en_proceso { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .estado-cerrado { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        
+        .form-section { margin-bottom: 20px; }
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 8px;
+          font-size: 0.9rem;
+        }
+        .form-label svg { color: #6b7280; }
+        .optional-text { font-weight: 400; color: #9ca3af; font-size: 0.85rem; }
+        
+        .form-textarea {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          font-size: 0.95rem;
+          font-family: inherit;
+          resize: vertical;
+          transition: border-color 0.2s;
+        }
+        .form-textarea:focus {
+          outline: none;
+          border-color: #06b6d4;
+          box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        }
+        
+        .file-upload-area {
+          border: 2px dashed #d1d5db;
+          border-radius: 12px;
+          padding: 24px;
+          text-align: center;
+          transition: all 0.2s;
+          background: #fafafa;
+        }
+        .file-upload-area:hover {
+          border-color: #06b6d4;
+          background: #f0fdff;
+        }
+        
+        .file-input-hidden { display: none; }
+        
+        .file-upload-label {
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+        .file-upload-label svg { color: #6b7280; }
+        .upload-text {
+          font-weight: 600;
+          color: #374151;
+          font-size: 0.95rem;
+        }
+        .upload-hint {
+          color: #9ca3af;
+          font-size: 0.85rem;
+        }
+        
+        .files-preview {
+          margin-top: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        
+        .file-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          transition: all 0.2s;
+        }
+        .file-card:hover {
+          border-color: #06b6d4;
+          box-shadow: 0 2px 8px rgba(6, 182, 212, 0.1);
+        }
+        
+        .file-card svg { color: #6b7280; flex-shrink: 0; }
+        
+        .file-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 0;
+        }
+        .file-name {
+          font-weight: 600;
+          color: #374151;
+          font-size: 0.9rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .file-size {
+          color: #9ca3af;
+          font-size: 0.85rem;
+        }
+        
+        .file-remove {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          border: none;
+          background: #fee2e2;
+          color: #dc2626;
+          font-size: 1.5rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+        }
+        .file-remove:hover {
+          background: #dc2626;
+          color: white;
+        }
+      </style>
+    `;
+    
+    Swal.fire({
+      html: comentarioHTML,
+      showCancelButton: true,
+      confirmButtonText: 'Enviar Comentario',
+      cancelButtonText: 'Cancelar',
+      width: '600px',
+      customClass: {
+        confirmButton: 'swal2-confirm swal2-styled',
+        cancelButton: 'swal2-cancel swal2-styled'
+      },
+      didOpen: () => {
+        const fileInput = document.getElementById('archivos-comentario') as HTMLInputElement;
+        const previewDiv = document.getElementById('archivos-preview');
+        
+        fileInput?.addEventListener('change', (e: any) => {
+          const files = Array.from(e.target.files || []) as File[];
+          archivosComentario = files.slice(0, 5); // Máximo 5 archivos
+          
+          if (previewDiv) {
+            previewDiv.innerHTML = archivosComentario.map((file, i) => `
+              <div class="file-card">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"></path>
+                  <polyline points="13 2 13 9 20 9"></polyline>
+                </svg>
+                <div class="file-info">
+                  <span class="file-name">${file.name}</span>
+                  <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
+                </div>
+                <button class="file-remove" data-index="${i}" type="button">×</button>
+              </div>
+            `).join('');
+            
+            // Event listeners para eliminar archivos
+            previewDiv.querySelectorAll('.file-remove').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                const index = parseInt((e.target as HTMLElement).getAttribute('data-index') || '0');
+                archivosComentario.splice(index, 1);
+                
+                const dt = new DataTransfer();
+                archivosComentario.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+                
+                fileInput.dispatchEvent(new Event('change'));
+              });
+            });
+          }
+        });
+      },
+      preConfirm: () => {
+        const comentarioTexto = (document.getElementById('comentario-texto') as HTMLTextAreaElement)?.value;
+        
+        if (!comentarioTexto || comentarioTexto.trim().length === 0) {
+          Swal.showValidationMessage('El comentario no puede estar vacío');
+          return false;
+        }
+        
+        return { comentario: comentarioTexto, archivos: archivosComentario };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        // Si hay archivos, usar el método con FormData, sino el método tradicional
+        if (result.value.archivos && result.value.archivos.length > 0) {
+          this.soporteService.agregarComentarioConArchivos(ticket.id, result.value.comentario, result.value.archivos).subscribe({
+            next: (response) => {
+              Swal.fire('Éxito', 'Comentario agregado con archivos adjuntos', 'success');
+              this.cargarTickets();
+              if (this.ticketSeleccionado?.id === ticket.id) {
+                this.verDetalleTicket(ticket);
+              }
+            },
+            error: (error) => {
+              Swal.fire('Error', error.error?.message || 'No se pudo agregar el comentario con archivos', 'error');
+            }
+          });
+        } else {
+          this.soporteService.agregarComentarioTicket(ticket.id, result.value.comentario, true).subscribe({
+            next: (response) => {
+              Swal.fire('Éxito', 'Comentario agregado exitosamente', 'success');
+              this.cargarTickets();
+              if (this.ticketSeleccionado?.id === ticket.id) {
+                this.verDetalleTicket(ticket);
+              }
+            },
+            error: (error) => {
+              Swal.fire('Error', error.error?.message || 'No se pudo agregar el comentario', 'error');
+            }
+          });
+        }
+      }
+    });
+  }
+
+  mostrarModalCambiarEstado(ticket: SoporteTicket): void {
+    // Cargar lista de administradores para asignación
+    this.soporteService.listarUsuarios().subscribe({
+      next: (usuarios) => {
+        const admins = usuarios.filter((u: any) => u.rol === 'admin');
+        
+        Swal.fire({
+          title: `Cambiar Estado/Prioridad - Ticket #${ticket.id}`,
+          html: `
+            <div style="text-align: left;">
+              ${!ticket.asignado_a && ticket.estado === 'abierto' ? `
+                <div class="alert-warning" style="background: #fef3c7; border: 1px solid #fde047; padding: 12px; border-radius: 8px; margin-bottom: 15px; color: #854d0e;">
+                  <strong>⚠️ Atención:</strong> Para cambiar el estado del ticket, primero debes asignarlo a un analista.
+                </div>
+              ` : ''}
+              
+              ${!ticket.asignado_a || ticket.estado === 'abierto' ? `
+                <div class="form-group" style="margin-bottom: 15px;">
+                  <label style="display: block; margin-bottom: 5px; font-weight: bold;">Asignar a</label>
+                  <select id="asignar-a" class="swal2-input" style="width: 100%; padding: 10px;">
+                    <option value="">Seleccionar analista...</option>
+                    ${admins.map((admin: any) => `
+                      <option value="${admin.id}" ${ticket.asignado_a === admin.id ? 'selected' : ''}>
+                        ${admin.nombre} ${admin.apellido || ''} (${admin.email})
+                      </option>
+                    `).join('')}
+                  </select>
+                </div>
+              ` : ''}
+              
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Estado</label>
+                <select id="nuevo-estado" class="swal2-input" style="width: 100%; padding: 10px;" ${!ticket.asignado_a && ticket.estado === 'abierto' ? 'disabled' : ''}>
+                  <option value="abierto" ${ticket.estado === 'abierto' ? 'selected' : ''}>Abierto</option>
+                  <option value="en_proceso" ${ticket.estado === 'en_proceso' ? 'selected' : ''}>En Proceso</option>
+                  <option value="pendiente_respuesta" ${ticket.estado === 'pendiente_respuesta' ? 'selected' : ''}>Pendiente Respuesta</option>
+                  <option value="cerrado" ${ticket.estado === 'cerrado' ? 'selected' : ''}>Cerrado</option>
+                  <option value="cancelado" ${ticket.estado === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Prioridad</label>
+                <select id="nueva-prioridad" class="swal2-input" style="width: 100%; padding: 10px;">
+                  <option value="baja" ${ticket.prioridad === 'baja' ? 'selected' : ''}>Baja</option>
+                  <option value="media" ${ticket.prioridad === 'media' ? 'selected' : ''}>Media</option>
+                  <option value="alta" ${ticket.prioridad === 'alta' ? 'selected' : ''}>Alta</option>
+                  <option value="critica" ${ticket.prioridad === 'critica' ? 'selected' : ''}>Crítica</option>
+                </select>
+              </div>
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: 'Guardar Cambios',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#28a745',
+          didOpen: () => {
+            // Habilitar/deshabilitar estado según asignación
+            const asignarSelect = document.getElementById('asignar-a') as HTMLSelectElement;
+            const estadoSelect = document.getElementById('nuevo-estado') as HTMLSelectElement;
+            
+            if (asignarSelect && estadoSelect) {
+              asignarSelect.addEventListener('change', () => {
+                if (asignarSelect.value) {
+                  estadoSelect.disabled = false;
+                } else if (!ticket.asignado_a && ticket.estado === 'abierto') {
+                  estadoSelect.disabled = true;
+                }
+              });
+            }
+          },
+          preConfirm: () => {
+            const asignarSelect = document.getElementById('asignar-a') as HTMLSelectElement;
+            const nuevoEstado = (document.getElementById('nuevo-estado') as HTMLSelectElement).value;
+            const nuevaPrioridad = (document.getElementById('nueva-prioridad') as HTMLSelectElement).value;
+            
+            // Validar que si el ticket está abierto y sin asignar, se debe asignar primero
+            if (!ticket.asignado_a && ticket.estado === 'abierto' && nuevoEstado !== 'abierto') {
+              if (!asignarSelect || !asignarSelect.value) {
+                Swal.showValidationMessage('Debes asignar el ticket a un analista antes de cambiar su estado');
+                return false;
+              }
+            }
+            
+            return { 
+              estado: nuevoEstado, 
+              prioridad: nuevaPrioridad,
+              asignado_a: asignarSelect?.value ? parseInt(asignarSelect.value) : undefined
+            };
+          }
+        }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const cambios: any = {};
+        
+        // Agregar asignación si se seleccionó
+        if (result.value.asignado_a !== undefined && result.value.asignado_a !== ticket.asignado_a) {
+          cambios.asignado_a = result.value.asignado_a || null;
+        }
+        
+        if (result.value.estado !== ticket.estado) {
+          cambios.estado = result.value.estado;
+        }
+        
+        if (result.value.prioridad !== ticket.prioridad) {
+          cambios.prioridad = result.value.prioridad;
+        }
+        
+        if (Object.keys(cambios).length === 0) {
+          Swal.fire('Info', 'No se realizaron cambios', 'info');
+          return;
+        }
+        
+        this.soporteService.actualizarTicket(ticket.id, cambios).subscribe({
+          next: () => {
+            Swal.fire('Éxito', 'Ticket actualizado exitosamente', 'success');
+            this.cargarTickets();
+            if (this.ticketSeleccionado?.id === ticket.id) {
+              this.verDetalleTicket(ticket);
+            }
+          },
+          error: (error) => {
+            Swal.fire('Error', error.error?.message || 'No se pudo actualizar el ticket', 'error');
+          }
+        });
+      }
+        });
+      },
+      error: (error) => {
+        Swal.fire('Error', 'No se pudieron cargar los analistas', 'error');
+      }
+    });
+  }
+
   cerrarTicket(ticket: SoporteTicket): void {
+    // Validar que el ticket tenga analista asignado
+    if (!ticket.asignado_a) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acción no disponible',
+        text: 'No se puede cerrar un ticket sin analista asignado. Por favor, asigna un analista primero.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
     Swal.fire({
       title: 'Cerrar Ticket',
       input: 'textarea',
@@ -1008,6 +2409,39 @@ export class AdminSoporteComponent implements OnInit {
           },
           error: (error) => {
             Swal.fire('Error', error.error?.message || 'No se pudo cerrar el ticket', 'error');
+          }
+        });
+      }
+    });
+  }
+
+  cancelarTicket(ticket: SoporteTicket): void {
+    Swal.fire({
+      title: '¿Cancelar Ticket?',
+      html: `
+        <p>El ticket cancelado <strong>NO consumirá cupo</strong> de la suscripción.</p>
+        <p>Esta acción no se puede deshacer.</p>
+      `,
+      input: 'textarea',
+      inputLabel: 'Motivo de cancelación (opcional)',
+      inputPlaceholder: 'Ingrese el motivo de la cancelación...',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'No, mantener',
+      confirmButtonColor: '#d33'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.soporteService.cancelarTicket(ticket.id, result.value).subscribe({
+          next: () => {
+            Swal.fire('Cancelado', 'El ticket ha sido cancelado y no consumirá cupo', 'success');
+            this.cargarTickets();
+            if (this.ticketSeleccionado?.id === ticket.id) {
+              this.cerrarDetalleTicket();
+            }
+          },
+          error: (error) => {
+            Swal.fire('Error', error.error?.message || 'No se pudo cancelar el ticket', 'error');
           }
         });
       }
@@ -1121,6 +2555,7 @@ export class AdminSoporteComponent implements OnInit {
           confirmButtonText: 'Aceptar'
         });
 
+        this.archivosSeleccionados = []; // Limpiar archivos después de subir
         this.cargarTickets();
         this.toggleFormularioTicket();
       },
@@ -1128,6 +2563,7 @@ export class AdminSoporteComponent implements OnInit {
         this.subiendoArchivos = false;
         Swal.fire('Error', error.error?.message || 'Error al subir archivos', 'error');
         // Aún así cerrar el formulario ya que el ticket fue creado
+        this.archivosSeleccionados = []; // Limpiar archivos incluso con error
         this.toggleFormularioTicket();
       }
     });
@@ -1248,6 +2684,25 @@ export class AdminSoporteComponent implements OnInit {
     return clases[prioridad] || 'badge-secondary';
   }
 
+  descargarArchivoTicket(ticketId: number, filename: string): void {
+    this.soporteService.descargarArchivoTicket(ticketId, filename).subscribe({
+      next: (blob) => {
+        // Crear URL temporal para el blob
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        Swal.fire('Error', 'No se pudo descargar el archivo', 'error');
+      }
+    });
+  }
+
   // ============ PAGOS ============
 
   verDetallePago(pago: SoportePago): void {
@@ -1345,6 +2800,15 @@ export class AdminSoporteComponent implements OnInit {
             </div>
           </div>
           
+          ${pago.detalle ? `
+          <div class="seccion">
+            <h3 class="seccion-titulo"><span class="icon">📝</span> Detalle</h3>
+            <div class="info-card" style="background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 3px solid #06b6d4;">
+              <p style="margin: 0; color: #475569; white-space: pre-wrap;">${pago.detalle}</p>
+            </div>
+          </div>
+          ` : ''}
+          
           <div class="footer-info" style="text-align: center; padding-top: 12px; border-top: 1px solid #e2e8f0; color: #9ca3af; font-size: 0.8rem;">
             <span>Registrado el ${fechaCreacion}</span>
           </div>
@@ -1357,12 +2821,12 @@ export class AdminSoporteComponent implements OnInit {
       width: '600px'
     });
   }
-
   cargarPagos(): void {
     this.cargando = true;
     this.soporteService.listarSoportePagos().subscribe({
-      next: (pagos) => {
-        this.pagos = pagos;
+      next: (response) => {
+        // Manejar tanto el formato antiguo (array) como el nuevo (objeto con paginación)
+        this.pagos = response.pagos || response || [];
         this.cargando = false;
       },
       error: (error) => {
@@ -1377,7 +2841,23 @@ export class AdminSoporteComponent implements OnInit {
     this.mostrarFormularioPago = !this.mostrarFormularioPago;
     if (!this.mostrarFormularioPago) {
       this.limpiarFormularioPago();
+    } else {
+      // Cargar todas las suscripciones (incluyendo inactivas) para el formulario de pago
+      this.cargarTodasSuscripciones();
     }
+  }
+
+  cargarTodasSuscripciones(): void {
+    // Cargar todas las suscripciones sin filtros para el formulario de pago
+    this.soporteService.listarSoporteSuscripciones({}).subscribe({
+      next: (response) => {
+        // Manejar tanto el formato antiguo (array) como el nuevo (objeto con paginación)
+        this.soporteSuscripciones = response.suscripciones || response || [];
+      },
+      error: (error) => {
+        console.error('Error al cargar suscripciones:', error);
+      }
+    });
   }
 
   limpiarFormularioPago(): void {
@@ -1387,6 +2867,30 @@ export class AdminSoporteComponent implements OnInit {
       monto: 0,
       estado: 'exitoso'
     };
+    this.montoFormateado = '';
+  }
+
+  formatearMonto(): void {
+    // Eliminar caracteres no numéricos
+    const valorLimpio = this.montoFormateado.replace(/[^\d]/g, '');
+    
+    if (valorLimpio) {
+      const numero = parseInt(valorLimpio, 10);
+      this.nuevoPago.monto = numero;
+      
+      // Formatear con separador de miles
+      this.montoFormateado = '$ ' + numero.toLocaleString('es-CO');
+    } else {
+      this.nuevoPago.monto = 0;
+      this.montoFormateado = '';
+    }
+  }
+
+  desformatearMonto(): void {
+    // Al hacer focus, mostrar solo el número sin formato
+    if (this.nuevoPago.monto > 0) {
+      this.montoFormateado = this.nuevoPago.monto.toString();
+    }
   }
 
   guardarPago(): void {

@@ -1,0 +1,28 @@
+2025-12-11 16:20:32 | INFO     | Acceso autorizado con API Key | endpoint=api.obtener_suscripcion_activa | ip=127.0.0.1
+2025-12-11 16:20:32 | INFO     | Consulta de suscripción activa por NIT | nit=80020548521-vxT20.Wd | ip=127.0.0.1
+2025-12-11 16:20:32 | INFO     | Consulta de suscripción exitosa | empresa_id=1 | empresa_nombre=La Casona | nit=80020548521-vxT20.Wd | plan_id=2 | plan_nombre=Pro | total_servicios=27
+2025-12-11 16:22:02 | INFO     | Acceso autorizado con API Key | endpoint=api.obtener_suscripcion_activa | ip=127.0.0.1
+2025-12-11 16:22:02 | INFO     | Consulta de suscripción activa por NIT | nit=80020548521-vxT20.Wd | ip=127.0.0.1
+2025-12-11 16:22:02 | INFO     | Consulta de suscripción exitosa | empresa_id=1 | empresa_nombre=La Casona | nit=80020548521-vxT20.Wd | plan_id=2 | plan_nombre=Pro | total_servicios=27
+2025-12-12 09:32:28 | INFO     | Acceso autorizado con API Key | endpoint=api.obtener_suscripcion_activa | ip=127.0.0.1
+2025-12-12 09:32:28 | INFO     | Consulta de suscripción activa por NIT | nit=80020548521-vxT20.Wd | ip=127.0.0.1
+2025-12-12 09:32:28 | INFO     | Consulta de suscripción exitosa | empresa_id=1 | empresa_nombre=La Casona | nit=80020548521-vxT20.Wd | plan_id=2 | plan_nombre=Pro | total_servicios=27
+2025-12-13 08:37:17 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-13 08:37:17 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-13 09:22:14 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-13 09:22:14 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-13 09:37:10 | INFO     | Acceso autorizado con API Key | endpoint=api.obtener_suscripcion_activa | ip=127.0.0.1
+2025-12-13 09:37:10 | INFO     | Consulta de suscripción activa por NIT | nit=80020548521-vxT20.Wd | ip=127.0.0.1
+2025-12-13 09:37:10 | INFO     | Consulta de suscripción exitosa | empresa_id=1 | empresa_nombre=La Casona | nit=80020548521-vxT20.Wd | plan_id=2 | plan_nombre=Pro | total_servicios=27
+2025-12-13 12:18:17 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-13 12:18:17 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-15 08:11:09 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-15 08:11:09 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-15 08:19:27 | INFO     | Acceso autorizado con API Key | endpoint=api.obtener_suscripcion_activa | ip=127.0.0.1
+2025-12-15 08:19:27 | INFO     | Consulta de suscripción activa por NIT | nit=80020548521-vxT20.Wd | ip=127.0.0.1
+2025-12-15 08:19:27 | INFO     | Consulta de suscripción exitosa | empresa_id=1 | empresa_nombre=La Casona | nit=80020548521-vxT20.Wd | plan_id=2 | plan_nombre=Pro | total_servicios=27
+2025-12-16 07:58:35 | INFO     | Consulta de planes disponibles | ip=127.0.0.1
+2025-12-16 07:58:35 | INFO     | Planes obtenidos exitosamente | total_planes=3
+2025-12-16 08:00:27 | INFO     | Acceso autorizado con API Key | endpoint=api.obtener_suscripcion_activa | ip=127.0.0.1
+2025-12-16 08:00:27 | INFO     | Consulta de suscripción activa por NIT | nit=80020548521-vxT20.Wd | ip=127.0.0.1
+2025-12-16 08:00:27 | INFO     | Consulta de suscripción exitosa | empresa_id=1 | empresa_nombre=La Casona | nit=80020548521-vxT20.Wd | plan_id=2 | plan_nombre=Pro | total_servicios=27

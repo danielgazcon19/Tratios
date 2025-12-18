@@ -59,11 +59,9 @@ export class AdminServiciosComponent implements OnInit {
     if (!this.mostrarFormulario) {
       this.limpiarFormulario();
     }
-    console.log('Toggle formulario - Mostrar:', this.mostrarFormulario, 'Modo edición:', this.modoEdicion);
   }
 
   limpiarFormulario(): void {
-    console.log('Limpiando formulario...');
     this.nuevoServicio = {
       nombre: '',
       descripcion: '',
@@ -72,7 +70,6 @@ export class AdminServiciosComponent implements OnInit {
     };
     this.modoEdicion = false;
     this.servicioEditandoId = null;
-    console.log('Formulario limpiado - Modo edición:', this.modoEdicion);
   }
 
   crearServicio(): void {
@@ -104,9 +101,6 @@ export class AdminServiciosComponent implements OnInit {
       url_api: servicio.url_api || ''
     };
     this.mostrarFormulario = true;
-    
-    console.log('Editando servicio:', servicio.id);
-    console.log('Modo edición activado:', this.modoEdicion);
   }
 
   actualizarServicio(): void {
@@ -185,9 +179,6 @@ export class AdminServiciosComponent implements OnInit {
   }
 
   guardarServicio(): void {
-    console.log('Modo edición:', this.modoEdicion);
-    console.log('ID editando:', this.servicioEditandoId);
-    
     if (this.modoEdicion) {
       this.actualizarServicio();
     } else {

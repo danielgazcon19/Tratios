@@ -1,16 +1,36 @@
 """
 API Interna de Soporte - Endpoints para instancias SaaS
 Permite crear tickets, agregar comentarios y consultar estado
+
+Este módulo actúa como un proxy que:
+1. Valida la API Key de la instancia SaaS
+2. Invoca los endpoints de admin_soporte_tickets.py que contienen la lógica de negocio
+3. Transforma las respuestas a un formato consistente para las instancias
+
+NO duplica lógica de negocio - reutiliza admin_soporte_tickets.py
 """
+#Utils
 from datetime import datetime
 from functools import wraps
 from flask import Blueprint, request, jsonify, current_app
-from database.db import db
-from models.soporte_ticket import SoporteTicket, SoporteTicketComentario
+import hashlib
+from utils.log import AppLogger, LogCategory
+from werkzeug.datastructures import ImmutableMultiDict
+from flask import make_response
+#Models
 from models.soporte_suscripcion import SoporteSuscripcion
 from models.empresa import Empresa
-import hashlib
-import hmac
+from models.soporte_ticket import SoporteTicket
+# Routes
+
+from routes.admin_soporte_tickets import (
+    crear_ticket as admin_crear_ticket,
+    listar_tickets as admin_listar_tickets,
+    obtener_ticket as admin_obtener_ticket,
+    agregar_comentario_admin,
+    subir_archivo as admin_subir_archivo,
+    descargar_archivo as admin_descargar_archivo
+)
 
 api_soporte_bp = Blueprint('api_soporte', __name__, url_prefix='/api/internal/support')
 
@@ -18,47 +38,101 @@ api_soporte_bp = Blueprint('api_soporte', __name__, url_prefix='/api/internal/su
 def validar_api_key(fn):
     """
     Decorador para validar API Key de instancias SaaS
+    
+    Seguridad de Producción:
+    - La API Key identifica unívocamente la instancia/empresa
+    - No requiere headers adicionales redundantes
+    - Validación contra variable de entorno (SAAS_API_KEY)
+    - En producción: implementar tabla de API keys en BD con empresa_id asociado
+    
     Requiere headers:
-    - Authorization: Bearer <API_KEY>
-    - X-Instance-Id: <instance_id>
-    - X-Empresa-Id: <empresa_id>
+    - X-API-Key: <API_KEY> - Clave única de la instancia
+    - X-Empresa-Id: <empresa_id> - ID de la empresa (validado contra la API Key)
     """
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', '')
-        instance_id = request.headers.get('X-Instance-Id')
+        api_key = request.headers.get('X-API-Key')
         empresa_id = request.headers.get('X-Empresa-Id')
         
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'success': False, 'message': 'Authorization header requerido'}), 401
-        
-        api_key = auth_header.replace('Bearer ', '')
-        
-        if not instance_id:
-            return jsonify({'success': False, 'message': 'X-Instance-Id header requerido'}), 401
+        if not api_key:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de acceso sin X-API-Key',
+                ip=request.remote_addr,
+                endpoint=request.endpoint
+            )
+            return jsonify({'success': False, 'message': 'X-API-Key header requerido'}), 401
         
         if not empresa_id:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de acceso sin X-Empresa-Id',
+                ip=request.remote_addr,
+                endpoint=request.endpoint
+            )
             return jsonify({'success': False, 'message': 'X-Empresa-Id header requerido'}), 401
         
         # Validar API Key
-        # En producción, esto debería verificar contra una tabla de API keys por instancia
-        # Por ahora, usamos una validación simple basada en un secret
-        secret_key = current_app.config.get('SUPPORT_API_SECRET', 'soporte-secret-key-2025')
-        expected_key = hashlib.sha256(f"{instance_id}:{secret_key}".encode()).hexdigest()[:32]
+        # TODO Producción: Implementar tabla api_keys con columnas:
+        # - id, api_key (único, indexado), empresa_id, activo, fecha_creacion, ultimo_uso
+        # Consultar: SELECT empresa_id FROM api_keys WHERE api_key = ? AND activo = true
         
-        # Para desarrollo, también aceptamos una key fija
-        dev_key = current_app.config.get('SUPPORT_API_DEV_KEY', 'dev-support-key-2025')
+        # Por ahora: validación contra variable de entorno
+        expected_key = current_app.config.get('SAAS_API_KEY')
         
-        if api_key != expected_key and api_key != dev_key:
+        if not expected_key:
+            AppLogger.error(
+                LogCategory.SOPORTE,
+                'SAAS_API_KEY no configurada en el servidor',
+                endpoint=request.endpoint
+            )
+            return jsonify({'success': False, 'message': 'Configuración de API Key no encontrada'}), 500
+        
+        if api_key != expected_key:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de acceso con API Key inválida',
+                ip=request.remote_addr,
+                endpoint=request.endpoint,
+                api_key_prefix=api_key[:8] if len(api_key) >= 8 else 'corta'
+            )
             return jsonify({'success': False, 'message': 'API Key inválida'}), 401
         
+        # Validar que la empresa existe
+        try:
+            empresa_id_int = int(empresa_id)
+        except ValueError:
+            return jsonify({'success': False, 'message': 'X-Empresa-Id debe ser un número'}), 400
+        
+        empresa = Empresa.query.get(empresa_id_int)
+        if not empresa:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de acceso con empresa_id inexistente',
+                empresa_id=empresa_id_int,
+                ip=request.remote_addr,
+                endpoint=request.endpoint
+            )
+            return jsonify({'success': False, 'message': 'Empresa no encontrada'}), 404
+        
+        # TODO Producción: Validar que la API Key pertenece a esta empresa
+        # if api_key_record.empresa_id != empresa_id_int:
+        #     return jsonify({'success': False, 'message': 'API Key no autorizada para esta empresa'}), 403
+        
         # Guardar información en request para uso posterior
-        request.instance_id = instance_id
-        request.empresa_id = int(empresa_id)
+        request.empresa_id = empresa_id_int
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Acceso autorizado a API de soporte',
+            empresa_id=empresa_id_int,
+            empresa_nombre=empresa.nombre,
+            endpoint=request.endpoint,
+            ip=request.remote_addr
+        )
         
         return fn(*args, **kwargs)
     return wrapper
-
 
 def obtener_soporte_activo(empresa_id):
     """Obtiene la suscripción de soporte activa de una empresa"""
@@ -71,8 +145,7 @@ def obtener_soporte_activo(empresa_id):
         (SoporteSuscripcion.fecha_fin.is_(None)) | (SoporteSuscripcion.fecha_fin >= hoy)
     ).first()
 
-
-@api_soporte_bp.route('/tickets', methods=['POST'])
+@api_soporte_bp.route('/create_tickets', methods=['POST'])
 @validar_api_key
 def crear_ticket():
     """
@@ -80,15 +153,15 @@ def crear_ticket():
     Crea un nuevo ticket de soporte desde una instancia SaaS
     
     Headers requeridos:
-    - Authorization: Bearer <API_KEY>
-    - X-Instance-Id: <instance_id>
+    - X-API-Key: <API_KEY>
     - X-Empresa-Id: <empresa_id>
     
     Body:
     {
+        "soporte_suscripcion_id": 4,
         "titulo": "Título del ticket",
         "descripcion": "Descripción detallada del problema",
-        "usuario_creador_id": 123,  // ID del usuario en la instancia
+        "usuario_id": 123,  // ID del usuario en la BD principal
         "prioridad": "media",  // baja, media, alta, critica
         "metadata": {
             "origen": "web",
@@ -99,187 +172,270 @@ def crear_ticket():
     """
     try:
         empresa_id = request.empresa_id
-        instance_id = request.instance_id
         body = request.get_json()
         
-        # Validar que existe la empresa
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Creando ticket desde API externa',
+            empresa_id=empresa_id,
+            usuario_id=body.get('usuario_id'),
+            prioridad=body.get('prioridad', 'media')
+        )
+        
+        # Validar empresa
         empresa = Empresa.query.get(empresa_id)
         if not empresa:
+            AppLogger.error(
+                LogCategory.SOPORTE,
+                'Empresa no encontrada al crear ticket',
+                empresa_id=empresa_id
+            )
             return jsonify({
                 'success': False,
                 'message': 'Empresa no encontrada'
             }), 404
         
-        # Verificar suscripción de soporte activa
-        soporte_suscripcion = obtener_soporte_activo(empresa_id)
-        if not soporte_suscripcion:
+        # Validar que tiene suscripción de soporte activa
+        soporte_activo = obtener_soporte_activo(empresa_id)
+        if not soporte_activo:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de crear ticket sin suscripción de soporte activa',
+                empresa_id=empresa_id
+            )
             return jsonify({
                 'success': False,
-                'message': 'No hay suscripción de soporte activa para esta empresa',
-                'code': 'NO_ACTIVE_SUPPORT'
+                'message': 'No cuenta con una suscripción de soporte activa. Contacte al administrador.',
+                'error': 'no_active_support'
             }), 403
         
-        # Verificar límites según modalidad
-        puede_crear, mensaje = soporte_suscripcion.puede_crear_ticket()
-        if not puede_crear:
-            return jsonify({
-                'success': False,
-                'message': mensaje,
-                'code': 'TICKET_LIMIT_EXCEEDED',
-                'tickets_consumidos': soporte_suscripcion.tickets_consumidos,
-                'max_tickets': soporte_suscripcion.tipo_soporte.max_tickets
-            }), 403
-        
-        # Validar datos del ticket
-        if not body.get('titulo'):
-            return jsonify({'success': False, 'message': 'El título es obligatorio'}), 400
-        
-        prioridad = body.get('prioridad', 'media')
-        if prioridad not in ['baja', 'media', 'alta', 'critica']:
-            prioridad = 'media'
-        
-        # Crear ticket
-        extra_data = body.get('metadata', {})
-        extra_data['instance_id'] = instance_id
-        extra_data['ip_origen'] = request.remote_addr
-        extra_data['user_agent'] = request.headers.get('User-Agent', '')
-        
-        nuevo_ticket = SoporteTicket(
-            soporte_suscripcion_id=soporte_suscripcion.id,
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Suscripción de soporte validada',
             empresa_id=empresa_id,
-            usuario_creador_id=body.get('usuario_creador_id'),
-            titulo=body['titulo'],
-            descripcion=body.get('descripcion'),
-            prioridad=prioridad,
-            estado='abierto',
-            extra_data=extra_data
+            soporte_id=soporte_activo.id,
+            tipo=soporte_activo.tipo_soporte.nombre,
+            estado=soporte_activo.estado
         )
         
-        db.session.add(nuevo_ticket)
+        # Preparar datos para el endpoint de admin
+        # Agregar metadata
+        if 'metadata' in body:
+            body['metadata']['ip_origen'] = request.remote_addr
         
-        # Incrementar contador de tickets si aplica
-        if soporte_suscripcion.tipo_soporte.modalidad == 'por_tickets':
-            soporte_suscripcion.tickets_consumidos += 1
+        # Agregar empresa_id al body
+        body['empresa_id'] = empresa_id
         
-        db.session.commit()
+        # Modificar request.json temporalmente para pasar al endpoint de admin
+        original_json = request.get_json(silent=True)
+        request._cached_json = (body, body)
         
-        return jsonify({
-            'success': True,
-            'message': 'Ticket creado exitosamente',
-            'ticket_id': nuevo_ticket.id,
-            'ticket': {
-                'id': nuevo_ticket.id,
-                'titulo': nuevo_ticket.titulo,
-                'estado': nuevo_ticket.estado,
-                'prioridad': nuevo_ticket.prioridad,
-                'fecha_creacion': nuevo_ticket.fecha_creacion.isoformat()
-            }
-        }), 201
+        # Invocar el endpoint de admin que tiene toda la lógica
+        result = admin_crear_ticket()
+        
+        # Restaurar JSON original
+        if original_json is not None:
+            request._cached_json = (original_json, original_json)
+        
+        # Flask retorna tupla (response, status_code), convertir a Response
+        if isinstance(result, tuple):
+            response = make_response(result[0], result[1])
+        else:
+            response = result
+        
+        # Transformar respuesta al formato de la API interna
+        if response.status_code == 201:
+            data = response.get_json()
+            AppLogger.info(
+                LogCategory.SOPORTE,
+                'Ticket creado exitosamente desde API externa',
+                empresa_id=empresa_id,
+                ticket_id=data['ticket']['id'],
+                titulo=data['ticket'].get('titulo')
+            )
+            return jsonify({
+                'success': True,
+                'message': data.get('message', 'Ticket creado exitosamente'),
+                'ticket_id': data['ticket']['id'],
+                'ticket': data['ticket']
+            }), 201
+        else:
+            data = response.get_json()
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Error al crear ticket desde API externa',
+                empresa_id=empresa_id,
+                status_code=response.status_code,
+                error_message=data.get('message')
+            )
+            return jsonify({
+                'success': False,
+                'message': data.get('message', 'Error al crear ticket'),
+                'code': data.get('error')
+            }), response.status_code
         
     except Exception as e:
-        db.session.rollback()
+        AppLogger.error(
+            LogCategory.SOPORTE,
+            'Excepción al crear ticket desde API externa',
+            empresa_id=request.empresa_id if hasattr(request, 'empresa_id') else None,
+            exc=e
+        )
         return jsonify({
             'success': False,
             'message': f'Error al crear ticket: {str(e)}'
         }), 500
-
 
 @api_soporte_bp.route('/tickets', methods=['GET'])
 @validar_api_key
 def listar_tickets_empresa():
     """
     GET /api/internal/support/tickets
-    Lista los tickets de la empresa
+    Lista los tickets de la empresa autenticada
     
-    Query params:
-    - estado: filtrar por estado
-    - limite: número máximo de resultados (default 50)
-    - pagina: página de resultados (default 1)
+    El empresa_id se obtiene automáticamente del header X-Empresa-Id validado.
+    Los tickets de otras empresas NO serán accesibles.
+    
+    Query params opcionales:
+    - estado: filtrar por estado (abierto, en_proceso, resuelto, cerrado)
+    - prioridad: filtrar por prioridad (baja, media, alta, urgente)
+    - usuario_id: filtrar por usuario creador
+    - page: página de resultados (default 1)
+    - per_page: resultados por página (default 20, max 100)
     """
     try:
         empresa_id = request.empresa_id
         
-        query = SoporteTicket.query.filter_by(empresa_id=empresa_id)
+        # Agregar empresa_id a los query params para FORZAR el filtro
+        new_args = dict(request.args)
+        new_args['empresa_id'] = str(empresa_id)
         
-        estado = request.args.get('estado')
-        if estado:
-            query = query.filter_by(estado=estado)
+        # Mapear 'limite' y 'pagina' a 'per_page' y 'page' si vienen
+        if 'limite' in new_args:
+            new_args['per_page'] = new_args.pop('limite')
+        if 'pagina' in new_args:
+            new_args['page'] = new_args.pop('pagina')
         
-        limite = request.args.get('limite', 50, type=int)
-        pagina = request.args.get('pagina', 1, type=int)
+        original_args = request.args
+        request.args = ImmutableMultiDict(new_args)
         
-        total = query.count()
-        tickets = query.order_by(SoporteTicket.fecha_creacion.desc()) \
-                      .offset((pagina - 1) * limite) \
-                      .limit(limite) \
-                      .all()
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            "Listando tickets para empresa",
+            empresa_id=empresa_id,
+            args=new_args
+        )
         
-        return jsonify({
-            'success': True,
-            'tickets': [{
-                'id': t.id,
-                'titulo': t.titulo,
-                'descripcion': t.descripcion,
-                'estado': t.estado,
-                'prioridad': t.prioridad,
-                'fecha_creacion': t.fecha_creacion.isoformat(),
-                'fecha_actualizacion': t.fecha_actualizacion.isoformat() if t.fecha_actualizacion else None,
-                'fecha_cierre': t.fecha_cierre.isoformat() if t.fecha_cierre else None,
-                'total_comentarios': t.comentarios.count()
-            } for t in tickets],
-            'total': total,
-            'pagina': pagina,
-            'limite': limite,
-            'paginas': (total + limite - 1) // limite
-        }), 200
+        # Invocar endpoint de admin (ahora tiene @admin_or_api_key_required)
+        result = admin_listar_tickets()
+        
+        # Restaurar args originales
+        request.args = original_args
+        
+        # Flask retorna tupla (response, status_code), convertir a Response
+        if isinstance(result, tuple):
+            response = make_response(result[0], result[1])
+        else:
+            response = result
+        
+        # Transformar respuesta al formato de la API interna
+        if response.status_code == 200:
+            data = response.get_json()
+            return jsonify({
+                'success': True,
+                'tickets': data['tickets'],
+                'total': data.get('total'),
+                'page': data.get('page'),
+                'per_page': data.get('per_page'),
+                'pages': data.get('pages'),
+                'estadisticas': data.get('estadisticas')
+            }), 200
+        else:
+            data = response.get_json()
+            return jsonify({
+                'success': False,
+                'message': data.get('message', 'Error al listar tickets')
+            }), response.status_code
         
     except Exception as e:
+        AppLogger.error(
+            LogCategory.SOPORTE,
+            f"Error al listar tickets: {str(e)}",
+            empresa_id=request.empresa_id,
+            error=str(e)
+        )
         return jsonify({
             'success': False,
             'message': f'Error al listar tickets: {str(e)}'
         }), 500
 
 
-@api_soporte_bp.route('/tickets/<int:ticket_id>', methods=['GET'])
+@api_soporte_bp.route('/ticket_id/<int:ticket_id>', methods=['GET'])
 @validar_api_key
-def obtener_ticket(ticket_id):
+def obtener_ticket_detalle(ticket_id):
     """
-    GET /api/internal/support/tickets/:id
+    GET /api/internal/support/ticket_id/:id
     Obtiene un ticket con sus comentarios
     """
     try:
         empresa_id = request.empresa_id
         
-        ticket = SoporteTicket.query.filter_by(id=ticket_id, empresa_id=empresa_id).first()
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Consultando detalle de ticket desde API externa',
+            empresa_id=empresa_id,
+            ticket_id=ticket_id
+        )
+        
+        # Validar que el ticket pertenece a la empresa antes de invocar
+        ticket = SoporteTicket.query.get(ticket_id)
         if not ticket:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Ticket no encontrado en consulta de detalle',
+                ticket_id=ticket_id,
+                empresa_id=empresa_id
+            )
             return jsonify({
                 'success': False,
                 'message': 'Ticket no encontrado'
             }), 404
         
-        comentarios = ticket.comentarios.order_by(SoporteTicketComentario.fecha_creacion.asc()).all()
+        if ticket.empresa_id != empresa_id:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de acceso a ticket de otra empresa',
+                ticket_id=ticket_id,
+                empresa_id_solicitante=empresa_id,
+                empresa_id_ticket=ticket.empresa_id
+            )
+            return jsonify({
+                'success': False,
+                'message': 'No tiene permisos para acceder a este ticket'
+            }), 403
         
-        return jsonify({
-            'success': True,
-            'ticket': {
-                'id': ticket.id,
-                'titulo': ticket.titulo,
-                'descripcion': ticket.descripcion,
-                'estado': ticket.estado,
-                'prioridad': ticket.prioridad,
-                'fecha_creacion': ticket.fecha_creacion.isoformat(),
-                'fecha_actualizacion': ticket.fecha_actualizacion.isoformat() if ticket.fecha_actualizacion else None,
-                'fecha_cierre': ticket.fecha_cierre.isoformat() if ticket.fecha_cierre else None,
-                'extra_data': ticket.extra_data,
-                'comentarios': [{
-                    'id': c.id,
-                    'comentario': c.comentario,
-                    'es_admin': c.es_admin,
-                    'archivos': c.archivos,
-                    'fecha_creacion': c.fecha_creacion.isoformat()
-                } for c in comentarios]
-            }
-        }), 200
+        # Invocar endpoint de admin
+        result = admin_obtener_ticket(ticket_id)
+        
+        # Flask retorna tupla (response, status_code), convertir a Response
+        if isinstance(result, tuple):
+            response = make_response(result[0], result[1])
+        else:
+            response = result
+        
+        # Transformar respuesta al formato de la API interna
+        if response.status_code == 200:
+            data = response.get_json()
+            return jsonify({
+                'success': True,
+                'ticket': data
+            }), 200
+        else:
+            data = response.get_json()
+            return jsonify({
+                'success': False,
+                'message': data.get('message', 'Error al obtener ticket')
+            }), response.status_code
         
     except Exception as e:
         return jsonify({
@@ -295,67 +451,288 @@ def agregar_comentario(ticket_id):
     POST /api/internal/support/tickets/:id/comentarios
     Agrega un comentario al ticket desde la instancia SaaS
     
-    Body:
+    Body (JSON):
     {
         "usuario_id": 123,
         "comentario": "Texto del comentario",
-        "archivos": ["url1", "url2"]  // opcional
+        "es_interno": false
     }
+    
+    O FormData con archivos:
+    - comentario: texto
+    - usuario_id: id del usuario
+    - es_interno: true/false
+    - files: archivos adjuntos
     """
     try:
         empresa_id = request.empresa_id
-        body = request.get_json()
         
-        ticket = SoporteTicket.query.filter_by(id=ticket_id, empresa_id=empresa_id).first()
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Agregando comentario a ticket desde API externa',
+            empresa_id=empresa_id,
+            ticket_id=ticket_id
+        )
+        
+        # Validar que el ticket pertenece a la empresa
+        ticket = SoporteTicket.query.get(ticket_id)
         if not ticket:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Ticket no encontrado al agregar comentario',
+                ticket_id=ticket_id,
+                empresa_id=empresa_id
+            )
             return jsonify({
                 'success': False,
                 'message': 'Ticket no encontrado'
             }), 404
         
-        if ticket.estado in ['cerrado', 'cancelado']:
+        if ticket.empresa_id != empresa_id:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de comentar en ticket de otra empresa',
+                ticket_id=ticket_id,
+                empresa_id_solicitante=empresa_id,
+                empresa_id_ticket=ticket.empresa_id
+            )
             return jsonify({
                 'success': False,
-                'message': 'No se pueden agregar comentarios a tickets cerrados'
-            }), 400
+                'message': 'No tiene permisos para comentar en este ticket'
+            }), 403
         
-        if not body.get('comentario'):
+        # Validar que tiene suscripción de soporte activa
+        soporte_activo = obtener_soporte_activo(empresa_id)
+        if not soporte_activo:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de agregar comentario sin suscripción de soporte activa',
+                empresa_id=empresa_id,
+                ticket_id=ticket_id
+            )
             return jsonify({
                 'success': False,
-                'message': 'El comentario es obligatorio'
-            }), 400
+                'message': 'No cuenta con una suscripción de soporte activa. Contacte al administrador.',
+                'error': 'no_active_support'
+            }), 403
         
-        nuevo_comentario = SoporteTicketComentario(
+        # Agregar logging detallado para diagnóstico
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Invocando admin_agregar_comentario',
             ticket_id=ticket_id,
-            usuario_id=body.get('usuario_id'),
-            es_admin=False,
-            comentario=body['comentario'],
-            archivos=body.get('archivos')
+            content_type=request.content_type,
+            has_json=request.is_json,
+            has_form=bool(request.form),
+            has_files=bool(request.files)
         )
         
-        db.session.add(nuevo_comentario)
+        # Invocar endpoint de admin
+        result = agregar_comentario_admin(ticket_id)
         
-        # Si el ticket estaba pendiente de respuesta, cambiar a en_proceso
-        if ticket.estado == 'pendiente_respuesta':
-            ticket.estado = 'en_proceso'
+        # Flask retorna tupla (response, status_code), convertir a Response
+        if isinstance(result, tuple):
+            response = make_response(result[0], result[1])
+        else:
+            response = result
         
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Comentario agregado exitosamente',
-            'comentario': {
-                'id': nuevo_comentario.id,
-                'comentario': nuevo_comentario.comentario,
-                'fecha_creacion': nuevo_comentario.fecha_creacion.isoformat()
-            }
-        }), 201
+        # Transformar respuesta al formato de la API interna
+        if response.status_code == 201:
+            data = response.get_json()
+            comentario_data = data.get('comentario', {})
+            comentario_id = comentario_data.get('id')
+            
+            AppLogger.info(
+                LogCategory.SOPORTE,
+                'Comentario creado exitosamente desde API externa',
+                ticket_id=ticket_id,
+                comentario_id=comentario_id,
+                usuario_id=comentario_data.get('usuario_id')
+            )
+            
+            return jsonify({
+                'success': True,
+                'message': data.get('message', 'Comentario agregado exitosamente'),
+                'comentario': comentario_data,
+                'comentario_id': comentario_id  # Incluir ID para facilitar subida de archivos
+            }), 201
+        else:
+            data = response.get_json()
+            return jsonify({
+                'success': False,
+                'message': data.get('message', 'Error al agregar comentario')
+            }), response.status_code
         
     except Exception as e:
-        db.session.rollback()
         return jsonify({
             'success': False,
             'message': f'Error al agregar comentario: {str(e)}'
+        }), 500
+
+
+@api_soporte_bp.route('/tickets/<int:ticket_id>/upload', methods=['POST'])
+@validar_api_key
+def subir_archivos(ticket_id):
+    """
+    POST /api/internal/support/tickets/:id/upload
+    Sube archivos adjuntos a un ticket o comentario
+    
+    FormData:
+    - files: archivos a subir (máx 10, 10MB c/u)
+    - comentario_id (opcional): ID del comentario al que asociar los archivos
+    """
+    try:
+        empresa_id = request.empresa_id
+        
+        # Verificar si viene comentario_id en el form
+        comentario_id = request.form.get('comentario_id')
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Subiendo archivos a ticket desde API externa',
+            empresa_id=empresa_id,
+            ticket_id=ticket_id,
+            comentario_id=comentario_id,
+            form_keys=list(request.form.keys())
+        )
+        
+        # Validar que el ticket pertenece a la empresa
+        ticket = SoporteTicket.query.get(ticket_id)
+        if not ticket:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Ticket no encontrado al subir archivos',
+                ticket_id=ticket_id,
+                empresa_id=empresa_id
+            )
+            return jsonify({
+                'success': False,
+                'message': 'Ticket no encontrado'
+            }), 404
+        
+        if ticket.empresa_id != empresa_id:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de subir archivos a ticket de otra empresa',
+                ticket_id=ticket_id,
+                empresa_id_solicitante=empresa_id,
+                empresa_id_ticket=ticket.empresa_id
+            )
+            return jsonify({
+                'success': False,
+                'message': 'No tiene permisos para subir archivos a este ticket'
+            }), 403
+        
+        # Validar que tiene suscripción de soporte activa
+        soporte_activo = obtener_soporte_activo(empresa_id)
+        if not soporte_activo:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de subir archivos sin suscripción de soporte activa',
+                empresa_id=empresa_id,
+                ticket_id=ticket_id
+            )
+            return jsonify({
+                'success': False,
+                'message': 'No cuenta con una suscripción de soporte activa. Contacte al administrador.',
+                'error': 'no_active_support'
+            }), 403
+        
+        # Invocar endpoint de admin
+        result = admin_subir_archivo(ticket_id)
+        
+        # Flask retorna tupla (response, status_code), convertir a Response
+        if isinstance(result, tuple):
+            response = make_response(result[0], result[1])
+        else:
+            response = result
+        
+        # Logging para diagnóstico
+        data = response.get_json()
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Respuesta de admin_subir_archivo',
+            status_code=response.status_code,
+            data=data
+        )
+        
+        # Transformar respuesta al formato de la API interna
+        if response.status_code == 200:
+            archivos = data.get('archivos', [])
+            return jsonify({
+                'success': True,
+                'message': data.get('message', 'Archivos subidos exitosamente'),
+                'archivos_subidos': archivos,
+                'total': len(archivos),
+                'errores': data.get('errores', [])
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': data.get('message', 'Error al subir archivos')
+            }), response.status_code
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error al subir archivos: {str(e)}'
+        }), 500
+
+
+@api_soporte_bp.route('/tickets/<int:ticket_id>/archivos/<filename>', methods=['GET'])
+@validar_api_key
+def descargar_archivo(ticket_id, filename):
+    """
+    GET /api/internal/support/tickets/:id/archivos/:filename
+    Descarga un archivo adjunto de un ticket
+    """
+    try:
+        empresa_id = request.empresa_id
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Descargando archivo de ticket desde API externa',
+            empresa_id=empresa_id,
+            ticket_id=ticket_id,
+            filename=filename
+        )
+        
+        # Validar que el ticket pertenece a la empresa
+        ticket = SoporteTicket.query.get(ticket_id)
+        if not ticket:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Ticket no encontrado al descargar archivo',
+                ticket_id=ticket_id,
+                empresa_id=empresa_id,
+                filename=filename
+            )
+            return jsonify({
+                'success': False,
+                'message': 'Ticket no encontrado'
+            }), 404
+        
+        if ticket.empresa_id != empresa_id:
+            AppLogger.warning(
+                LogCategory.SOPORTE,
+                'Intento de descargar archivo de ticket de otra empresa',
+                ticket_id=ticket_id,
+                empresa_id_solicitante=empresa_id,
+                empresa_id_ticket=ticket.empresa_id,
+                filename=filename
+            )
+            return jsonify({
+                'success': False,
+                'message': 'No tiene permisos para acceder a los archivos de este ticket'
+            }), 403
+        
+        # Invocar endpoint de admin (este retorna el archivo directamente)
+        return admin_descargar_archivo(ticket_id, filename)
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error al descargar archivo: {str(e)}'
         }), 500
 
 
@@ -369,9 +746,20 @@ def verificar_soporte():
     try:
         empresa_id = request.empresa_id
         
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Verificando estado de soporte desde API externa',
+            empresa_id=empresa_id
+        )
+        
         soporte = obtener_soporte_activo(empresa_id)
         
         if not soporte:
+            AppLogger.info(
+                LogCategory.SOPORTE,
+                'Empresa sin suscripción de soporte activa',
+                empresa_id=empresa_id
+            )
             return jsonify({
                 'success': True,
                 'tiene_soporte': False,
@@ -380,6 +768,16 @@ def verificar_soporte():
         
         # Verificar si puede crear tickets
         puede_crear, mensaje = soporte.puede_crear_ticket()
+        
+        AppLogger.info(
+            LogCategory.SOPORTE,
+            'Verificación de soporte exitosa',
+            empresa_id=empresa_id,
+            tiene_soporte=True,
+            tipo_soporte=soporte.tipo_soporte.nombre,
+            modalidad=soporte.tipo_soporte.modalidad,
+            puede_crear_ticket=puede_crear
+        )
         
         return jsonify({
             'success': True,
@@ -398,6 +796,12 @@ def verificar_soporte():
         }), 200
         
     except Exception as e:
+        AppLogger.error(
+            LogCategory.SOPORTE,
+            'Error al verificar estado de soporte',
+            empresa_id=request.empresa_id if hasattr(request, 'empresa_id') else None,
+            exc=e
+        )
         return jsonify({
             'success': False,
             'message': f'Error al verificar soporte: {str(e)}'

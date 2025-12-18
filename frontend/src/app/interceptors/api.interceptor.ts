@@ -58,22 +58,10 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Inyectar Authorization si hay token
   if (token) {
-    console.log('🔐 [API Interceptor] Añadiendo token a la petición:', {
-      url: req.url,
-      method: req.method,
-      token: token.substring(0, 20) + '...' // Solo mostrar primeros 20 caracteres
-    });
     transformedReq = transformedReq.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
       }
-    });
-  } else {
-    console.warn('⚠️ [API Interceptor] NO HAY TOKEN para:', {
-      url: req.url,
-      method: req.method,
-      storedAuth: !!localStorage.getItem('tratios.auth'),
-      accessToken: !!localStorage.getItem('access_token')
     });
   }
 
@@ -136,11 +124,6 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
             });
           }
         }
-        console.error('🔒 Token inválido, expirado o ausente. Requiere re-autenticación.');
-      } else if (error.status === 403) {
-        console.error('⛔ Acceso denegado a este recurso.');
-      } else if (error.status >= 500) {
-        console.error('❌ Error del servidor:', error.message);
       }
       return throwError(() => error);
     })

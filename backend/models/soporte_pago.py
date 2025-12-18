@@ -1,8 +1,15 @@
 """
 Modelo SoportePago - Registra pagos asociados al soporte
 """
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from database.db import db
+
+# Zona horaria de Colombia (UTC-5)
+COLOMBIA_TZ = timezone(timedelta(hours=-5))
+
+def get_colombia_now():
+    """Obtiene la fecha/hora actual en zona horaria de Colombia (UTC-5)"""
+    return datetime.now(COLOMBIA_TZ)
 
 
 class SoportePago(db.Model):
@@ -57,7 +64,7 @@ class SoportePago(db.Model):
     )
     detalle = db.Column(db.JSON, nullable=True)  # Información adicional del pago
     registrado_por = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=get_colombia_now)
 
     # Relaciones
     soporte_suscripcion = db.relationship('SoporteSuscripcion', back_populates='pagos')

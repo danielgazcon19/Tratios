@@ -118,7 +118,7 @@ export class AdminEmpresasComponent implements OnInit {
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
-        console.log('Datos a actualizar:', result.value); // Debug
+
         this.adminEmpresasService.actualizarEmpresa(empresa.id, result.value).subscribe({
           next: (response) => {
             Swal.fire('Éxito', response.message, 'success');

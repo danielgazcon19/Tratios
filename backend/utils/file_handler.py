@@ -3,9 +3,16 @@ Utilidad para manejo de archivos de tickets
 """
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from werkzeug.utils import secure_filename
 from flask import current_app
+
+# Zona horaria de Colombia (UTC-5)
+COLOMBIA_TZ = timezone(timedelta(hours=-5))
+
+def get_colombia_now():
+    """Obtiene la fecha/hora actual en zona horaria de Colombia (UTC-5)"""
+    return datetime.now(COLOMBIA_TZ)
 
 # Tipos de archivo permitidos (extensiones)
 ALLOWED_EXTENSIONS = {
@@ -93,7 +100,7 @@ def get_file_info(filename, filepath):
         'extension': filename.rsplit('.', 1)[1].lower() if '.' in filename else '',
         'tamano': file_stat.st_size,
         'tamano_mb': get_file_size_mb(file_stat.st_size),
-        'fecha_subida': datetime.now().isoformat()
+        'fecha_subida': get_colombia_now().isoformat()
     }
 
 
