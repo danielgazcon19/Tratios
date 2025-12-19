@@ -42,34 +42,41 @@ export const adminGuard: CanActivateFn = (route, state) => {
   // Esto es crucial para cuando se refresca la página con F5
   const session = authSession.getSession();
 
-  // Si hay sesión válida, verificar rol
-  if (session && authSession.isSessionValid()) {
-    const user = session.usuario;
-    if (user && user.rol === 'admin') {
-      // Asegurar que el BehaviorSubject esté sincronizado
-      authSession.ensureSynchronized();
-      return true;
-    }
-    // Usuario autenticado pero no es admin
-    return redirectToHome();
+  if (!session) {
+    return redirectToLogin();
   }
 
-  // Si hay refresh token, intentar renovar
-  const refreshToken = session?.refresh_token;
-  if (refreshToken) {
-    return api.refreshAccessToken(refreshToken).pipe(
+  // Refrescar token si está por expirar (buffer de 30 segundos)
+  const needsRefresh = !authSession.isSessionValid(30000);
+  
+  if (needsRefresh && session.refresh_token) {
+    (window as any).__token_refresh_in_progress__ = true;
+    
+    return api.refreshAccessToken(session.refresh_token).pipe(
       map((response) => {
         authSession.storeSession(response);
+        (window as any).__token_refresh_in_progress__ = false;
         const user = response.usuario;
-        if (user && user.rol === 'admin') {
-          return true;
-        }
-        return redirectToHome();
+        return (user && user.rol === 'admin') ? true : redirectToHome();
       }),
-      catchError(() => of(redirectToLogin()))
+      catchError(() => {
+        (window as any).__token_refresh_in_progress__ = false;
+        return of(redirectToLogin());
+      })
     );
   }
 
-  // No hay sesión válida ni refresh token
+  // Token válido, verificar rol
+  const user = session.usuario;
+  if (user && user.rol === 'admin') {
+    authSession.ensureSynchronized();
+    return true;
+  }
+
+  // Usuario autenticado pero no es admin
+  if (user) {
+    return redirectToHome();
+  }
+
   return redirectToLogin();
 };

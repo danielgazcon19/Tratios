@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.tu-dominio.com',  // Cambiar por la URL de producción
+  apiUrl: '',  // Vacío: permite rutas directas como /auth, /admin, /account
   whatsappNumber: '573132865421'
 };

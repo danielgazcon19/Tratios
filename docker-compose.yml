@@ -1,0 +1,129 @@
+version: '3.9'
+
+# ============================================================
+# TRATIOS ADMIN - Aplicación Principal (Red Aislada)
+# ============================================================
+# Esta aplicación NO expone puertos directamente al host
+# Todo el tráfico pasa a través del Nginx Gateway
+# ============================================================
+
+services:
+  # Base de datos MySQL
+  mysql_admin:
+    image: mysql:8.0
+    container_name: mysql_admin
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${DB_NAME:-web_compraventa}
+      MYSQL_USER: ${DB_USER:-saas_user_compraventa}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-fgT2035.!4syz}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    volumes:
+      - mysql_admin_data:/var/lib/mysql
+      - ./backend/data/01-seed-data.sql:/docker-entrypoint-initdb.d/01-seed-data.sql:ro
+    # NO exponer puerto 3306 al host (solo accesible dentro de la red)
+    networks:
+      - tratios_admin_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Flask
+  backend_admin:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend_admin
+    restart: always
+    environment:
+      # Claves de seguridad
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-secret-change-in-production}
+      
+      # Configuración de base de datos MySQL
+      DB_HOST: mysql_admin
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-web_compraventa}
+      DB_USER: ${DB_USER:-saas_user_compraventa}
+      DB_PASSWORD: ${DB_PASSWORD:-fgT2035.!4syz}
+      
+      # Configuración del servicio de localización
+      LOCATION_CACHE_TTL_COUNTRIES: ${LOCATION_CACHE_TTL_COUNTRIES:-43200}
+      LOCATION_CACHE_TTL_CITIES: ${LOCATION_CACHE_TTL_CITIES:-14400}
+      
+      # Configuración de SMTP
+      SMTP_SERVER: ${SMTP_SERVER:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SENDER_EMAIL: ${SENDER_EMAIL}
+      SENDER_NAME: ${SENDER_NAME:-Tratios Compraventa}
+      
+      # API Keys
+      SAAS_API_KEY: ${SAAS_API_KEY}
+      SUPPORT_API_SECRET: ${SUPPORT_API_SECRET:-soporte-secret-key-2025}
+      SUPPORT_API_DEV_KEY: ${SUPPORT_API_DEV_KEY:-dev-support-key-2025}
+      
+      # Frontend origins para CORS (ajustar según dominio)
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost,https://tratios-admin.tudominio.com,https://tudominio.com}
+      
+      # JWT Configuration
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-30}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-7}
+    volumes:
+      - backend_admin_uploads:/app/uploads
+      - backend_admin_logs:/app/logs
+      - backend_admin_instance:/app/instance
+    depends_on:
+      mysql_admin:
+        condition: service_healthy
+    # NO exponer puertos al host
+    networks:
+      - tratios_admin_network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Angular
+  frontend_admin:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend_admin
+    restart: always
+    # NO exponer puertos al host
+    networks:
+      - tratios_admin_network
+    depends_on:
+      - backend_admin
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_admin_data:
+    driver: local
+    name: mysql_admin_data
+  backend_admin_uploads:
+    driver: local
+    name: backend_admin_uploads
+  backend_admin_logs:
+    driver: local
+    name: backend_admin_logs
+  backend_admin_instance:
+    driver: local
+    name: backend_admin_instance
+
+networks:
+  tratios_admin_network:
+    external: true
+    name: tratios_admin_network

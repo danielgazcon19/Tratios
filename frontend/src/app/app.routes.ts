@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
+import { authResolver } from './resolvers/auth.resolver';
 
 export const routes: Routes = [
   {
@@ -26,6 +27,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     canActivate: [adminGuard],
+    resolve: { auth: authResolver },
     children: [
       { 
         path: '', 

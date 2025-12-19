@@ -1,0 +1,128 @@
+version: '3.9'
+
+# ============================================================
+# SAAS CLIENTE - Template para nuevos clientes (Red Aislada)
+# ============================================================
+# Reemplazar CLIENTE_ID por: cliente1, cliente2, etc.
+# Ejemplo: cliente1, acmecorp, empresa-xyz
+# ============================================================
+
+services:
+  # Base de datos MySQL
+  mysql_CLIENTE_ID:
+    image: mysql:8.0
+    container_name: mysql_CLIENTE_ID
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass_CLIENTE_ID}
+      MYSQL_DATABASE: ${DB_NAME:-saas_CLIENTE_ID}
+      MYSQL_USER: ${DB_USER:-user_CLIENTE_ID}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-change_me}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    volumes:
+      - mysql_CLIENTE_ID_data:/var/lib/mysql
+    # NO exponer puerto 3306 al host (solo accesible dentro de la red)
+    networks:
+      - saas_CLIENTE_ID_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpass_CLIENTE_ID}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Flask
+  backend_CLIENTE_ID:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend_CLIENTE_ID
+    restart: always
+    environment:
+      # Claves de seguridad (CAMBIAR EN PRODUCCIÓN)
+      SECRET_KEY: ${SECRET_KEY:-secret-CLIENTE_ID-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-CLIENTE_ID-change-in-production}
+      
+      # Configuración de base de datos MySQL
+      DB_HOST: mysql_CLIENTE_ID
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-saas_CLIENTE_ID}
+      DB_USER: ${DB_USER:-user_CLIENTE_ID}
+      DB_PASSWORD: ${DB_PASSWORD:-change_me}
+      
+      # Configuración del servicio de localización
+      LOCATION_CACHE_TTL_COUNTRIES: ${LOCATION_CACHE_TTL_COUNTRIES:-43200}
+      LOCATION_CACHE_TTL_CITIES: ${LOCATION_CACHE_TTL_CITIES:-14400}
+      
+      # Configuración de SMTP
+      SMTP_SERVER: ${SMTP_SERVER:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SENDER_EMAIL: ${SENDER_EMAIL}
+      SENDER_NAME: ${SENDER_NAME:-SaaS CLIENTE_ID}
+      
+      # API Keys
+      SAAS_API_KEY: ${SAAS_API_KEY}
+      SUPPORT_API_SECRET: ${SUPPORT_API_SECRET:-soporte-CLIENTE_ID-2025}
+      SUPPORT_API_DEV_KEY: ${SUPPORT_API_DEV_KEY:-dev-CLIENTE_ID-2025}
+      
+      # Frontend origins para CORS
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-https://CLIENTE_ID.tratios.com}
+      
+      # JWT Configuration
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-30}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-7}
+    volumes:
+      - backend_CLIENTE_ID_uploads:/app/uploads
+      - backend_CLIENTE_ID_logs:/app/logs
+      - backend_CLIENTE_ID_instance:/app/instance
+    depends_on:
+      mysql_CLIENTE_ID:
+        condition: service_healthy
+    # NO exponer puertos al host
+    networks:
+      - saas_CLIENTE_ID_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Angular
+  frontend_CLIENTE_ID:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend_CLIENTE_ID
+    restart: always
+    # NO exponer puertos al host
+    networks:
+      - saas_CLIENTE_ID_network
+    depends_on:
+      - backend_CLIENTE_ID
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_CLIENTE_ID_data:
+    driver: local
+    name: mysql_CLIENTE_ID_data
+  backend_CLIENTE_ID_uploads:
+    driver: local
+    name: backend_CLIENTE_ID_uploads
+  backend_CLIENTE_ID_logs:
+    driver: local
+    name: backend_CLIENTE_ID_logs
+  backend_CLIENTE_ID_instance:
+    driver: local
+    name: backend_CLIENTE_ID_instance
+
+networks:
+  saas_CLIENTE_ID_network:
+    name: saas_CLIENTE_ID_network
+    driver: bridge

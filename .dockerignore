@@ -1,0 +1,22 @@
+# Ignore Git
+.git/
+.gitignore
+
+# Docker files
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Documentation
+*.md
+
+# Environment files
+.env*
+
+# IDE
+.vscode/
+.idea/
+
+# System
+.DS_Store
+Thumbs.db

@@ -59,6 +59,16 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url or 'mysql+pymysql://root:password@localhost/compraventa_saas'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Configuración de pool de conexiones para MySQL
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,  # Verifica conexiones antes de usarlas
+        'pool_recycle': 3600,   # Recicla conexiones cada 1 hora
+        'pool_size': 10,        # Número de conexiones en el pool
+        'max_overflow': 20,     # Conexiones adicionales permitidas
+        'pool_timeout': 30,     # Timeout para obtener conexión del pool
+    }
+    
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'jwt-secret-change-in-production')
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=int(os.environ.get('JWT_ACCESS_MINUTES', 30)))
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=int(os.environ.get('JWT_REFRESH_DAYS', 7)))
@@ -78,7 +88,7 @@ def create_app():
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'tickets'), exist_ok=True)
     
     # Configuración de seguridad para API SaaS
-    app.config['SAAS_API_KEY'] = os.environ.get('SAAS_API_KEY')
+    # NOTA: SAAS_API_KEY obsoleto - ahora se usa sistema de API Keys en base de datos
     app.config['SUPPORT_API_SECRET'] = os.environ.get('SUPPORT_API_SECRET', 'soporte-secret-key-2025')
     app.config['SUPPORT_API_DEV_KEY'] = os.environ.get('SUPPORT_API_DEV_KEY', 'dev-support-key-2025')
     
@@ -142,6 +152,10 @@ def create_app():
     app.register_blueprint(api_soporte_bp)
     # Registrar blueprint de API keys
     app.register_blueprint(admin_api_keys_bp)
+
+    # Registrar health check endpoint
+    from routes.health import health
+    app.route('/health')(health)
 
     init_location_service(app)
     
@@ -287,6 +301,9 @@ def create_app():
     
     return app
 
+# Crear instancia de app para gunicorn (producción)
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
+    # Para desarrollo local
     app.run(debug=True, host='0.0.0.0', port=5222)
