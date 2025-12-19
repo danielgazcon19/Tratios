@@ -284,7 +284,7 @@
           <input 
             type="file" 
             multiple 
-            (change)="onArchivosSeleccionados($event)" 
+            #fileInput
             class="form-control file-input"
             accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar,.7z,.log,.json"
           >
@@ -862,8 +862,6 @@
             <label>Monto *</label>
             <input type="text" 
                    [(ngModel)]="montoFormateado" 
-                   (blur)="formatearMonto()"
-                   (focus)="desformatearMonto()"
                    class="form-control" 
                    placeholder="$ 0">
           </div>

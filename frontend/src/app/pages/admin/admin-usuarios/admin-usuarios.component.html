@@ -52,7 +52,6 @@
           type="text" 
           id="filtroSearch" 
           [(ngModel)]="filtroSearch"
-          (keyup.enter)="aplicarFiltros()"
           placeholder="Nombre o email..."
           class="form-control">
       </div>
@@ -305,7 +304,7 @@
                     [(ngModel)]="formularioUsuario.password" 
                     name="password"
                     required
-                    (input)="validatePassword(formularioUsuario.password, confirmarPassword)"
+                    (ngModelChange)="validatePassword(formularioUsuario.password, confirmarPassword)"
                     placeholder="Mínimo 6 caracteres">
                 </div>
 
@@ -320,7 +319,7 @@
                     [(ngModel)]="confirmarPassword" 
                     name="confirmarPassword"
                     required
-                    (input)="validatePassword(formularioUsuario.password, confirmarPassword)"
+                    (ngModelChange)="validatePassword(formularioUsuario.password, confirmarPassword)"
                     placeholder="Repite la contraseña">
                 </div>
               </div>
@@ -422,31 +421,67 @@
               </div>
 
               <div class="form-group-modern">
-                <label for="ciudad">
-                  <i class="fas fa-city"></i>
-                  Ciudad
-                </label>
-                <input 
-                  type="text" 
-                  id="ciudad" 
-                  [(ngModel)]="formularioUsuario.ciudad" 
-                  name="ciudad"
-                  placeholder="Ej: Bogotá">
-              </div>
-            </div>
-
-            <div class="form-grid">
-              <div class="form-group-modern">
                 <label for="pais">
                   <i class="fas fa-globe-americas"></i>
                   País
                 </label>
+                <select 
+                  id="pais" 
+                  [(ngModel)]="paisSeleccionado"
+                  (ngModelChange)="onPaisChange()"
+                  name="pais"
+                  class="form-control">
+                  <option value="">Seleccione un país</option>
+                  <option *ngFor="let pais of paises" [value]="pais.code">
+                    {{ pais.name }}
+                  </option>
+                </select>
+                <small *ngIf="cargandoPaises" class="form-text">Cargando países...</small>
+              </div>
+
+              <div class="form-group-modern">
+                <label for="ciudad">
+                  <i class="fas fa-city"></i>
+                  Ciudad
+                </label>
+                <select 
+                  *ngIf="ciudades.length > 0"
+                  id="ciudad" 
+                  [(ngModel)]="formularioUsuario.ciudad" 
+                  name="ciudad"
+                  class="form-control">
+                  <option value="">Seleccione una ciudad</option>
+                  <option *ngFor="let ciudad of ciudades" [value]="ciudad.name">
+                    {{ ciudad.name }}{{ ciudad.state ? ' - ' + ciudad.state : '' }}
+                  </option>
+                </select>
+                <input 
+                  *ngIf="ciudades.length === 0 && paisSeleccionado"
+                  type="text" 
+                  id="ciudad-manual" 
+                  [(ngModel)]="formularioUsuario.ciudad" 
+                  name="ciudad-manual"
+                  placeholder="Escribe tu ciudad"
+                  class="form-control">
+                <input 
+                  *ngIf="!paisSeleccionado"
+                  type="text" 
+                  id="ciudad-disabled" 
+                  value="Primero selecciona un país"
+                  disabled
+                  class="form-control">
+                <small *ngIf="cargandoCiudades" class="form-text">Cargando ciudades...</small>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group-modern full-width" style="display: none;">
+                <label>País guardado</label>
                 <input 
                   type="text" 
-                  id="pais" 
                   [(ngModel)]="formularioUsuario.pais" 
-                  name="pais"
-                  placeholder="Ej: Colombia">
+                  name="pais-hidden"
+                  readonly>
               </div>
 
               <div class="form-group-modern full-width">

@@ -64,16 +64,8 @@ def create_app():
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=int(os.environ.get('JWT_REFRESH_DAYS', 7)))
     app.config['JWT_TOKEN_LOCATION'] = ['headers']
     app.config['JWT_HEADER_TYPE'] = os.environ.get('JWT_HEADER_TYPE', 'Bearer')
-    app.config['GEO_DB_API_KEY'] = os.environ.get('GEO_DB_API_KEY')
-    app.config['GEO_DB_API_HOST'] = os.environ.get('GEO_DB_API_HOST', 'wft-geo-db.p.rapidapi.com')
-    app.config['GEO_DB_COUNTRY_LIMIT'] = int(os.environ.get('GEO_DB_COUNTRY_LIMIT', 200))
-    app.config['GEO_DB_CITY_LIMIT'] = int(os.environ.get('GEO_DB_CITY_LIMIT', 100))
-    app.config['GEO_DB_MIN_COUNTRY_LIMIT'] = int(os.environ.get('GEO_DB_MIN_COUNTRY_LIMIT', 10))
-    app.config['GEO_DB_MIN_CITY_LIMIT'] = int(os.environ.get('GEO_DB_MIN_CITY_LIMIT', 10))
     app.config['LOCATION_CACHE_TTL_COUNTRIES'] = int(os.environ.get('LOCATION_CACHE_TTL_COUNTRIES', 60 * 60 * 12))
     app.config['LOCATION_CACHE_TTL_CITIES'] = int(os.environ.get('LOCATION_CACHE_TTL_CITIES', 60 * 60 * 4))
-    app.config['LOCATION_RATE_LIMIT_REQUESTS'] = int(os.environ.get('LOCATION_RATE_LIMIT_REQUESTS', 45))
-    app.config['LOCATION_RATE_LIMIT_WINDOW'] = int(os.environ.get('LOCATION_RATE_LIMIT_WINDOW', 60))
     app.config['LOCATION_DB_PATH'] = os.environ.get('LOCATION_DB_PATH', os.path.join(os.path.dirname(__file__), 'data', 'countries.db'))
     app.config['LOCATION_CITIES_ARCHIVE_PATH'] = os.environ.get('LOCATION_CITIES_ARCHIVE_PATH', os.path.join(os.path.dirname(__file__), 'data', 'cities.sqlite3.gz'))
     
@@ -234,16 +226,16 @@ def create_app():
         # Semilla de servicios principales
         servicios_seed = [
             {
-                "nombre": "OroSoft Compraventa",
+                "nombre": "Tratios Compraventa",
                 "descripcion": "Plataforma SaaS para gestión de compraventa con facturación y reportes",
                 "activo": True,
-                "url_api": "https://api.orosoft.local/compraventa"
+                "url_api": "https://api.tratios.local/compraventa"
             },
             {
                 "nombre": "Integración de Pagos",
                 "descripcion": "Conectores para pasarelas de pago (mock)",
                 "activo": True,
-                "url_api": "https://api.orosoft.local/pagos"
+                "url_api": "https://api.tratios.local/pagos"
             },
         ]
         for s in servicios_seed:
@@ -276,8 +268,8 @@ def create_app():
             db.session.add(empresa_demo)
             created["empresas"] += 1
 
-        # Suscripción demo a OroSoft Compraventa
-        servicio_core = Servicio.query.filter_by(nombre="OroSoft Compraventa").first()
+        # Suscripción demo a tratios Compraventa
+        servicio_core = Servicio.query.filter_by(nombre="tratios Compraventa").first()
         if servicio_core and empresa_demo:
             existe_sub = Suscripcion.query.filter_by(empresa_id=empresa_demo.id, servicio_id=servicio_core.id).first()
             if not existe_sub:
