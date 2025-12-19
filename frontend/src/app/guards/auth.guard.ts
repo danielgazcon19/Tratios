@@ -18,22 +18,35 @@ export const authGuard: CanActivateFn = () => {
 
   const session = authSession.getSession();
 
-  if (session && authSession.isSessionValid()) {
-    // Asegurar que el BehaviorSubject esté sincronizado después de un refresh de página
-    authSession.ensureSynchronized();
-    return true;
+  if (!session) {
+    return redirectToLogin();
   }
 
-  const refreshToken = session?.refresh_token;
-  if (refreshToken) {
-    return api.refreshAccessToken(refreshToken).pipe(
+  // SIEMPRE intentar refrescar si el token está por expirar o ya expiró
+  // Usamos un buffer conservador (30 segundos) para refrescar proactivamente
+  const needsRefresh = !authSession.isSessionValid(30000); // 30 segundos de buffer
+  
+  if (needsRefresh && session.refresh_token) {
+    console.log('[Auth Guard] Token por expirar, refrescando antes de continuar...');
+    // Marcar que hay un refresh en progreso
+    (window as any).__token_refresh_in_progress__ = true;
+    
+    return api.refreshAccessToken(session.refresh_token).pipe(
       map((response) => {
+        console.log('[Auth Guard] Token refrescado exitosamente');
         authSession.storeSession(response);
+        (window as any).__token_refresh_in_progress__ = false;
         return true;
       }),
-      catchError(() => of(redirectToLogin()))
+      catchError((error) => {
+        console.error('[Auth Guard] Error al refrescar token:', error);
+        (window as any).__token_refresh_in_progress__ = false;
+        return of(redirectToLogin());
+      })
     );
   }
 
-  return redirectToLogin();
+  // Token válido
+  authSession.ensureSynchronized();
+  return true;
 };

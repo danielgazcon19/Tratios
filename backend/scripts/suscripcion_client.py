@@ -281,10 +281,17 @@ if __name__ == '__main__':
     # Cargar configuración
     load_dotenv()
     
+    # IMPORTANTE: Las API Keys ahora se gestionan desde la base de datos
+    # Para obtener una API Key:
+    # 1. Inicia sesión como admin en la aplicación web
+    # 2. Ve a Admin > API Keys
+    # 3. Crea una nueva API Key con scope 'licencias' (código: licencias)
+    # 4. Copia la API Key generada y úsala aquí
+    
     # Crear cliente
     client = SuscripcionClient(
         base_url=os.getenv('BASE_URL', 'http://localhost:5000'),
-        api_key=os.getenv('SAAS_API_KEY')
+        api_key='tu-api-key-aqui'  # Reemplazar con API Key generada desde el admin panel
     )
     
     # Ejemplo de uso

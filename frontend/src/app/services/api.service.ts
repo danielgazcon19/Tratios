@@ -171,20 +171,20 @@ export class ApiService {
   }
 
   getPlanes() {
-    return this.http.get<Plan[]>(this.buildUrl('/api/planes'));
+    return this.http.get<Plan[]>(this.buildUrl('/public/planes'));
   }
 
   getServicios(activos = true) {
     const params = activos ? { activos: '1' } : {} as any;
-    return this.http.get<any[]>(this.buildUrl('/api/servicios'), { params });
+    return this.http.get<any[]>(this.buildUrl('/public/servicios'), { params });
   }
 
   getEmpresa(id: number) {
-    return this.http.get<any>(this.buildUrl(`/api/empresas/${id}`));
+    return this.http.get<any>(this.buildUrl(`/public/empresas/${id}`));
   }
 
   crearSuscripcion(empresaId: number, servicioIds: number[]) {
-    return this.http.post<any>(this.buildUrl('/api/suscripcion'), { empresa_id: empresaId, servicio_ids: servicioIds });
+    return this.http.post<any>(this.buildUrl('/public/suscripcion'), { empresa_id: empresaId, servicio_ids: servicioIds });
   }
 
   registrar(nombre: string, usuario: UsuarioPayload, empresaCodigo: string, otpMethod: OtpMethod = 'totp'): Observable<RegistroResponse> {

@@ -1,8 +1,30 @@
-# Sistema de Compraventa - Integración con SQLite
+# Tratios - Sistema de Compraventa SaaS Multi-Tenant
 
 ## 📋 Descripción General
 
-Sistema web de compraventa con backend Flask y frontend Angular 17, utilizando bases de datos SQLite locales para información de países y ciudades, eliminando la dependencia de APIs externas lentas y con límites de uso.
+Sistema web de compraventa con arquitectura multi-tenant, backend Flask y frontend Angular 17. Incluye panel de administración completo, sistema de suscripciones, y gestión de servicios para múltiples empresas.
+
+### 🚀 Deployment Docker
+
+**Inicio rápido** (3 comandos):
+
+```powershell
+docker network create tratios_admin_network
+docker-compose up -d
+docker exec -it backend_admin python seed.py
+```
+
+Accede a: **http://localhost** (admin@tratios.com / Admin123!)
+
+📖 **Documentación de Deployment**:
+- **[DEPLOY-LOCAL.md](DEPLOY-LOCAL.md)** - Guía completa para desarrollo local
+- **[DEPLOY-CONTABO-VPS.md](DEPLOY-CONTABO-VPS.md)** - Deployment en producción con SSL
+
+---
+
+## 🗄️ Integración con SQLite
+
+Sistema de localización con bases de datos SQLite locales para países y ciudades, eliminando dependencia de APIs externas.
 
 ## 🏗️ Arquitectura de Datos de Localización
 

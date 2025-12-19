@@ -1,0 +1,149 @@
+version: '3.9'
+
+services:
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: tratios_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${DB_NAME:-web_compraventa}
+      MYSQL_USER: ${DB_USER:-saas_user_compraventa}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-fgT2035.!4syz}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d  # Scripts de inicialización opcionales
+    ports:
+      - "3306:3306"  # Exponer solo para desarrollo local
+    networks:
+      - tratios_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Flask
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tratios_backend
+    restart: always
+    environment:
+      # Claves de seguridad
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-secret-change-in-production}
+      
+      # Configuración de base de datos MySQL
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-web_compraventa}
+      DB_USER: ${DB_USER:-saas_user_compraventa}
+      DB_PASSWORD: ${DB_PASSWORD:-fgT2035.!4syz}
+      
+      # Configuración del servicio de localización
+      LOCATION_CACHE_TTL_COUNTRIES: ${LOCATION_CACHE_TTL_COUNTRIES:-43200}
+      LOCATION_CACHE_TTL_CITIES: ${LOCATION_CACHE_TTL_CITIES:-14400}
+      
+      # Configuración de SMTP
+      SMTP_SERVER: ${SMTP_SERVER:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SENDER_EMAIL: ${SENDER_EMAIL}
+      SENDER_NAME: ${SENDER_NAME:-Tratios Compraventa}
+      
+      # API Keys
+      SAAS_API_KEY: ${SAAS_API_KEY}
+      SUPPORT_API_SECRET: ${SUPPORT_API_SECRET:-soporte-secret-key-2025}
+      SUPPORT_API_DEV_KEY: ${SUPPORT_API_DEV_KEY:-dev-support-key-2025}
+      
+      # Frontend origins para CORS
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost,http://localhost:80}
+      
+      # JWT Configuration
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-30}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-7}
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+      - backend_instance:/app/instance
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - tratios_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Angular
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tratios_frontend
+    restart: always
+    networks:
+      - tratios_network
+    depends_on:
+      - backend
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: tratios_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - tratios_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Certbot para SSL (Let's Encrypt)
+  certbot:
+    image: certbot/certbot:latest
+    container_name: tratios_certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot:rw
+      - ./certbot/conf:/etc/letsencrypt:rw
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - tratios_network
+
+volumes:
+  mysql_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local
+  backend_instance:
+    driver: local
+  nginx_cache:
+    driver: local
+
+networks:
+  tratios_network:
+    driver: bridge

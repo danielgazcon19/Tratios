@@ -39,9 +39,8 @@ def get_engine_url():
 # target_metadata = mymodel.Base.metadata
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../backend')))
-from backend.app import create_app
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from app import create_app
 app = create_app()
 with app.app_context():
     config.set_main_option('sqlalchemy.url', get_engine_url())

@@ -1,0 +1,39 @@
+2025/12/19 00:16:57 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:16:58 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:16:59 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:17:00 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:17:01 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:17:03 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:17:07 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:17:13 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:17:27 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:17:53 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:18:44 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:19:45 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:20:45 [emerg] 1#1: unknown directive "upstream_keepalive_requests" in /etc/nginx/nginx.conf:106
+2025/12/19 00:21:45 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:22:22 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:22:28 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:22:35 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:22:42 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:22:49 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:22:55 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:23:03 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:23:14 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:23:31 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:24:01 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin-local.conf:11
+2025/12/19 00:24:56 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:25:32 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:25:39 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:25:45 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:25:52 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:25:59 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:26:06 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:26:13 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:26:24 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:26:41 [emerg] 1#1: host not found in upstream "backend_admin:5000" in /etc/nginx/conf.d/tratios-admin.conf:11
+2025/12/19 00:27:12 [warn] 1#1: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/tratios-admin.conf:38
+2025/12/19 00:27:12 [emerg] 1#1: cannot load certificate "/etc/letsencrypt/live/tratios.com/fullchain.pem": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/letsencrypt/live/tratios.com/fullchain.pem, r) error:10000080:BIO routines::no such file)
+2025/12/19 15:01:44 [notice] 144#144: signal process started
+2025/12/19 15:27:15 [notice] 481#481: signal process started
+2025/12/19 15:34:39 [notice] 584#584: signal process started
