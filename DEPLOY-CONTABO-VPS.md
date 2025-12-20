@@ -97,11 +97,9 @@ sh get-docker.sh
 # Verificar instalación
 docker --version
 
-# Instalar Docker Compose
-apt install -y docker-compose
-
-# Verificar instalación
-docker-compose --version
+# Docker Compose v2 ya viene incluido en Docker Engine
+# Verificar que esté disponible
+docker compose version
 
 # Habilitar Docker al inicio
 systemctl enable docker
@@ -114,9 +112,16 @@ systemctl status docker
 **Salida esperada:**
 ```
 Docker version 24.0.x
-docker-compose version 1.29.x (o superior)
+Docker Compose version v2.x.x
 ● docker.service - Docker Application Container Engine
    Active: active (running)
+```
+
+**⚠️ IMPORTANTE**: Todos los comandos en esta guía usan `docker compose` (v2, sin guion), NO `docker compose` (v1).
+
+Si por alguna razón necesitas la versión antigua:
+```bash
+apt install -y docker compose-plugin
 ```
 
 ---
@@ -194,13 +199,13 @@ mkdir -p /opt
 cd /opt
 
 # Clonar repositorio
-git clone https://github.com/danielgazcon19/Tratios.git tratios-repo
+git clone https://github.com/danielgazcon19/Tratios.git tratios
 
 # Verificar que se clonó correctamente
-ls -la tratios-repo/
+ls -la tratios/
 
 # Debes ver:
-# - docker-compose.yml
+# - docker compose.yml
 # - nginx-gateway/
 # - backend/
 # - frontend/
@@ -213,7 +218,7 @@ ls -la tratios-repo/
 
 ```bash
 # Copiar nginx-gateway a /opt
-cp -r /opt/tratios-repo/nginx-gateway /opt/
+cp -r /opt/tratios/nginx-gateway /opt/
 
 # Navegar al directorio
 cd /opt/nginx-gateway
@@ -231,7 +236,7 @@ ls -la
 
 ```bash
 # Copiar proyecto a directorio de aplicación
-cp -r /opt/tratios-repo /opt/tratios-admin
+cp -r /opt/tratios /opt/tratios-admin
 
 # Navegar al directorio
 cd /opt/tratios-admin
@@ -245,27 +250,22 @@ nano .env
 
 ```env
 # Base de datos - USAR PASSWORDS SEGUROS
-MYSQL_ROOT_PASSWORD=<GENERAR_PASSWORD_SEGURO>
+MYSQL_ROOT_PASSWORD={@mmtDRi$G^_XD},9s%n$FSv
 DB_NAME=web_compraventa
 DB_USER=saas_user_compraventa
-DB_PASSWORD=<GENERAR_PASSWORD_SEGURO>
+DB_PASSWORD=xgoqrCK^_wC'gjD0!XMzPfEE
 
 # Seguridad - GENERAR CLAVES ÚNICAS
-SECRET_KEY=<GENERAR_CLAVE_ALEATORIA_64_CARACTERES>
-JWT_SECRET_KEY=<GENERAR_CLAVE_ALEATORIA_64_CARACTERES>
+SECRET_KEY=fe292bbe11bba3dd4d0ae663a0d514d51c2c2efb1767c53e28ffcd675d342777
+JWT_SECRET_KEY=4e7d0316542ecee6e561966c1fdcf1518f1cbe62864da2abff07761cc639cd12
 
 # SMTP - Configurar con tus credenciales
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=tu-email@gmail.com
-SMTP_PASSWORD=tu-app-password
-SENDER_EMAIL=tu-email@gmail.com
-SENDER_NAME=Tratios Compraventa
-
-# API Keys - GENERAR NUEVA
-SAAS_API_KEY=<GENERAR_API_KEY_ALEATORIA>
-SUPPORT_API_SECRET=<GENERAR_SECRET_ALEATORIO>
-SUPPORT_API_DEV_KEY=<GENERAR_DEV_KEY_ALEATORIO>
+SMTP_USERNAME=tratios.app@gmail.com
+SMTP_PASSWORD=wikb gajn iqfj zyss 
+SENDER_EMAIL=tratios.app@gmail.com
+SENDER_NAME=Tratios App
 
 # CORS - USAR TU DOMINIO REAL
 FRONTEND_ORIGINS=https://tratios.com,https://www.tratios.com
@@ -322,13 +322,13 @@ docker network ls | grep tratios_admin
 cd /opt/nginx-gateway
 
 # Iniciar servicios
-docker-compose up -d
+docker compose up -d
 
 # Verificar estado
-docker-compose ps
+docker compose ps
 
 # Ver logs
-docker-compose logs -f nginx_gateway
+docker compose logs -f nginx_gateway
 ```
 
 **Presionar `Ctrl + C` para salir de los logs.**
@@ -349,19 +349,19 @@ certbot_gateway Up
 cd /opt/tratios-admin
 
 # Construir imágenes (toma 10-15 minutos)
-docker-compose build
+docker compose build
 
 # Ver progreso con más detalle (opcional)
-docker-compose build --progress=plain
+docker compose build --progress=plain
 
 # Iniciar servicios
-docker-compose up -d
+docker compose up -d
 
 # Verificar estado
-docker-compose ps
+docker compose ps
 
 # Ver logs en tiempo real
-docker-compose logs -f
+docker compose logs -f
 ```
 
 **Esperar ver:**
@@ -466,7 +466,7 @@ docker exec nginx_gateway certbot certificates
 cd /opt/tratios-admin
 
 # Ejecutar script de creación
-docker-compose exec backend_admin python scripts/create_admin.py
+docker compose exec backend_admin python scripts/create_admin.py
 ```
 
 **Ingresar:**
@@ -571,10 +571,10 @@ ssh root@tratios.com
 cd /opt/tratios-admin
 
 # Hacer backup de base de datos
-docker-compose exec mysql_admin mysqldump -u root -p web_compraventa > /opt/backups/backup_$(date +%Y%m%d_%H%M%S).sql
+docker compose exec mysql_admin mysqldump -u root -p web_compraventa > /opt/backups/backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Obtener últimos cambios
-cd /opt/tratios-repo
+cd /opt/tratios
 git pull origin main
 
 # Copiar cambios
@@ -583,14 +583,14 @@ cp -r frontend/ /opt/tratios-admin/
 
 # Reconstruir
 cd /opt/tratios-admin
-docker-compose build
+docker compose build
 
 # Reiniciar
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 
 # Verificar logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ---
@@ -608,7 +608,7 @@ docker stats
 
 # Logs en tiempo real
 cd /opt/tratios-admin
-docker-compose logs -f
+docker compose logs -f
 
 # Logs de nginx
 cd /opt/nginx-gateway
@@ -648,7 +648,7 @@ Let's Encrypt se renueva automáticamente gracias al contenedor `certbot_gateway
 Verificar:
 ```bash
 # Ver logs de certbot
-docker-compose -f /opt/nginx-gateway/docker-compose.yml logs certbot
+docker compose -f /opt/nginx-gateway/docker compose.yml logs certbot
 
 # Probar renovación manual (dry-run)
 docker exec nginx_gateway certbot renew --dry-run
@@ -696,13 +696,13 @@ docker exec certbot_gateway certbot certificates
 ```bash
 # Ver logs de MySQL
 cd /opt/tratios-admin
-docker-compose logs mysql_admin
+docker compose logs mysql_admin
 
 # Verificar espacio en disco
 df -h
 
 # Reiniciar MySQL
-docker-compose restart mysql_admin
+docker compose restart mysql_admin
 ```
 
 ---
@@ -730,13 +730,13 @@ docker-compose restart mysql_admin
 
 ```bash
 # Ver estado general
-cd /opt/tratios-admin && docker-compose ps
+cd /opt/tratios-admin && docker compose ps
 
 # Reiniciar aplicación
-cd /opt/tratios-admin && docker-compose restart
+cd /opt/tratios-admin && docker compose restart
 
 # Ver logs
-cd /opt/tratios-admin && docker-compose logs -f backend_admin
+cd /opt/tratios-admin && docker compose logs -f backend_admin
 
 # Backup manual de BD
 docker exec mysql_admin mysqldump -u root -p web_compraventa > backup.sql
