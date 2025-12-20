@@ -36,11 +36,6 @@ services:
       # Agregar más redes según sea necesario:
       # - saas_cliente1_network
       # - saas_cliente2_network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     depends_on:
       - certbot
 

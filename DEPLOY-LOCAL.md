@@ -11,7 +11,7 @@ Guía completa para desplegar Tratios Admin en entorno de desarrollo local con D
 docker network create tratios_admin_network
 
 # 2. Iniciar sistema completo
-docker-compose up -d
+docker compose up -d
 
 # 3. Seed data inicial (solo primera vez)
 docker exec -it backend_admin python seed.py
@@ -22,6 +22,8 @@ docker exec -it backend_admin python seed.py
 ```
 
 **Tiempo de inicio**: ~2 minutos en primera ejecución.
+
+**📝 Nota**: Esta guía usa `docker compose` (v2), NO `docker-compose` (v1). Docker Compose v2 viene incluido con Docker Desktop moderno.
 
 ---
 
@@ -75,7 +77,7 @@ Red: tratios_admin_network (bridge externa)
 # Abrir PowerShell como Administrador
 # Verificar que Docker esté corriendo
 docker --version
-docker-compose --version
+docker compose --version
 
 # Ver contenedores activos (debe estar vacío o con contenedores previos)
 docker ps
@@ -96,7 +98,7 @@ cd D:\Software\Pagina
 Get-ChildItem
 
 # Debes ver:
-# - docker-compose.yml (el nuevo, sin nginx interno)
+# - docker compose.yml (el nuevo, sin nginx interno)
 # - nginx-gateway/
 # - backend/
 # - frontend/
@@ -182,19 +184,19 @@ cd nginx-gateway
 Get-ChildItem
 
 # Debes ver:
-# - docker-compose.yml
+# - docker compose.yml
 # - nginx.conf
 # - conf.d/
 #   - tratios-admin-local.conf
 
 # Iniciar el gateway
-docker-compose up -d
+docker compose up -d
 
 # Verificar que esté corriendo
-docker-compose ps
+docker compose ps
 
 # Ver logs (presiona Ctrl+C para salir)
-docker-compose logs -f nginx_gateway
+docker compose logs -f nginx_gateway
 ```
 
 **Salida esperada:**
@@ -214,10 +216,10 @@ cd ..
 # Ahora estás en D:\Software\Pagina
 
 # Construir las imágenes (esto toma 5-10 minutos la primera vez)
-docker-compose build
+docker compose build
 
 # Ver progreso detallado (opcional)
-docker-compose build --progress=plain
+docker compose build --progress=plain
 ```
 
 **Esto construirá:**
@@ -230,10 +232,10 @@ docker-compose build --progress=plain
 
 ```powershell
 # Iniciar todos los servicios en segundo plano
-docker-compose up -d
+docker compose up -d
 
 # Verificar estado de los contenedores
-docker-compose ps
+docker compose ps
 ```
 
 **Salida esperada:**
@@ -250,12 +252,12 @@ frontend_admin   Up       (healthy)
 
 ```powershell
 # Ver logs de todos los servicios
-docker-compose logs -f
+docker compose logs -f
 
 # O ver logs de servicios específicos:
-docker-compose logs -f backend_admin
-docker-compose logs -f mysql_admin
-docker-compose logs -f frontend_admin
+docker compose logs -f backend_admin
+docker compose logs -f mysql_admin
+docker compose logs -f frontend_admin
 ```
 
 **Espera ver mensajes como:**
@@ -274,7 +276,7 @@ frontend_admin | Nginx started
 
 ```powershell
 # Ejecutar el script de creación de admin
-docker-compose exec backend_admin python scripts/create_admin.py
+docker compose exec backend_admin python scripts/create_admin.py
 ```
 
 **Interactivo - Ingresa:**
@@ -346,7 +348,7 @@ Debes ver:
 
 ### Verificar conexión a MySQL:
 ```powershell
-docker-compose exec mysql_admin mysql -u root -prootpass_local -e "SHOW DATABASES;"
+docker compose exec mysql_admin mysql -u root -prootpass_local -e "SHOW DATABASES;"
 ```
 
 Debes ver la base de datos `web_compraventa`.
@@ -358,11 +360,11 @@ Debes ver la base de datos `web_compraventa`.
 ```powershell
 # Detener Tratios Admin (mantiene datos)
 cd D:\Software\Pagina
-docker-compose down
+docker compose down
 
 # Detener Nginx Gateway
 cd nginx-gateway
-docker-compose down
+docker compose down
 ```
 
 ---
@@ -372,14 +374,14 @@ docker-compose down
 ```powershell
 # Iniciar Gateway
 cd D:\Software\Pagina\nginx-gateway
-docker-compose up -d
+docker compose up -d
 
 # Iniciar Tratios Admin
 cd ..
-docker-compose up -d
+docker compose up -d
 
 # Ver logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ---
@@ -389,10 +391,10 @@ docker-compose logs -f
 ```powershell
 # ⚠️ ESTO BORRA LA BASE DE DATOS
 cd D:\Software\Pagina
-docker-compose down -v
+docker compose down -v
 
 cd nginx-gateway
-docker-compose down -v
+docker compose down -v
 
 # Eliminar red
 docker network rm tratios_admin_network
@@ -418,7 +420,7 @@ Error: Bind for 0.0.0.0:80 failed: port is already allocated
 netstat -ano | findstr :80
 
 # Detener IIS o Apache si están corriendo
-# O cambiar puerto en nginx-gateway/docker-compose.yml a 8080:80
+# O cambiar puerto en nginx-gateway/docker compose.yml a 8080:80
 ```
 
 ### Problema: Backend no puede conectarse a MySQL
@@ -428,10 +430,10 @@ netstat -ano | findstr :80
 **Solución:**
 ```powershell
 # Verificar que MySQL esté saludable
-docker-compose exec mysql_admin mysqladmin ping -h localhost -u root -prootpass_local
+docker compose exec mysql_admin mysqladmin ping -h localhost -u root -prootpass_local
 
 # Ver logs de MySQL
-docker-compose logs mysql_admin
+docker compose logs mysql_admin
 
 # Esperar 30-60 segundos y reintentar
 ```
@@ -469,11 +471,11 @@ docker exec nginx_gateway tail -f /var/log/nginx/tratios-admin-local-access.log
 **Solución:**
 ```powershell
 # Verificar logs del frontend
-docker-compose logs frontend_admin
+docker compose logs frontend_admin
 
 # Reconstruir frontend
-docker-compose build frontend_admin
-docker-compose up -d frontend_admin
+docker compose build frontend_admin
+docker compose up -d frontend_admin
 
 # Limpiar cache del navegador (Ctrl+Shift+Del)
 ```
@@ -486,16 +488,16 @@ docker-compose up -d frontend_admin
 ```powershell
 # Verificar que nginx_gateway esté corriendo
 cd D:\Software\Pagina\nginx-gateway
-docker-compose ps
+docker compose ps
 
 # Ver logs de nginx
-docker-compose logs nginx_gateway
+docker compose logs nginx_gateway
 
 # Verificar configuración de nginx
 docker exec nginx_gateway nginx -t
 
 # Reiniciar nginx
-docker-compose restart nginx_gateway
+docker compose restart nginx_gateway
 ```
 
 ---
@@ -510,17 +512,17 @@ docker stats
 docker ps | Select-String "admin"
 
 # Acceder a un contenedor (bash)
-docker-compose exec backend_admin bash
-docker-compose exec mysql_admin bash
+docker compose exec backend_admin bash
+docker compose exec mysql_admin bash
 
 # Ver variables de entorno de un contenedor
-docker-compose exec backend_admin env
+docker compose exec backend_admin env
 
 # Exportar base de datos
-docker-compose exec mysql_admin mysqldump -u root -prootpass_local web_compraventa > backup_local.sql
+docker compose exec mysql_admin mysqldump -u root -prootpass_local web_compraventa > backup_local.sql
 
 # Importar base de datos
-Get-Content backup_local.sql | docker-compose exec -T mysql_admin mysql -u root -prootpass_local web_compraventa
+Get-Content backup_local.sql | docker compose exec -T mysql_admin mysql -u root -prootpass_local web_compraventa
 ```
 
 ---

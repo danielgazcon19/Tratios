@@ -10,7 +10,7 @@ Sistema web de compraventa con arquitectura multi-tenant, backend Flask y fronte
 
 ```powershell
 docker network create tratios_admin_network
-docker-compose up -d
+docker compose up -d
 docker exec -it backend_admin python seed.py
 ```
 
