@@ -425,3 +425,11 @@
 2025-12-17 20:55:28 | INFO     | Consulta finalizada | total_resultados=4 | page=1 | per_page=20
 2025-12-17 20:55:33 | INFO     | Listar suscripciones | estado=activa | empresa_id=None | nit=None | page=1 | per_page=20
 2025-12-17 20:55:33 | INFO     | Consulta finalizada | total_resultados=2 | page=1 | per_page=20
+2025-12-21 16:45:59 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None | page=1 | per_page=20
+2025-12-21 16:45:59 | INFO     | Consulta finalizada | total_resultados=4 | page=1 | per_page=20
+2025-12-21 16:49:17 | INFO     | Suscripción cancelada | suscripcion_id=2 | empresa_id=1 | motivo=El cliente subira de nivel
+2025-12-21 16:49:17 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None | page=1 | per_page=20
+2025-12-21 16:49:17 | INFO     | Consulta finalizada | total_resultados=4 | page=1 | per_page=20
+2025-12-21 16:52:48 | INFO     | Suscripción creada | suscripcion_id=7 | empresa_id=1 | plan_id=3 | periodo=anual | precio=15120000.0 | descuento=0.0 | creado_por=18
+2025-12-21 16:52:48 | INFO     | Listar suscripciones | estado=None | empresa_id=None | nit=None | page=1 | per_page=20
+2025-12-21 16:52:48 | INFO     | Consulta finalizada | total_resultados=5 | page=1 | per_page=20

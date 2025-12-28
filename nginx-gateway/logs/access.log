@@ -1,0 +1,2 @@
+172.18.0.1 - - [19/Dec/2025:17:17:44 +0000] "GET / HTTP/1.1" 444 0 "-" "Avast Antivirus" host=192.168.1.9 tenant=_
+172.18.0.1 - - [19/Dec/2025:17:17:46 +0000] "GET / HTTP/1.1" 444 0 "-" "Avast Antivirus" host=192.168.1.9 tenant=_

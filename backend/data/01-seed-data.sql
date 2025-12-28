@@ -14,9 +14,9 @@ DELETE FROM soporte_tipo;
 
 -- Insertar planes base (seleccionado es JSON debido a migración incorrecta de Alembic)
 INSERT INTO `planes` (`id`, `nombre`, `precio_mensual`, `seleccionado`, `precio_anual`, `descripcion`) VALUES
-(1, 'Básico', 249900, 'false', 2698920, 'Plan Basico - Cloud vCPU = 4, RAM = 8 GB, Almacenamiento = 75 GB NVMe o 150 GB SSD, # Usuarios = 4'),
-(2, 'Pro', 750000, 'true', 8100000, 'Plan Pro - Cloud: vCPU = 6, RAM = 12 GB, Almacenamiento = 100 GB NVMe o 200 GB SSD, # Usuarios = 18'),
-(3, 'Premium', 1400000, 'false', 15120000, 'Plan Premium - Cloud: vCPU = 8, RAM = 24 GB, Almacenamiento = 200 GB NVMe o 400 GB SSD, # Usuarios = 50 ');
+(1, 'Básico', 249900, 0, 2698920, 'Plan Basico - Cloud vCPU = 4, RAM = 8 GB, Almacenamiento = 75 GB NVMe o 150 GB SSD, # Usuarios = 4'),
+(2, 'Pro', 750000, 1, 8100000, 'Plan Pro - Cloud: vCPU = 6, RAM = 12 GB, Almacenamiento = 100 GB NVMe o 200 GB SSD, # Usuarios = 18'),
+(3, 'Premium', 1400000, 0, 15120000, 'Plan Premium - Cloud: vCPU = 8, RAM = 24 GB, Almacenamiento = 200 GB NVMe o 400 GB SSD, # Usuarios = 50 ');
 
 -- Insertar servicios
 INSERT INTO `servicios` (`id`, `nombre`, `descripcion`, `activo`, `url_api`, `creado_en`) VALUES

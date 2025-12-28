@@ -69,7 +69,7 @@ services:
       SUPPORT_API_DEV_KEY: ${SUPPORT_API_DEV_KEY:-dev-support-key-2025}
       
       # Frontend origins para CORS (ajustar según dominio)
-      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost,https://tratios-admin.tudominio.com,https://tudominio.com}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost,https://tratios-admin.tratios.com,https://tratios.com}
       
       # JWT Configuration
       JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-30}

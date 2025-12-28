@@ -23,19 +23,19 @@ api_bp = Blueprint('api', __name__)
 def require_api_key():
     """
     Decorador para validar API Key.
-    Recibe el codigo (scope) desde el header X-Codigo-Key enviado por el cliente.
+    Recibe el codigo (scope) desde el header X-Code-API enviado por el cliente.
     
     Requiere headers:
     - X-API-Key: API key en texto plano
     - X-Empresa-Id: ID de la empresa
-    - X-Codigo-Key: Código del scope ('licencias', 'soporte', 'facturacion', 'general')
+    - X-Code-API: Código del scope ('licencias', 'soporte', 'facturacion', 'general')
     """
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             api_key = request.headers.get('X-API-Key')
             empresa_id_header = request.headers.get('X-Empresa-Id')
-            codigo_requerido = request.headers.get('X-Codigo-Key')
+            codigo_requerido = request.headers.get('X-Code-API')
             
             if not api_key:
                 AppLogger.warning(
@@ -58,11 +58,11 @@ def require_api_key():
             if not codigo_requerido:
                 AppLogger.warning(
                     LogCategory.API,
-                    'Intento de acceso sin X-Codigo-Key',
+                    'Intento de acceso sin X-Code-API',
                     ip=request.remote_addr,
                     endpoint=request.endpoint
                 )
-                return jsonify({'message': 'X-Codigo-Key header requerido', 'error': 'missing_codigo_key'}), 401
+                return jsonify({'message': 'X-Code-API header requerido', 'error': 'missing_codigo_key'}), 401
             
             # Validar formato de empresa_id
             try:

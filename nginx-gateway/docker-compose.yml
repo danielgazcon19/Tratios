@@ -3,26 +3,26 @@ version: '3.9'
 # ============================================================
 # NGINX GATEWAY - Reverse Proxy Central para Multi-Tenant
 # ============================================================
-# Este es el ÚNICO servicio que expone puertos 80/443 al host
-# Todos los demás servicios se conectan a través de este gateway
+# Este es el ÃšNICO servicio que expone puertos 80/443 al host
+# Todos los demÃ¡s servicios se conectan a travÃ©s de este gateway
 # ============================================================
 
 services:
-  # Nginx Gateway - Punto de entrada único
+  # Nginx Gateway - Punto de entrada Ãºnico
   nginx_gateway:
     image: nginx:alpine
     container_name: nginx_gateway
     restart: always
     ports:
-      - "80:80"      # HTTP - ÚNICO puerto 80 expuesto en el servidor
-      - "443:443"    # HTTPS - ÚNICO puerto 443 expuesto en el servidor
+      - "80:80"      # HTTP - ÃšNICO puerto 80 expuesto en el servidor
+      - "443:443"    # HTTPS - ÃšNICO puerto 443 expuesto en el servidor
     volumes:
       # Configuraciones de nginx por subdominio
       - ./conf.d:/etc/nginx/conf.d:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       
       # Certificados SSL de Let's Encrypt
-      - ../certbot/www:/var/www/certbot:ro
+      - ../certbot/www:/var/www/certbot:rw
       - ../certbot/conf:/etc/letsencrypt:ro
       
       # Logs centralizados
@@ -31,20 +31,15 @@ services:
       # Cache de nginx
       - nginx_cache:/var/cache/nginx
     networks:
-      # Conectar a todas las redes de cada aplicación
+      # Conectar a todas las redes de cada aplicaciÃ³n
       - tratios_admin_network
-      # Agregar más redes según sea necesario:
+      # Agregar mÃ¡s redes segÃºn sea necesario:
       # - saas_cliente1_network
       # - saas_cliente2_network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     depends_on:
       - certbot
 
-  # Certbot - Gestión automática de certificados SSL
+  # Certbot - GestiÃ³n automÃ¡tica de certificados SSL
   certbot:
     image: certbot/certbot:latest
     container_name: certbot_gateway
@@ -65,7 +60,7 @@ networks:
     external: true
     name: tratios_admin_network
   
-  # Agregar redes adicionales aquí cuando crees nuevos clientes:
+  # Agregar redes adicionales aquÃ­ cuando crees nuevos clientes:
   # saas_cliente1_network:
   #   external: true
   #   name: saas_cliente1_network
