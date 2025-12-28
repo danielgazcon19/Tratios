@@ -306,4 +306,5 @@ app = create_app()
 
 if __name__ == '__main__':
     # Para desarrollo local
+    # app = create_app() #Comentar esta línea al usar gunicorn
     app.run(debug=True, host='0.0.0.0', port=5222)
